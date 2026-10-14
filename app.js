@@ -21,7 +21,7 @@ const FB = {'khach@demo.vn': [{prod: 'PC Gaming Backline G1', type: 'Khen ngợi
 const DONE = {'khach@demo.vn': {s3: '20/09/2026'}};
 
 // Danh sách các bảng khảo sát
-const SV = [
+let SV = [
 {id: 's1', title: 'Mức độ hài lòng về dịch vụ', desc: 'Giúp chúng tôi cải thiện chất lượng tư vấn và chăm sóc khách hàng.', due: '31/10/2026', min: 2, qs: [
 {t: 'rate', q: 'Bạn đánh giá chung về dịch vụ của cửa hàng như thế nào?', req: 1},
 {t: 'one', q: 'Bạn biết đến cửa hàng qua kênh nào?', o: ['Bạn bè giới thiệu', 'Facebook / TikTok', 'Tìm kiếm Google', 'Đi ngang qua cửa hàng', 'Khác'], req: 1},
@@ -51,9 +51,11 @@ async function api(url, options = {}) {
 }
 
 async function refreshData() {
-    const [feedbackResult, surveyResult] = await Promise.all([api('/api/feedback'), api('/api/survey-status')]);
+    const [feedbackResult, surveyResult, surveysResult] = await Promise.all([api('/api/feedback'), api('/api/survey-status'), api('/api/surveys')]);
     FB[me.email] = feedbackResult.feedback;
     DONE[me.email] = surveyResult.completed;
+    const receivedIds = new Set(surveysResult.surveys.map(s => s.id));
+    SV = [...SV.filter(s => !receivedIds.has(s.id)), ...surveysResult.surveys];
 }
 
 async function restoreSession() {
