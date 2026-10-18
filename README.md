@@ -7,7 +7,22 @@
 - 💬 **Phản hồi sản phẩm (Feedback):**
   - Gửi đánh giá, khiếu nại, khen ngợi hoặc câu hỏi về từng dòng sản phẩm cụ thể.
   - Theo dõi danh sách phản hồi đã gửi kèm câu trả lời chính thức từ phía cửa hàng.
-- 🎨 **Giao diện hiện đại (UI/UX):** Hỗ trợ chuẩn Responsive (Mobile/Desktop), tự động chuyển đổi Light/Dark mode và thông báo trạng thái (Toast notification)## 📁 Cấu trúc thư mục
+- 🎨 **Giao diện hiện đại (UI/UX):** Hỗ trợ chuẩn Responsive (Mobile/Desktop), tự động chuyển đổi Light/Dark mode và thông báo trạng thái (Toast notification)## 
+## Hướng dẫn setup
+1. Trong PowerShell, cài Node.js LTS: `winget install OpenJS.NodeJS.LTS`
+2. Sau khi cài xong, đóng rồi mở lại Visual Studio/Terminal và kiểm tra:  `node --version`
+3. Yêu cầu chat GPT tạo file .env sao cho :
+PORT=3000
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=backline_crm
+DB_USER=root
+DB_PASSWORD=mat_khau_mysql_cua_ban
+JWT_SECRET=doi_chuoi_bi_mat_dai_va_kho_doan
+4. Trong Terminal project chạy: `npm run db:setup`
+5. Sau đó chạy : `npm start`
+
+📁 Cấu trúc thư mục
 
 ## Backend đã tích hợp
 
