@@ -39,6 +39,9 @@ let SV = [
 // Biến trạng thái ứng dụng hiện tại
 let me = null, tab = 'survey', open = null, authTab = 'login';
 const TOKEN_KEY = 'backline_crm_token';
+const hiddenSurveyKey = () => `backline_crm_hidden_surveys_${me?.email || ''}`;
+const hiddenSurveys = () => new Set(JSON.parse(localStorage.getItem(hiddenSurveyKey()) || '[]'));
+const hideSurvey = id => { const ids = hiddenSurveys(); ids.add(id); localStorage.setItem(hiddenSurveyKey(), JSON.stringify([...ids])); };
 
 async function api(url, options = {}) {
     const headers = {'Content-Type': 'application/json', ...(options.headers || {})};
@@ -87,7 +90,9 @@ const stars = (id, v) => `<div class="stars" id="${id}" data-val="${v || 0}" rol
 const ro = n => `<span class="ro" aria-label="${n} sao">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`;
 
 // Lọc các khảo sát chưa hoàn thành
-const pending = () => SV.filter(s => !(DONE[me.email] || {})[s.id]);
+const dateFromVN = value => { const m = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? new Date(+m[3], +m[2] - 1, +m[1], 23, 59, 59) : null; };
+const isExpired = s => s.isExpired || Boolean(s.dueDate ? new Date(`${s.dueDate}T23:59:59`) < new Date() : dateFromVN(s.due) && dateFromVN(s.due) < new Date());
+const pending = () => SV.filter(s => !(DONE[me.email] || {})[s.id] && !isExpired(s));
 
 // Hàm render chính để vẽ lại giao diện dựa trên trạng thái đăng nhập
 function render() {
@@ -112,9 +117,12 @@ function main() {
 
 // Danh sách các phiếu khảo sát
 function svList() {
-    const n = pending().length;
-    let h = `<h1>Khảo sát dành cho bạn</h1><p class="mu">${n ? `Bạn có ${n} khảo sát đang chờ. Mỗi khảo sát chỉ mất vài phút.` : 'Bạn đã hoàn thành tất cả khảo sát. Cảm ơn bạn!'}</p>`;
-    return h + SV.map(s => { const d = (DONE[me.email] || {})[s.id]; return `<div class="card"><div class="row"><div><h2>${esc(s.title)}</h2><div class="mu">${esc(s.desc)}</div></div>${d ? '<span class="b ok">Đã hoàn thành</span>' : '<span class="b wn">Chưa thực hiện</span>'}</div><div class="row" style="margin-top:12px;align-items:center"><span class="mu">${s.qs.length} câu · khoảng ${s.min} phút · ${d ? 'Hoàn thành ngày ' + d : 'Hạn ' + s.due}</span>${d ? '' : `<button class="btn pri" data-act="start" data-v="${s.id}">Thực hiện khảo sát</button>`}</div></div>` }).join('');
+    const done = DONE[me.email] || {};
+    const hidden = hiddenSurveys();
+    const active = SV.filter(s => !done[s.id] && !isExpired(s));
+    const completed = SV.filter(s => (done[s.id] || isExpired(s)) && !hidden.has(s.id));
+    const card = (s, type) => { const d = done[s.id], isDone = Boolean(d), isOld = !isDone && isExpired(s); return `<div class="card"><div class="row"><div><h2>${esc(s.title)}</h2><div class="mu">${esc(s.desc)}</div></div><span class="b ${isDone ? 'ok' : isOld ? 'in' : 'wn'}">${isDone ? 'Đã hoàn thành' : isOld ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><div class="row" style="margin-top:12px;align-items:center"><span class="mu">${s.qs.length} câu · khoảng ${s.min} phút · ${isDone ? 'Hoàn thành ngày ' + d : 'Hạn ' + s.due}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${s.id}">Thực hiện khảo sát</button>` : (isDone || isOld) ? `<button class="btn sm" data-act="hide-survey" data-v="${s.id}">Ẩn khảo sát</button>` : ''}</div></div>`; };
+    return `<h1>Khảo sát dành cho bạn</h1><p class="mu">Chỉ khảo sát đang mở mới có thể thực hiện. Khảo sát quá hạn không có câu trả lời được lưu trong mục hoàn tất.</p><h2>Khảo sát mới đang mở (${active.length})</h2>${active.length ? active.map(s => card(s, 'active')).join('') : '<div class="card empty">Hiện không có khảo sát mới cần thực hiện.</div>'}<h2 style="margin-top:24px">Đã hoàn thành (${completed.length})</h2>${completed.length ? completed.map(s => card(s, 'completed')).join('') : '<div class="card empty">Chưa có khảo sát hoàn tất hoặc quá hạn.</div>'}`;
 }
 
 // Form chi tiết làm một bảng khảo sát
@@ -191,6 +199,7 @@ const H = {
             if (!ok) return setErr(`Vui lòng trả lời câu ${i + 1}.`);
         }
         const answers = {...v};
+        s.qs.forEach((q, i) => { if (q.t === 'multi') answers['q' + i] = [...f.querySelectorAll(`[name=q${i}]:checked`)].map(x => x.value); });
         s.qs.forEach((q, i) => { if (q.t === 'rate') answers['q' + i] = +$('#q' + i).dataset.val; });
         const result = await api(`/api/surveys/${s.id}/responses`, {method: 'POST', body: JSON.stringify({answers})});
         (DONE[me.email] = DONE[me.email] || {})[s.id] = result.completedAt;
@@ -212,8 +221,9 @@ document.addEventListener('click', e => {
         const p = b.parentElement; p.dataset.val = v;
         p.querySelectorAll('.st').forEach((x, i) => x.classList.toggle('on', i < +v));
     } else if (a === 'atab') { authTab = v; render(); }
-    else if (a === 'tab') { tab = v; open = null; render(); }
+    else if (a === 'tab') { tab = v; open = null; if (v === 'survey') refreshData().then(render).catch(err => toast(err.message)); else render(); }
     else if (a === 'start') { open = v; render(); scrollTo(0, 0); }
+    else if (a === 'hide-survey') { hideSurvey(v); render(); toast('Đã ẩn khảo sát khỏi danh sách của bạn.'); }
     else if (a === 'back') { open = null; render(); }
     else if (a === 'out') { sessionStorage.removeItem(TOKEN_KEY); me = null; open = null; authTab = 'login'; render(); toast('Bạn đã đăng xuất'); }
 });
