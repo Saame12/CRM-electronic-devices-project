@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.mysql.js",
+    "test:reports": "node --test scripts/reports.test.js",
     "db:setup": "node scripts/setup-database.js"
   },
   "keywords": [],

@@ -37,8 +37,9 @@ let SV = [
 {t: 'text', q: 'Ý kiến khác'}]}];
 
 // Biến trạng thái ứng dụng hiện tại
-let me = null, tab = 'survey', open = null, authTab = 'login';
+let me = null, tab = 'survey', open = null, authTab = 'login', profileOpen = false, profileNoticeOpen = false, onboarding = false, onboardingNoticeOpen = false;
 const TOKEN_KEY = 'backline_crm_token';
+const ONBOARDING_KEY = 'backline_crm_profile_onboarding';
 const hiddenSurveyKey = () => `backline_crm_hidden_surveys_${me?.email || ''}`;
 const hiddenSurveys = () => new Set(JSON.parse(localStorage.getItem(hiddenSurveyKey()) || '[]'));
 const hideSurvey = id => { const ids = hiddenSurveys(); ids.add(id); localStorage.setItem(hiddenSurveyKey(), JSON.stringify([...ids])); };
@@ -66,6 +67,9 @@ async function restoreSession() {
     try {
         me = (await api('/api/me')).user;
         await refreshData();
+        onboarding = sessionStorage.getItem(ONBOARDING_KEY) === '1' && profileNeedsCompletion();
+        onboardingNoticeOpen = onboarding;
+        profileNoticeOpen = !onboarding && profileNeedsCompletion();
     } catch (_) {
         sessionStorage.removeItem(TOKEN_KEY);
         me = null;
@@ -93,11 +97,15 @@ const ro = n => `<span class="ro" aria-label="${n} sao">${'★'.repeat(n)}${'☆
 const dateFromVN = value => { const m = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? new Date(+m[3], +m[2] - 1, +m[1], 23, 59, 59) : null; };
 const isExpired = s => s.isExpired || Boolean(s.dueDate ? new Date(`${s.dueDate}T23:59:59`) < new Date() : dateFromVN(s.due) && dateFromVN(s.due) < new Date());
 const pending = () => SV.filter(s => !(DONE[me.email] || {})[s.id] && !isExpired(s));
+const profileNeedsCompletion = () => Boolean(me && (!me.addr || !me.year || !me.gender || !me.need || me.need === 'Chưa xác định'));
 
 // Hàm render chính để vẽ lại giao diện dựa trên trạng thái đăng nhập
 function render() {
-    $('#who').innerHTML = me ? `<span>${esc(me.name)}</span><button class="btn sm" data-act="out">Đăng xuất</button>` : '';
+    $('#who').innerHTML = me ? `<button class="profile-trigger" data-act="profile" title="Mở thông tin cá nhân">${esc(me.name)}</button><button class="btn sm" data-act="out">Đăng xuất</button>` : '';
     $('#app').innerHTML = me ? main() : auth();
+    $('#profileModal').innerHTML = me && profileOpen ? `<div class="modal-backdrop" data-act="profile-close"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="profile-title" onclick="event.stopPropagation()"><div class="modal-head"><div><h1 id="profile-title">Thông tin cá nhân</h1><p class="mu">Cập nhật hồ sơ để nhận tư vấn và hỗ trợ phù hợp hơn.</p></div><button class="btn sm" type="button" data-act="profile-close" aria-label="Đóng">Đóng</button></div>${profView()}</section></div>` : '';
+    if (me && onboardingNoticeOpen) $('#profileModal').innerHTML = `<div class="modal-backdrop"><section class="modal onboarding-notice" role="dialog" aria-modal="true"><h1>Thông báo</h1><p>Vui lòng nhập thông tin cá nhân để có trải nghiệm tốt hơn.</p><button class="btn pri" type="button" data-act="begin-onboarding">OK</button></section></div>`;
+    $('#profileReminder').innerHTML = me && profileNoticeOpen && !onboarding ? `<aside class="profile-reminder" role="alert"><span>Vui lòng nhập thông tin cá nhân để có trải nghiệm tốt hơn.</span><button type="button" class="reminder-close" data-act="profile-notice-close" aria-label="Đóng thông báo">×</button></aside>` : '';
 }
 
 // Giao diện Đăng nhập / Đăng ký
@@ -105,14 +113,15 @@ function auth() {
     const L = authTab === 'login';
     return `<div class="card auth"><div class="tabs"><button class="${L ? 'on' : ''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${L ? '' : 'on'}" data-act="atab" data-v="reg">Đăng ký</button></div>` + (L ?
     `<form id="login" novalidate><label>Email<input name="email" type="email" autocomplete="username" placeholder="ten@email.com"></label><label>Mật khẩu<input name="pass" type="password" autocomplete="current-password"></label><div class="err" id="err" role="alert"></div><button class="btn pri full">Đăng nhập</button><p class="mu" style="margin:12px 0 0">Dùng thử: khach@demo.vn / 123456</p></form>` :
-    `<form id="reg" novalidate><label>Họ và tên<input name="name" autocomplete="name"></label><div class="grid"><label>Email<input name="email" type="email" autocomplete="email"></label><label>Số điện thoại<input name="phone" type="tel" autocomplete="tel" placeholder="0901234567"></label></div><div class="grid"><label>Mật khẩu<input name="pass" type="password" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></label><label>Nhập lại mật khẩu<input name="pass2" type="password" autocomplete="new-password"></label></div><div class="err" id="err" role="alert"></div><button class="btn pri full">Tạo tài khoản</button></form>`) + '</div>';
+    `<form id="reg" novalidate><label>Họ và tên<input name="name" autocomplete="name"></label><div class="grid"><label>Email<input name="email" type="email" autocomplete="email"></label><label>Số điện thoại<input name="phone" type="tel" autocomplete="tel" placeholder="0901234567"></label></div><div class="grid"><label>Năm sinh<input name="year" type="number" min="0" max="2026" required placeholder="1998"></label><label>Giới tính<select name="gender" required><option value="">Chọn giới tính</option><option>Nam</option><option>Nữ</option><option>Khác</option></select></label></div><div class="grid"><label>Mật khẩu<input name="pass" type="password" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></label><label>Nhập lại mật khẩu<input name="pass2" type="password" autocomplete="new-password"></label></div><div class="err" id="err" role="alert"></div><button class="btn pri full">Tạo tài khoản</button></form>`) + '</div>';
 }
 
-// Giao diện trang chủ sau khi đăng nhập (gồm các tab Khảo sát, Phản hồi, Thông tin cá nhân)
+// Giao diện trang chủ sau khi đăng nhập
 function main() {
+    if (onboarding) return `<section class="onboarding"><h1>Hoàn thiện thông tin cá nhân</h1><p class="mu">Bạn cần lưu đầy đủ thông tin trước khi sử dụng khảo sát.</p>${profView()}</section>`;
     const n = pending().length;
-    const T = [['survey', 'Khảo sát' + (n ? `<span class="n">${n}</span>` : '')], ['fb', 'Phản hồi sản phẩm'], ['prof', 'Thông tin cá nhân']];
-    return `<div class="tabs">${T.map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>` + (tab === 'survey' ? (open ? svForm(SV.find(s => s.id === open)) : svList()) : tab === 'fb' ? fbView() : profView());
+    const T = [['survey', 'Khảo sát' + (n ? `<span class="n">${n}</span>` : '')], ['fb', 'Phản hồi sản phẩm']];
+    return `<div class="tabs">${T.map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>` + (tab === 'survey' ? (open ? svForm(SV.find(s => s.id === open)) : svList()) : fbView());
 }
 
 // Danh sách các phiếu khảo sát
@@ -144,7 +153,7 @@ function fbView() {
 
 // Giao diện Thông tin cá nhân (Profile)
 function profView() {
-    return `<form id="prof" class="card" novalidate><h1>Thông tin cá nhân</h1><p class="mu">Thông tin chính xác giúp cửa hàng tư vấn và hỗ trợ bạn tốt hơn.</p><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Năm sinh<input name="year" type="number" value="${esc(me.year)}" placeholder="1998"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map(g => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Không muốn nêu'}</option>`).join('')}</select></label></div><label>Nhu cầu sử dụng PC / laptop<select name="need">${NEEDS.map(g => `<option${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label><div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>`;
+    return `<form id="prof" class="card" novalidate><h1>Thông tin cá nhân</h1><p class="mu">Thông tin chính xác giúp cửa hàng tư vấn và hỗ trợ bạn tốt hơn.</p><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Năm sinh<input name="year" type="number" min="0" max="2026" value="${esc(me.year)}" placeholder="1998"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map(g => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Không muốn nêu'}</option>`).join('')}</select></label></div><label>Nhu cầu sử dụng PC / laptop<select name="need">${NEEDS.map(g => `<option${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label><div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>`;
 }
 
 
@@ -158,29 +167,37 @@ const H = {
     async login(v) {
         const result = await api('/api/auth/login', {method: 'POST', body: JSON.stringify({email: (v.email || '').trim(), password: v.pass || ''})});
         sessionStorage.setItem(TOKEN_KEY, result.token);
-        me = result.user; await refreshData(); tab = 'survey'; open = null; render();
+        me = result.user; await refreshData(); tab = 'survey'; open = null; profileNoticeOpen = profileNeedsCompletion(); render();
         const n = pending().length;
         toast(n ? `Xin chào ${me.name}. Bạn có ${n} khảo sát mới` : `Xin chào ${me.name}`);
     },
     async reg(v) {
-        const e = v.email.trim().toLowerCase(), n = v.name.trim(), p = v.phone.trim();
+        const e = v.email.trim().toLowerCase(), n = v.name.trim(), p = v.phone.trim(), y = v.year === '' ? '' : +v.year;
         if (!n) return setErr('Vui lòng nhập họ và tên.');
         if (!/^\S+@\S+\.\S+$/.test(e)) return setErr('Email chưa đúng định dạng.');
         if (!/^0\d{9,10}$/.test(p)) return setErr('Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.');
+        if (!Number.isInteger(y) || y < 0 || y > new Date().getFullYear()) return setErr('Năm sinh phải là số không âm và không lớn hơn năm hiện tại.');
+        if (!v.gender) return setErr('Vui lòng chọn giới tính.');
         if (v.pass.length < 6) return setErr('Mật khẩu cần ít nhất 6 ký tự.');
         if (v.pass !== v.pass2) return setErr('Mật khẩu nhập lại chưa khớp.');
-        const result = await api('/api/auth/register', {method: 'POST', body: JSON.stringify({name: n, email: e, phone: p, password: v.pass})});
+        const result = await api('/api/auth/register', {method: 'POST', body: JSON.stringify({name: n, email: e, phone: p, year: y, gender: v.gender, password: v.pass})});
         sessionStorage.setItem(TOKEN_KEY, result.token);
-        me = result.user; await refreshData(); tab = 'survey'; render();
-        toast('Đăng ký thành công. Chào mừng bạn đến với Backline');
+        me = result.user; await refreshData(); tab = 'survey'; onboarding = true; onboardingNoticeOpen = true; profileNoticeOpen = false; sessionStorage.setItem(ONBOARDING_KEY,'1'); render();
     },
     async prof(v) {
         const n = v.name.trim(), y = v.year === '' ? '' : +v.year;
         if (!n) return setErr('Họ và tên không được để trống.');
         if (!/^0\d{9,10}$/.test(v.phone.trim())) return setErr('Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.');
-        if (y !== '' && (y < 1940 || y > 2012)) return setErr('Năm sinh cần nằm trong khoảng 1940 - 2012.');
+        if (!v.addr.trim()) return setErr('Vui lòng nhập địa chỉ.');
+        if (y !== '' && (y < 0 || y > new Date().getFullYear())) return setErr('Năm sinh phải là số không âm và không lớn hơn năm hiện tại.');
+        if (y === '') return setErr('Vui lòng nhập năm sinh.');
+        if (!v.gender) return setErr('Vui lòng chọn giới tính.');
+        if (!v.need || v.need === 'Chưa xác định') return setErr('Vui lòng chọn nhu cầu sử dụng.');
         me = (await api('/api/me', {method: 'PUT', body: JSON.stringify({name: n, phone: v.phone.trim(), addr: v.addr.trim(), year: y, gender: v.gender, need: v.need})})).user;
-        render(); toast('Đã lưu thông tin cá nhân');
+        profileNoticeOpen = profileNeedsCompletion();
+        if (onboarding && !profileNoticeOpen) { onboarding = false; sessionStorage.removeItem(ONBOARDING_KEY); tab = 'survey'; }
+        profileOpen = profileNoticeOpen;
+        render(); toast(profileNoticeOpen ? 'Vui lòng hoàn thiện các thông tin còn thiếu.' : 'Đã lưu thông tin cá nhân');
     },
     async fb(v) {
         const r = +$('#fbRate').dataset.val;
@@ -221,12 +238,24 @@ document.addEventListener('click', e => {
         const p = b.parentElement; p.dataset.val = v;
         p.querySelectorAll('.st').forEach((x, i) => x.classList.toggle('on', i < +v));
     } else if (a === 'atab') { authTab = v; render(); }
+    else if (a === 'profile') { profileOpen = true; render(); }
+    else if (a === 'profile-close') { profileOpen = false; render(); }
+    else if (a === 'profile-notice-close') { profileNoticeOpen = false; render(); }
+    else if (a === 'begin-onboarding') { onboardingNoticeOpen = false; render(); }
     else if (a === 'tab') { tab = v; open = null; if (v === 'survey') refreshData().then(render).catch(err => toast(err.message)); else render(); }
     else if (a === 'start') { open = v; render(); scrollTo(0, 0); }
     else if (a === 'hide-survey') { hideSurvey(v); render(); toast('Đã ẩn khảo sát khỏi danh sách của bạn.'); }
     else if (a === 'back') { open = null; render(); }
-    else if (a === 'out') { sessionStorage.removeItem(TOKEN_KEY); me = null; open = null; authTab = 'login'; render(); toast('Bạn đã đăng xuất'); }
+    else if (a === 'out') { sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(ONBOARDING_KEY); me = null; open = null; authTab = 'login'; render(); toast('Bạn đã đăng xuất'); }
 });
+
+// Đóng pop-up khi bấm nút Đóng hoặc vùng nền, nhưng không đóng khi đang nhập biểu mẫu.
+document.addEventListener('click', e => {
+    if (!profileOpen) return;
+    if (e.target.classList.contains('modal-backdrop') || e.target.matches('[data-act="profile-close"]')) {
+        profileOpen = false; render();
+    }
+}, true);
 
 // Khởi chạy render lần đầu tiên khi tải trang
 render();
