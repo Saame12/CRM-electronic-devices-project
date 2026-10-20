@@ -15,4 +15,4 @@ JWT_SECRET=doi_chuoi_bi_mat_dai_va_kho_doan
 4. Trong Terminal cmd project chạy: `npm run db:setup`
 5. Sau đó chạy : `npm start`
 6. Mở [http://localhost:3000](http://localhost:3000). cho customer
-7. Mở [http://localhost:3000](http://localhost:3000/admin.html) cho admin và manager
+7. Mở [http://localhost:3000/admin.html](http://localhost:3000/admin.html) cho admin và manager
