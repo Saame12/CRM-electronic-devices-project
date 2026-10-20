@@ -4,7 +4,7 @@
 2. Sau khi cài xong, đóng rồi mở lại Visual Studio/Terminal và kiểm tra:  `node --version`
 3. Yêu cầu tạo file .env sao cho :
 `
-PORT=3000
+PORT=3000 /n
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=backline_crm
