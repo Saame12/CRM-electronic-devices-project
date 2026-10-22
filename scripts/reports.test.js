@@ -48,7 +48,7 @@ test('Overview parameterizes inclusive end date and commits a consistent snapsho
 test('Reports render safely after both existing scripts, with no MySQL dependency',()=>{
  const elements=new Map(),events=[],element=s=>{if(!elements.has(s))elements.set(s,{innerHTML:'',textContent:'',querySelector:()=>null,querySelectorAll:()=>[],classList:{add(){},remove(){}}});return elements.get(s)};
  const context=vm.createContext({console,document:{querySelector:element,querySelectorAll:()=>[],addEventListener:(...x)=>events.push(x),createElement:()=>({click(){}})},MutationObserver:class{observe(){}},sessionStorage:{getItem:()=>null},setTimeout:()=>0,clearTimeout(){},URLSearchParams,URL,Blob,window:{},fetch:()=>{throw Error('Unexpected network access')}});
- for(const file of ['admin.js','role-ui.js','reports.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
+ for(const file of ['admin.js','role-ui.js','reports.js','recovery-admin.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
  context.fixture=buildOverview([customer],[],[],now);context.fixture.generatedAt=now.toISOString();context.fixture.asOf='2026-10-20';
  vm.runInContext("me={role:'MANAGER',name:'Quản lý'};page='reports';reportData=fixture;render()",context);
  assert.ok(element('#app').innerHTML.includes('Chân dung khách hàng'));

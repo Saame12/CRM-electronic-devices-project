@@ -4,6 +4,9 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
+const BirthDate = require('./birth-date');
+const PasswordRecovery = require('./password-recovery');
+const CustomerSession = require('./customer-session');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -22,16 +25,18 @@ const dateVN = value => new Intl.DateTimeFormat('vi-VN').format(new Date(value))
 const emailOk = x => /^\S+@\S+\.\S+$/.test(x);
 const phoneOk = x => /^0\d{9,10}$/.test(x);
 const wrap = handler => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
-const publicUser = u => ({ id: u.id, email: u.email, name: u.full_name, phone: u.phone, addr: u.address, year: u.birth_year ?? '', gender: u.gender, need: u.need, role: u.role, status: u.account_status });
-const tokenFor = u => jwt.sign({ sub: u.id, role: u.role }, secret, { expiresIn: '8h' });
+const publicUser = u => ({ id: u.id, email: u.email, name: u.full_name, phone: u.phone, addr: u.address, year: u.birth_year ?? '', birthDate: BirthDate.fromDatabase(u.birth_date), gender: u.gender, need: u.need, role: u.role, status: u.account_status });
+const tokenFor = (u, expiresIn='8h') => jwt.sign({ sub: u.id, role: u.role, ver: Number(u.auth_version||0) }, secret, { expiresIn });
 
 const auth = wrap(async (req, res, next) => {
-  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || CustomerSession.cookieToken(req);
   if (!token) return res.status(401).json({ error: 'Vui lòng đăng nhập.' });
   try {
     const payload = jwt.verify(token, secret);
     const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [payload.sub]);
     if (!rows[0] || rows[0].account_status !== 'ACTIVE') return res.status(401).json({ error: 'Tài khoản không còn hoạt động.' });
+    if(!req.headers.authorization&&rows[0].role!=='CUSTOMER')return res.status(401).json({error:'Vai trò tài khoản đã thay đổi. Vui lòng đăng nhập lại tại trang phù hợp.'});
+    if(Number(payload.ver||0)!==Number(rows[0].auth_version||0))return res.status(401).json({error:'Mật khẩu đã thay đổi. Vui lòng đăng nhập lại.'});
     req.user = rows[0]; next();
   } catch (_) { res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' }); }
 });
@@ -45,39 +50,40 @@ async function seed() {
   if (!admins.length) await db.execute('INSERT INTO users (id,email,password_hash,role,full_name,phone) VALUES (?,?,?,?,?,?)', [uid(), 'admin@backline.vn', await bcrypt.hash('Admin@123', 12), 'ADMIN', 'Quản lý Backline', '0900000000']);
   const [demo] = await db.query("SELECT id FROM users WHERE email = 'khach@demo.vn' LIMIT 1");
   if (!demo.length) await db.execute('INSERT INTO users (id,email,password_hash,full_name,phone,address,birth_year,gender,need) VALUES (?,?,?,?,?,?,?,?,?)', [uid(), 'khach@demo.vn', await bcrypt.hash('123456', 12), 'Nguyễn Minh Anh', '0901234567', '12 Lê Lợi, Quận 1, TP.HCM', 1998, 'Nữ', 'Gaming']);
-  const [s] = await db.query("SELECT id FROM surveys WHERE id = 's1'");
-  if (!s.length) {
-    const [owner] = await db.query("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1");
-    for (const [id, title, description, due] of [['s1','Mức độ hài lòng về dịch vụ','Giúp chúng tôi cải thiện chất lượng tư vấn và chăm sóc khách hàng.','2026-10-31'],['s2','Nhu cầu mua sắm PC và laptop','Cho chúng tôi biết dự định của bạn để gợi ý sản phẩm và ưu đãi phù hợp.','2026-10-25'],['s3','Trải nghiệm bảo hành và hỗ trợ','Đánh giá về quá trình bảo hành, sửa chữa tại cửa hàng.','2026-09-30']]) await db.execute("INSERT INTO surveys (id,title,description,due_date,status,created_by) VALUES (?,?,?,?, 'OPEN',?)", [id,title,description,due,owner[0].id]);
-  }
 }
 
 app.get('/api/health', wrap(async (_req, res) => { await db.query('SELECT 1'); res.json({ ok: true }); }));
 app.post('/api/auth/register', wrap(async (req, res) => {
-  const name = String(req.body.name || '').trim(), email = String(req.body.email || '').trim().toLowerCase(), phone = String(req.body.phone || '').trim(), password = String(req.body.password || ''), year = req.body.year === '' || req.body.year == null ? null : Number(req.body.year), gender = ['Nam', 'Nữ', 'Khác'].includes(req.body.gender) ? req.body.gender : '';
+  const name = String(req.body.name || '').trim(), email = String(req.body.email || '').trim().toLowerCase(), phone = String(req.body.phone || '').trim(), password = String(req.body.password || ''), birthDate = String(req.body.birthDate || '').trim(), gender = ['Nam', 'Nữ', 'Khác'].includes(req.body.gender) ? req.body.gender : '';
   if (!name) return res.status(400).json({ error: 'Vui lòng nhập họ và tên.' });
   if (!emailOk(email)) return res.status(400).json({ error: 'Email chưa đúng định dạng.' });
   if (!phoneOk(phone)) return res.status(400).json({ error: 'Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.' });
-  if (!Number.isInteger(year) || year < 0 || year > new Date().getFullYear()) return res.status(400).json({ error: 'Năm sinh phải là số không âm và không lớn hơn năm hiện tại.' });
+  if (!BirthDate.validISO(birthDate)) return res.status(400).json({ error: 'Ngày sinh không hợp lệ hoặc nằm trong tương lai. Vui lòng nhập theo dd/mm/yyyy.' });
   if (!gender) return res.status(400).json({ error: 'Vui lòng chọn giới tính.' });
   if (password.length < 6) return res.status(400).json({ error: 'Mật khẩu cần ít nhất 6 ký tự.' });
   const id = uid();
-  try { await db.execute('INSERT INTO users (id,email,password_hash,full_name,phone,birth_year,gender) VALUES (?,?,?,?,?,?,?)', [id, email, await bcrypt.hash(password, 12), name, phone, year, gender]); }
+  try { await db.execute('INSERT INTO users (id,email,password_hash,full_name,phone,birth_year,birth_date,gender) VALUES (?,?,?,?,?,?,?,?)', [id, email, await bcrypt.hash(password, 12), name, phone, Number(birthDate.slice(0,4)), birthDate, gender]); }
   catch (e) { if (e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Email hoặc số điện thoại đã được đăng ký.' }); throw e; }
   const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [id]);
-  res.status(201).json({ token: tokenFor(rows[0]), user: publicUser(rows[0]) });
+  const token=CustomerSession.issue(req,res,rows[0],tokenFor);
+  res.status(201).json({ token, user: publicUser(rows[0]) });
 }));
 app.post('/api/auth/login', wrap(async (req, res) => {
   const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [String(req.body.email || '').trim().toLowerCase()]); const user = rows[0];
   if (!user || !(await bcrypt.compare(String(req.body.password || ''), user.password_hash))) return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng.' });
   if (user.account_status !== 'ACTIVE') return res.status(403).json({ error: 'Tài khoản đã bị khóa.' });
-  res.json({ token: tokenFor(user), user: publicUser(user) });
+  if(req.body.customerSession===true&&user.role!=='CUSTOMER')return res.status(403).json({error:'Vui lòng dùng trang đăng nhập Admin hoặc Quản lý cho tài khoản này.'});
+  const token=CustomerSession.issue(req,res,user,tokenFor);
+  res.json({ token, user: publicUser(user) });
 }));
-app.get('/api/me', auth, (req,res) => res.json({ user: publicUser(req.user) }));
+app.post('/api/auth/logout', (req,res)=>{CustomerSession.clear(req,res);res.json({message:'Đã đăng xuất.'})});
+app.get('/api/me', auth, (req,res) => {res.set('Cache-Control','no-store');res.json({ user: publicUser(req.user) })});
 app.put('/api/me', auth, wrap(async (req, res) => {
+  const birthDate = req.body.birthDate === undefined ? BirthDate.fromDatabase(req.user.birth_date) : String(req.body.birthDate || '').trim();
+  if (req.body.birthDate !== undefined && !BirthDate.validISO(birthDate)) return res.status(400).json({error:'Ngày sinh không hợp lệ hoặc nằm trong tương lai. Vui lòng nhập theo dd/mm/yyyy.'});
   const name = String(req.body.name || '').trim(), phone = String(req.body.phone || '').trim(), year = req.body.year === '' || req.body.year == null ? null : Number(req.body.year), gender = ['', 'Nam', 'Nữ', 'Khác'].includes(req.body.gender) ? req.body.gender : '', need = needs.includes(req.body.need) ? req.body.need : 'Chưa xác định';
   if (!name) return res.status(400).json({ error: 'Họ và tên không được để trống.' }); if (!phoneOk(phone)) return res.status(400).json({ error: 'Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.' }); if (year !== null && (!Number.isInteger(year) || year < 0 || year > new Date().getFullYear())) return res.status(400).json({ error: 'Năm sinh phải là số không âm và không lớn hơn năm hiện tại.' });
-  try { await db.execute('UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,gender=?,need=? WHERE id=?', [name,phone,String(req.body.addr||'').trim(),year,gender,need,req.user.id]); } catch (e) { if (e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Số điện thoại này đã được dùng cho tài khoản khác.' }); throw e; }
+  try { await db.execute('UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,birth_date=?,gender=?,need=? WHERE id=?', [name,phone,String(req.body.addr||'').trim(),birthDate?Number(birthDate.slice(0,4)):year,birthDate||null,gender,need,req.user.id]); } catch (e) { if (e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Số điện thoại này đã được dùng cho tài khoản khác.' }); throw e; }
   const [rows] = await db.execute('SELECT * FROM users WHERE id=?', [req.user.id]); res.json({ user: publicUser(rows[0]) });
 }));
 app.get('/api/admin/accounts', auth, admin, wrap(async (_req,res)=>{const [rows]=await db.query('SELECT * FROM users ORDER BY created_at DESC');res.json({accounts:rows.map(publicUser)});}));
@@ -97,7 +103,7 @@ app.post('/api/surveys/:id/responses', auth, wrap(async (req,res) => { const [[s
 app.get('/api/admin/dashboard', auth, staff, wrap(async (_req,res) => { const [[customers]] = await db.query("SELECT COUNT(*) total FROM users WHERE role='CUSTOMER'"), [[feedback]] = await db.query("SELECT COUNT(*) total FROM feedback WHERE status!='RESOLVED'"), [[surveys]] = await db.query("SELECT COUNT(*) total FROM surveys WHERE status='OPEN'"); res.json({customers:customers.total,openFeedback:feedback.total,openSurveys:surveys.total}); }));
 app.get('/api/admin/customers', auth, staff, wrap(async (req,res) => { const q=`%${String(req.query.q||'').trim()}%`, need=String(req.query.need||''), status=String(req.query.status||''); let sql="SELECT * FROM users WHERE role='CUSTOMER' AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)", values=[q,q,q]; if(needs.includes(need)) {sql+=' AND need=?';values.push(need);} if(['ACTIVE','LOCKED'].includes(status)) {sql+=' AND account_status=?';values.push(status);} sql+=' ORDER BY created_at DESC'; const [rows]=await db.execute(sql,values); res.json({customers:rows.map(publicUser)}); }));
 app.get('/api/manager/customers', auth, staff, wrap(async (req,res) => { const q=`%${String(req.query.q||'').trim()}%`, need=String(req.query.need||''), status=String(req.query.status||''); let sql="SELECT * FROM users WHERE role='CUSTOMER' AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)", values=[q,q,q]; if(needs.includes(need)){sql+=' AND need=?';values.push(need);}if(['ACTIVE','LOCKED'].includes(status)){sql+=' AND account_status=?';values.push(status);}sql+=' ORDER BY created_at DESC';const [rows]=await db.execute(sql,values);res.json({customers:rows.map(publicUser)}); }));
-app.get('/api/admin/customers/:id', auth, admin, wrap(async (req,res)=>{const [[user]]=await db.execute("SELECT * FROM users WHERE id=? AND role='CUSTOMER'",[req.params.id]);if(!user)return res.status(404).json({error:'Không tìm thấy khách hàng.'});res.json({customer:publicUser(user)});}));
+app.get('/api/admin/customers/:id', auth, staff, wrap(async (req,res)=>{const [[user]]=await db.execute("SELECT * FROM users WHERE id=? AND role='CUSTOMER'",[req.params.id]);if(!user)return res.status(404).json({error:'Không tìm thấy khách hàng.'});res.set('Cache-Control','no-store');res.json({customer:{...publicUser(user),createdAt:user.created_at,updatedAt:user.updated_at}});}));
 app.put('/api/admin/customers/:id', auth, admin, wrap(async (req,res)=>{const name=String(req.body.name||'').trim(),phone=String(req.body.phone||'').trim(),year=req.body.year===''||req.body.year==null?null:Number(req.body.year),gender=['','Nam','Nữ','Khác'].includes(req.body.gender)?req.body.gender:'',need=needs.includes(req.body.need)?req.body.need:'Chưa xác định';if(!name||!phoneOk(phone))return res.status(400).json({error:'Họ tên hoặc số điện thoại không hợp lệ.'});try{const [r]=await db.execute("UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,gender=?,need=? WHERE id=? AND role='CUSTOMER'",[name,phone,String(req.body.addr||'').trim(),year,gender,need,req.params.id]);if(!r.affectedRows)return res.status(404).json({error:'Không tìm thấy khách hàng.'});}catch(e){if(e.code==='ER_DUP_ENTRY')return res.status(409).json({error:'Số điện thoại đã tồn tại.'});throw e;}res.json({message:'Đã cập nhật khách hàng.'});}));
 app.delete('/api/admin/customers/:id', auth, admin, wrap(async (req,res)=>{const [[usage]]=await db.execute('SELECT (SELECT COUNT(*) FROM feedback WHERE customer_id=?) + (SELECT COUNT(*) FROM survey_responses WHERE customer_id=?) total',[req.params.id,req.params.id]);if(usage.total)return res.status(409).json({error:'Không thể xóa khách hàng đã có phản hồi hoặc trả lời khảo sát; hãy khóa tài khoản.'});const [r]=await db.execute("DELETE FROM users WHERE id=? AND role='CUSTOMER'",[req.params.id]);if(!r.affectedRows)return res.status(404).json({error:'Không tìm thấy khách hàng.'});res.json({message:'Đã xóa khách hàng.'});}));
 app.patch('/api/admin/customers/:id/status', auth, admin, wrap(async (req,res) => { if(!['ACTIVE','LOCKED'].includes(req.body.status)) return res.status(400).json({error:'Trạng thái không hợp lệ.'}); const [r]=await db.execute("UPDATE users SET account_status=? WHERE id=? AND role='CUSTOMER'",[req.body.status,req.params.id]); if(!r.affectedRows)return res.status(404).json({error:'Không tìm thấy khách hàng.'}); res.json({message:'Đã cập nhật trạng thái tài khoản.'}); }));
@@ -115,11 +121,18 @@ app.post('/api/admin/surveys/:id/close', auth, admin, wrap(async (req,res)=>{con
 app.post('/api/admin/surveys/:id/send', auth, staff, wrap(async (req,res)=>{const [[survey]]=await db.execute("SELECT status FROM surveys WHERE id=?",[req.params.id]);if(!survey)return res.status(404).json({error:'Không tìm thấy khảo sát.'});if(survey.status==='CLOSED')return res.status(409).json({error:'Khảo sát đã đóng.'});const connection=await db.getConnection();try{await connection.beginTransaction();await connection.execute("UPDATE surveys SET status='OPEN' WHERE id=?",[req.params.id]);const [customers]=await connection.query("SELECT id FROM users WHERE role='CUSTOMER' AND account_status='ACTIVE'");for(const customer of customers)await connection.execute('INSERT IGNORE INTO survey_recipients (survey_id,customer_id) VALUES (?,?)',[req.params.id,customer.id]);await connection.commit();}catch(e){await connection.rollback();throw e;}finally{connection.release();}res.json({message:'Đã gửi khảo sát đến khách hàng đang hoạt động.'});}));
 app.get('/api/admin/reports/customers', auth, staff, wrap(async (_req,res)=>{const [byNeed]=await db.query("SELECT need label,COUNT(*) total,ROUND(COUNT(*)*100/(SELECT COUNT(*) FROM users WHERE role='CUSTOMER'),1) percentage FROM users WHERE role='CUSTOMER' GROUP BY need ORDER BY total DESC");const [byAge]=await db.query("SELECT CASE WHEN birth_year IS NULL THEN 'Chưa khai báo' WHEN YEAR(CURDATE())-birth_year < 25 THEN 'Dưới 25' WHEN YEAR(CURDATE())-birth_year BETWEEN 25 AND 34 THEN '25 - 34' WHEN YEAR(CURDATE())-birth_year BETWEEN 35 AND 44 THEN '35 - 44' ELSE 'Từ 45 trở lên' END label,COUNT(*) total FROM users WHERE role='CUSTOMER' GROUP BY label ORDER BY total DESC");res.json({byNeed,byAge});}));
 require('./reports-service').registerReports(app, db, auth, staff, wrap);
+require('./survey-copy').register(app, db, auth, staff, wrap);
+app.use(['/api/password-recovery','/api/admin/password-recovery'],(_req,res,next)=>{res.set('Cache-Control','no-store');next()});
+PasswordRecovery.register(app, db, auth, admin, wrap);
 app.use('/api', (_req,res) => res.status(404).json({error:'Không tìm thấy API.'}));
 app.use((err,_req,res,_next) => { console.error(err); res.status(500).json({error:'Lỗi máy chủ. Hãy kiểm tra MySQL và .env.'}); });
 async function addColumnIfMissing(column, definition) {
   const [rows] = await db.execute('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?', [process.env.DB_NAME || 'backline_crm', 'feedback', column]);
   if (!rows.length) await db.query(`ALTER TABLE feedback ADD COLUMN ${definition}`);
 }
-async function start(){ await db.query('SELECT 1'); await db.query("ALTER TABLE users MODIFY role ENUM('ADMIN','MANAGER','CUSTOMER') NOT NULL DEFAULT 'CUSTOMER'"); await addColumnIfMissing('is_hidden', 'is_hidden BOOLEAN NOT NULL DEFAULT FALSE'); await addColumnIfMissing('hidden_at', 'hidden_at DATETIME NULL'); await seed(); app.listen(PORT,()=>console.log(`CRM đang chạy tại http://localhost:${PORT}`)); }
+async function ensureBirthDateColumn(){
+  const [rows]=await db.query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='birth_date'");
+  if(!rows.length)await db.query('ALTER TABLE users ADD COLUMN birth_date DATE NULL AFTER birth_year');
+}
+async function start(){ await db.query('SELECT 1'); await db.query("ALTER TABLE users MODIFY role ENUM('ADMIN','MANAGER','CUSTOMER') NOT NULL DEFAULT 'CUSTOMER'"); await addColumnIfMissing('is_hidden', 'is_hidden BOOLEAN NOT NULL DEFAULT FALSE'); await addColumnIfMissing('hidden_at', 'hidden_at DATETIME NULL'); await ensureBirthDateColumn(); await PasswordRecovery.ensureSchema(db); await seed(); app.listen(PORT,()=>console.log(`CRM đang chạy tại http://localhost:${PORT}`)); }
 start().catch(e=>{console.error(`Không thể khởi động: ${e.message}`);process.exit(1);});
