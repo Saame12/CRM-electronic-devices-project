@@ -26,7 +26,8 @@ let me = null, tab = 'survey', open = null, authTab = 'login', profileOpen = fal
 const TOKEN_KEY = 'backline_crm_token';
 const ONBOARDING_KEY = 'backline_crm_profile_onboarding';
 const hiddenSurveyKey = () => `backline_crm_hidden_surveys_${me?.email || ''}`;
-const hiddenSurveys = () => new Set(JSON.parse(localStorage.getItem(hiddenSurveyKey()) || '[]'));
+let showHiddenSurveys = false;
+const hiddenSurveys = () => { try { const ids = JSON.parse(localStorage.getItem(hiddenSurveyKey()) || '[]'); return new Set(Array.isArray(ids) ? ids : []); } catch (_) { return new Set(); } };
 const hideSurvey = id => { const ids = hiddenSurveys(); ids.add(id); localStorage.setItem(hiddenSurveyKey(), JSON.stringify([...ids])); };
 
 async function api(url, options = {}) {
@@ -103,12 +104,17 @@ function render() {
     $('#profileReminder').innerHTML = me && profileNoticeOpen && !onboarding ? `<aside class="profile-reminder" role="alert"><span>Vui lòng nhập thông tin cá nhân để có trải nghiệm tốt hơn.</span><button type="button" class="reminder-close" data-act="profile-notice-close" aria-label="Đóng thông báo">×</button></aside>` : '';
 }
 
+const restoreSurvey = id => { const ids = hiddenSurveys(); ids.delete(id); localStorage.setItem(hiddenSurveyKey(), JSON.stringify([...ids])); };
+function customerPassword(name, autocomplete, placeholder = '') {
+    return `<span class="customer-password"><input name="${name}" type="password" autocomplete="${autocomplete}" placeholder="${placeholder}"><button type="button" class="customer-password-eye" data-customer-password-toggle aria-label="Hiện mật khẩu" aria-pressed="false" title="Hiện mật khẩu"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="m3 3 18 18"/></svg></button></span>`;
+}
+
 // Giao diện Đăng nhập / Đăng ký
 function auth() {
     const L = authTab === 'login';
     return `<div class="card auth"><div class="tabs"><button class="${L ? 'on' : ''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${L ? '' : 'on'}" data-act="atab" data-v="reg">Đăng ký</button></div>` + (L ?
-    `<form id="login" novalidate><label>Email<input name="email" type="email" autocomplete="username" placeholder="ten@email.com"></label><label>Mật khẩu<input name="pass" type="password" autocomplete="current-password"></label><label class="remember-login"><input name="remember" type="checkbox"> Ghi nhớ đăng nhập trong 7 ngày</label><div class="err" id="err" role="alert"></div><button class="btn pri full">Đăng nhập</button><p class="mu" style="margin:12px 0 0">Dùng thử: khach@demo.vn / 123456</p></form>` :
-    `<form id="reg" novalidate><label>Họ và tên<input name="name" autocomplete="name"></label><div class="grid"><label>Email<input name="email" type="email" autocomplete="email"></label><label>Số điện thoại<input name="phone" type="tel" autocomplete="tel" placeholder="0901234567"></label></div><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" placeholder="dd/mm/yyyy" maxlength="10" required aria-describedby="birthDateHint"><small id="birthDateHint">Ví dụ: 21/10/1998</small></label><label>Giới tính<select name="gender" required><option value="">Chọn giới tính</option><option>Nam</option><option>Nữ</option><option>Khác</option></select></label></div><div class="grid"><label>Mật khẩu<input name="pass" type="password" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></label><label>Nhập lại mật khẩu<input name="pass2" type="password" autocomplete="new-password"></label></div><div class="err" id="err" role="alert"></div><button class="btn pri full">Tạo tài khoản</button></form>`) + '</div>';
+    `<form id="login" novalidate><label>Email<input name="email" type="email" autocomplete="username" placeholder="ten@email.com"></label><label>Mật khẩu${customerPassword('pass', 'current-password')}</label><label class="remember-login"><input name="remember" type="checkbox"> Ghi nhớ đăng nhập trong 7 ngày</label><div class="err" id="err" role="alert"></div><button class="btn pri full">Đăng nhập</button><p class="mu" style="margin:12px 0 0">Dùng thử: khach@demo.vn / 123456</p></form>` :
+    `<form id="reg" novalidate><label>Họ và tên<input name="name" autocomplete="name"></label><div class="grid"><label>Email<input name="email" type="email" autocomplete="email"></label><label>Số điện thoại<input name="phone" type="tel" autocomplete="tel" placeholder="0901234567"></label></div><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" placeholder="dd/mm/yyyy" maxlength="10" required aria-describedby="birthDateHint"><small id="birthDateHint">Ví dụ: 21/10/1998</small></label><label>Giới tính<select name="gender" required><option value="">Chọn giới tính</option><option>Nam</option><option>Nữ</option><option>Khác</option></select></label></div><div class="grid"><label>Mật khẩu${customerPassword('pass', 'new-password', 'Ít nhất 6 ký tự')}</label><label>Nhập lại mật khẩu${customerPassword('pass2', 'new-password')}</label></div><div class="err" id="err" role="alert"></div><button class="btn pri full">Tạo tài khoản</button></form>`) + '</div>';
 }
 
 // Giao diện trang chủ sau khi đăng nhập
@@ -124,9 +130,11 @@ function svList() {
     const done = DONE[me.email] || {};
     const hidden = hiddenSurveys();
     const active = SV.filter(s => !done[s.id] && !isExpired(s));
-    const completed = SV.filter(s => (done[s.id] || isExpired(s)) && !hidden.has(s.id));
-    const card = (s, type) => { const d = done[s.id], isDone = Boolean(d), isOld = !isDone && isExpired(s); return `<div class="card"><div class="row"><div><h2>${esc(s.title)}</h2><div class="mu">${esc(s.desc)}</div></div><span class="b ${isDone ? 'ok' : isOld ? 'in' : 'wn'}">${isDone ? 'Đã hoàn thành' : isOld ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><div class="row" style="margin-top:12px;align-items:center"><span class="mu">${s.qs.length} câu · khoảng ${s.min} phút · ${isDone ? 'Hoàn thành ngày ' + d : 'Hạn ' + s.due}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${s.id}">Thực hiện khảo sát</button>` : (isDone || isOld) ? `<button class="btn sm" data-act="hide-survey" data-v="${s.id}">Ẩn khảo sát</button>` : ''}</div></div>`; };
-    return `<h1>Khảo sát dành cho bạn</h1><p class="mu">Chỉ khảo sát đang mở mới có thể thực hiện. Khảo sát quá hạn không có câu trả lời được lưu trong mục hoàn tất.</p><h2>Khảo sát mới đang mở (${active.length})</h2>${active.length ? active.map(s => card(s, 'active')).join('') : '<div class="card empty">Hiện không có khảo sát mới cần thực hiện.</div>'}<h2 style="margin-top:24px">Đã hoàn thành (${completed.length})</h2>${completed.length ? completed.map(s => card(s, 'completed')).join('') : '<div class="card empty">Chưa có khảo sát hoàn tất hoặc quá hạn.</div>'}`;
+    const history = SV.filter(s => done[s.id] || isExpired(s));
+    const hiddenCount = history.filter(s => hidden.has(s.id)).length;
+    const completed = history.filter(s => hidden.has(s.id) === showHiddenSurveys);
+    const card = (s, type) => { const d = done[s.id], isDone = Boolean(d), isOld = !isDone && isExpired(s); return `<div class="card"><div class="row"><div><h2>${esc(s.title)}</h2><div class="mu">${esc(s.desc)}</div></div><span class="b ${isDone ? 'ok' : isOld ? 'in' : 'wn'}">${isDone ? 'Đã hoàn thành' : isOld ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><div class="row" style="margin-top:12px;align-items:center"><span class="mu">${s.qs.length} câu · khoảng ${s.min} phút · ${isDone ? 'Hoàn thành ngày ' + d : 'Hạn ' + s.due}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${s.id}">Thực hiện khảo sát</button>` : (isDone || isOld) ? `<button class="btn sm" data-act="${showHiddenSurveys ? 'restore-survey' : 'hide-survey'}" data-v="${s.id}">${showHiddenSurveys ? 'Bỏ ẩn' : 'Ẩn khảo sát'}</button>` : ''}</div></div>`; };
+    return `<h1>Khảo sát dành cho bạn</h1><p class="mu">Chỉ khảo sát đang mở mới có thể thực hiện. Khảo sát quá hạn không có câu trả lời được lưu trong mục hoàn tất.</p><h2>Khảo sát mới đang mở (${active.length})</h2>${active.length ? active.map(s => card(s, 'active')).join('') : '<div class="card empty">Hiện không có khảo sát mới cần thực hiện.</div>'}<div class="row survey-history-heading"><h2>${showHiddenSurveys ? 'Khảo sát đã ẩn' : 'Đã hoàn thành'} (${completed.length})</h2><button class="btn sm" data-act="toggle-hidden-surveys" aria-pressed="${showHiddenSurveys}">${showHiddenSurveys ? 'Quay lại đã hoàn thành' : 'Xem khảo sát đã ẩn (' + hiddenCount + ')'}</button></div>${completed.length ? completed.map(s => card(s, 'completed')).join('') : `<div class="card empty">${showHiddenSurveys ? 'Không có khảo sát đã ẩn.' : 'Chưa có khảo sát hoàn tất hoặc quá hạn.'}</div>`}`;
 }
 
 // Form chi tiết làm một bảng khảo sát
@@ -162,7 +170,7 @@ const H = {
     async login(v) {
         const result = await api('/api/auth/login', {method: 'POST', body: JSON.stringify({email: (v.email || '').trim(), password: v.pass || '', customerSession:true, remember:v.remember==='on'})});
         sessionStorage.removeItem(TOKEN_KEY);
-        me = result.user; tab = 'survey'; open = null; applyProfileGate();
+        me = result.user; showHiddenSurveys = false; tab = 'survey'; open = null; applyProfileGate();
         if (!onboarding) await refreshData();
         render();
         if (onboarding) return;
@@ -203,7 +211,7 @@ const H = {
         const r = +$('#fbRate').dataset.val;
         if (!v.prod) return setErr('Vui lòng chọn sản phẩm.');
         if (!r) return setErr('Vui lòng chọn số sao đánh giá.');
-        if (v.body.trim().length < 10) return setErr('Nội dung phản hồi cần ít nhất 10 ký tự.');
+        if (v.body.trim().length < 1) return setErr('Nội dung phản hồi cần ít nhất 1 ký tự không phải khoảng trắng.');
         const result = await api('/api/feedback', {method: 'POST', body: JSON.stringify({prod: v.prod, type: v.type, rate: r, title: v.title.trim(), body: v.body.trim()})});
         (FB[me.email] = FB[me.email] || []).unshift(result.feedback);
         render(); toast('Đã gửi phản hồi. Cảm ơn bạn!');
@@ -246,6 +254,8 @@ document.addEventListener('click', e => {
     else if (a === 'tab') { tab = v; open = null; if (v === 'survey') refreshData().then(render).catch(err => toast(err.message)); else render(); }
     else if (a === 'start') { open = v; render(); scrollTo(0, 0); }
     else if (a === 'hide-survey') { hideSurvey(v); render(); toast('Đã ẩn khảo sát khỏi danh sách của bạn.'); }
+    else if (a === 'toggle-hidden-surveys') { showHiddenSurveys = !showHiddenSurveys; render(); }
+    else if (a === 'restore-survey') { restoreSurvey(v); render(); toast('Đã bỏ ẩn khảo sát.'); }
     else if (a === 'back') { open = null; render(); }
     else if (a === 'out') { api('/api/auth/logout',{method:'POST'}).then(()=>{sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(ONBOARDING_KEY); me = null; open = null; authTab = 'login'; render(); toast('Bạn đã đăng xuất');}).catch(err=>toast(err.message)); }
 });
@@ -257,6 +267,17 @@ document.addEventListener('click', e => {
         profileOpen = false; render();
     }
 }, true);
+
+// Chỉ đổi kiểu ô nhập, không render lại để giữ nội dung và vị trí biểu mẫu.
+document.addEventListener('click', e => {
+    const button = e.target.closest('[data-customer-password-toggle]'); if (!button) return;
+    e.preventDefault();
+    const input = button.parentElement.querySelector('input');
+    const visible = input.type === 'password'; input.type = visible ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-label', visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+    button.title = visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'; input.focus();
+});
 
 // Khởi chạy render lần đầu tiên khi tải trang
 render();

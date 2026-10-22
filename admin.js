@@ -1,142 +1,116 @@
-const $=s=>document.querySelector(s),TOKEN='backline_crm_admin_token';
-let me=null,page='dashboard',customers=[],feedback=[],surveys=[],report=null,surveyReport=null,showHiddenFeedback=false;
-let surveyEditInProgress = false;
-let surveyCopyInProgress = false;
-document.addEventListener('click',async e=>{
- const button=e.target.closest('[data-action="copy-survey"]');if(!button)return;
- e.preventDefault();e.stopImmediatePropagation();if(surveyCopyInProgress||me?.role!=='MANAGER')return;
- surveyCopyInProgress=true;button.disabled=true;const actor=me.id;
- try{
-  const data=await api(`/api/admin/surveys/${encodeURIComponent(button.dataset.id)}/copy`,{method:'POST'});
-  if(me?.role!=='MANAGER'||me.id!==actor)return;
-  if(page!=='surveys'){toast('Đã lập bản nháp mới trong mục Khảo sát.');return}
-  page='surveys';surveys.unshift(data.survey);showSurveyEditor(data);
-  toast('Đã lập bản nháp mới. Bạn có thể đổi tên, đặt hạn và chỉnh sửa câu hỏi trước khi mở.');
- }catch(error){toast(error.message)}finally{surveyCopyInProgress=false;button.disabled=false}
-},true);
-function editorQuestion(q={}) { const type=q.question_type||q.type||'TEXT', options=(q.options||[]); return `<fieldset class="card survey-question"><div class="title"><h2>Câu hỏi</h2><button type="button" class="btn small danger" data-action="remove-question">Xóa câu hỏi</button></div><label>Nội dung câu hỏi<input name="questionText" required value="${esc(q.question_text||q.text||'')}"></label><div class="toolbar"><label>Loại câu hỏi<select name="questionType">${[['TEXT','Văn bản'],['RATING','Đánh giá sao'],['ONE','Chọn một'],['MULTI','Chọn nhiều']].map(([v,l])=>`<option value="${v}"${type===v?' selected':''}>${l}</option>`).join('')}</select></label><label><input type="checkbox" name="required"${q.is_required||q.required?' checked':''}> Bắt buộc</label></div><label>Lựa chọn (mỗi dòng một lựa chọn; chỉ dùng cho Chọn một/Chọn nhiều)<textarea name="options">${esc(Array.isArray(options)?options.join('\n'):options)}</textarea></label></fieldset>`; }
-function showSurveyEditor(data) { const s=data.survey; $('#app').innerHTML=`<button class="btn" data-action="cancel-survey-edit">← Quay lại danh sách khảo sát</button><form id="surveyEditor" class="card" data-id="${s.id}" style="margin-top:16px"><h1>Chỉnh sửa khảo sát</h1><p class="muted">Bạn có thể chỉnh sửa toàn bộ câu hỏi và lựa chọn khi khảo sát ở trạng thái DRAFT.</p><label>Tiêu đề<input name="title" required value="${esc(s.title)}"></label><label>Mô tả<textarea name="description" required>${esc(s.description)}</textarea></label><div class="toolbar"><label>Hạn khảo sát<input name="dueDate" type="date" value="${s.due_date?s.due_date.slice(0,10):''}"></label><label>Trạng thái sau khi lưu<select name="status"><option value="DRAFT">DRAFT - tiếp tục chỉnh sửa</option><option value="OPEN">OPEN - mở cho khách hàng</option><option value="CLOSED">CLOSED - đóng khảo sát</option></select></label></div><div id="questions">${data.questions.map(editorQuestion).join('')}</div><button type="button" class="btn" data-action="add-editor-question">+ Thêm câu hỏi</button><button class="btn primary">Lưu toàn bộ thay đổi</button></form>`; }
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(url,o={}){const h={'Content-Type':'application/json',...(o.headers||{})},t=sessionStorage.getItem(TOKEN);if(t)h.Authorization=`Bearer ${t}`;const r=await fetch(url,{...o,headers:h}),d=await r.json();if(!r.ok)throw Error(d.error||'Không thể kết nối máy chủ.');return d}
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2600)}
-function render(){$('#identity').innerHTML=me?`${esc(me.name)} <button class="btn small" data-action="logout">Đăng xuất</button>`:'';$('#app').innerHTML=me?main():login();if(me?.role==='MANAGER'&&page==='customers'){$('#app h1').textContent='Khách hàng (chỉ xem)';document.querySelectorAll('[data-action="edit-customer"],[data-action="status"],[data-action="delete-customer"]').forEach(x=>x.closest('td')?.remove());document.querySelectorAll('.table thead tr').forEach(x=>{if(x.lastElementChild?.textContent==='Quyền Admin')x.lastElementChild.remove()});document.querySelectorAll('td[colspan="5"]').forEach(x=>x.colSpan=4)}}
-function login(){return `<section class="login"><h1>Đăng nhập vận hành CRM</h1><p>Dành cho Admin hoặc Quản lý.</p><form id="login"><label>Email<input type="email" name="email" value="admin@backline.vn" required></label><label>Mật khẩu<input type="password" name="password" required></label><div id="error" class="error"></div><button class="btn primary full">Đăng nhập</button></form></section>`}
-function main(){const nav=[['dashboard','Tổng quan'],['customers','Khách hàng'],['feedback','Phản hồi'],['reports','Báo cáo'],['surveys','Khảo sát']];return `<nav class="nav">${nav.map(([x,l])=>`<button class="${page===x?'on':''}" data-page="${x}">${l}</button>`).join('')}</nav>${({dashboard,customers:customerPage,feedback:feedbackPage,reports:reportPage,surveys:surveyPage})[page]()}`}
-function dashboard(){return `<h1>Tổng quan CRM</h1><p class="muted">Các chỉ số cập nhật từ dữ liệu MySQL.</p><section class="cards"><article class="card"><div class="muted">Khách hàng</div><div class="metric" id="mCustomers">–</div></article><article class="card"><div class="muted">Phản hồi cần xử lý</div><div class="metric" id="mFeedback">–</div></article><article class="card"><div class="muted">Khảo sát đang mở</div><div class="metric" id="mSurveys">–</div></article></section>`}
-function customerPage(){return `<h1>Quản trị khách hàng</h1><div class="toolbar"><label>Tìm kiếm<input id="search" placeholder="Tên, email hoặc SĐT"></label><label>Nhu cầu<select id="needFilter"><option value="">Tất cả</option>${['Gaming','Đồ họa','Văn phòng','Chưa xác định'].map(x=>`<option>${x}</option>`).join('')}</select></label><label>Trạng thái<select id="customerStatus"><option value="">Tất cả</option><option value="ACTIVE">Hoạt động</option><option value="LOCKED">Đã khóa</option></select></label><button class="btn primary" data-action="search-customers">Lọc</button></div><div class="card table-wrap"><table class="table"><thead><tr><th>Khách hàng</th><th>Liên hệ</th><th>Nhu cầu</th><th>Trạng thái</th><th>Quyền Admin</th></tr></thead><tbody>${customers.map(u=>`<tr><td><b>${esc(u.name)}</b><br><span class="muted">${esc(u.email)}</span></td><td>${esc(u.phone)}</td><td>${esc(u.need)}</td><td><span class="badge ${u.status==='LOCKED'?'locked':''}">${u.status==='ACTIVE'?'Hoạt động':'Đã khóa'}</span></td><td> <button class="btn small ${u.status==='ACTIVE'?'danger':''}" data-action="status" data-id="${u.id}" data-status="${u.status==='ACTIVE'?'LOCKED':'ACTIVE'}">${u.status==='ACTIVE'?'Khóa':'Mở khóa'}</button> <button class="btn small danger" data-action="delete-customer" data-id="${u.id}">Xóa</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">Chưa có khách hàng phù hợp.</td></tr>'}</tbody></table></div>`}
-function feedbackPage(){const levels=['NEW','IN_PROGRESS','RESOLVED'];return `<h1>${showHiddenFeedback?'Phản hồi đã ẩn':'Phản hồi khách hàng'}</h1><div class="toolbar"><label>Trạng thái<select id="feedbackStatus"><option value="">Tất cả</option><option>NEW</option><option>IN_PROGRESS</option><option>RESOLVED</option></select></label><label>Từ ngày xử lý<input id="feedbackFrom" type="date"></label><label>Đến ngày xử lý<input id="feedbackTo" type="date"></label><button class="btn primary" data-action="filter-feedback">Lọc</button><button class="btn" data-action="toggle-hidden-feedback">${showHiddenFeedback?'← Quay lại phản hồi chính':'Xem phản hồi đã ẩn'}</button></div><section class="feedback">${feedback.map(f=>`<article class="card"><div class="title"><div><h2>${esc(f.title||f.feedback_type)}</h2><span class="muted">${esc(f.customer_name)} · ${esc(f.product_name)}</span></div><span class="badge ${f.status}">${f.status}</span></div><p>★ ${f.rating}/5 · ${esc(f.feedback_type)}</p><p class="muted">Ngày nhận: ${new Date(f.created_at).toLocaleString('vi-VN')} ${f.replied_at?`· Xử lý xong: ${new Date(f.replied_at).toLocaleString('vi-VN')}`:''}${f.hidden_at?` · Ẩn: ${new Date(f.hidden_at).toLocaleString('vi-VN')}`:''}</p><p>${esc(f.body)}</p>${showHiddenFeedback?`<button class="btn primary" data-action="restore-feedback" data-id="${f.id}">Khôi phục phản hồi</button>`:`<label>Trạng thái<select id="status-${f.id}">${levels.filter(s=>levels.indexOf(s)>=levels.indexOf(f.status)).map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}</select></label><label>Phản hồi khách hàng<textarea id="reply-${f.id}" placeholder="Nhập câu trả lời">${esc(f.reply_content||'')}</textarea></label><button class="btn primary" data-action="save-feedback" data-id="${f.id}">Lưu xử lý</button>${f.status==='RESOLVED'?` <button class="btn danger" data-action="hide-feedback" data-id="${f.id}">Ẩn</button>`:''}`}</article>`).join('')||'<p class="muted">Không có phản hồi phù hợp.</p>'}</section>`}
-function reportPage(){const r=report||{total:0,byProduct:[],byType:[],byRating:[]},sr=surveyReport?.surveys||[];return `<h1>Báo cáo CRM</h1><h2>Báo cáo phản hồi</h2><p class="muted">Tổng số phản hồi: <b>${r.total}</b>. Sản phẩm có nhiều phản hồi hoặc đánh giá thấp cần được ưu tiên xử lý.</p><section class="report-grid"><article class="card"><h2>Theo sản phẩm</h2><table class="table"><thead><tr><th>Sản phẩm</th><th>Phản hồi</th><th>Điểm TB</th><th>Khiếu nại</th></tr></thead><tbody>${r.byProduct.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.total}</td><td>★ ${x.average_rating||'–'}</td><td>${x.complaints}</td></tr>`).join('')||'<tr><td colspan="4">Chưa có dữ liệu.</td></tr>'}</tbody></table></article><article class="card"><h2>Loại phản hồi</h2>${r.byType.map(x=>`<p><b>${esc(x.label)}</b><br>${x.total} phản hồi (${x.percentage}%)</p>`).join('')||'Chưa có dữ liệu.'}</article><article class="card"><h2>Đánh giá sao</h2>${r.byRating.map(x=>`<p><b>★ ${x.label}</b>: ${x.total} phản hồi</p>`).join('')||'Chưa có dữ liệu.'}</article></section><h2>Báo cáo khảo sát</h2><div class="card table-wrap"><table class="table"><thead><tr><th>Khảo sát</th><th>Trạng thái</th><th>Đã trả lời</th><th>Tỷ lệ hoàn thành</th></tr></thead><tbody>${sr.map(s=>`<tr><td>${esc(s.title)}</td><td>${s.status}</td><td>${s.responses}</td><td>${s.completion_rate==null?'Chưa gửi theo danh sách':s.completion_rate+'%'}</td></tr>`).join('')||'<tr><td colspan="4">Chưa có khảo sát.</td></tr>'}</tbody></table></div>`}
-function surveyPage(){return `<h1>Quản lý khảo sát</h1><p class="muted">DRAFT được sửa tự do. OPEN chỉ được chuyển về DRAFT khi chưa có lượt trả lời. CLOSED dùng để xem lịch sử trả lời.</p><div class="toolbar"><label>Tìm kiếm<input id="surveySearch" placeholder="Tiêu đề hoặc mô tả"></label><label>Trạng thái<select id="surveyStatus"><option value="">Tất cả</option><option>DRAFT</option><option>OPEN</option><option>CLOSED</option></select></label><button class="btn primary" data-action="filter-surveys">Lọc</button><button class="btn" data-action="show-create">Tạo khảo sát</button></div><div id="createSurvey"></div><div class="card table-wrap"><table class="table"><thead><tr><th>Khảo sát</th><th>Hạn</th><th>Trạng thái</th><th>Phản hồi</th><th></th></tr></thead><tbody>${surveys.map(s=>`<tr><td><b>${esc(s.title)}</b><br><span class="muted">${esc(s.description)}</span></td><td>${s.due_date?new Date(s.due_date).toLocaleDateString('vi-VN'):'Không đặt'}</td><td><span class="badge ${s.status}">${s.status}</span></td><td>${s.response_count}</td><td>${s.status==='CLOSED'?`<button class="btn small" data-action="view-responses" data-id="${s.id}">Xem chi tiết</button> <button class="btn small primary" data-action="copy-survey" data-id="${s.id}" title="Sao chép câu hỏi thành một khảo sát mới">Lập khảo sát</button>`:s.status==='DRAFT'||s.response_count==0?`<button class="btn small" data-action="edit-survey" data-id="${s.id}">${s.status==='OPEN'?'Chuyển DRAFT / sửa':'Chỉnh sửa'}</button>`:'Đã có trả lời'}</td></tr>`).join('')||'<tr><td colspan="5">Chưa có khảo sát phù hợp.</td></tr>'}</tbody></table></div>`}
-function createForm(){return `<form id="surveyForm" class="card"><h2>Tạo khảo sát mới</h2><label>Tiêu đề<input name="title" required></label><label>Mô tả<textarea name="description" required></textarea></label><div class="toolbar"><label>Hạn khảo sát<input name="dueDate" type="date"></label><label>Trạng thái<select name="status"><option value="DRAFT">Bản nháp</option><option value="OPEN">Mở ngay</option></select></label></div><div id="questions"><fieldset class="card"><label>Câu hỏi<input name="questionText" required></label><label>Kiểu câu hỏi<select name="questionType"><option value="TEXT">Văn bản</option><option value="RATING">Đánh giá sao</option><option value="ONE">Chọn một</option><option value="MULTI">Chọn nhiều</option></select></label><label>Lựa chọn (mỗi dòng một lựa chọn; chỉ dùng cho chọn một/nhiều)<textarea name="options"></textarea></label><label><input type="checkbox" name="required"> Bắt buộc</label></fieldset></div><button type="button" class="btn" data-action="add-question">Thêm câu hỏi</button><button class="btn primary">Lưu khảo sát</button></form>`}
-function questionBlock(){return `<fieldset class="card"><label>Câu hỏi<input name="questionText" required></label><label>Kiểu câu hỏi<select name="questionType"><option value="TEXT">Văn bản</option><option value="RATING">Đánh giá sao</option><option value="ONE">Chọn một</option><option value="MULTI">Chọn nhiều</option></select></label><label>Lựa chọn (mỗi dòng một lựa chọn)<textarea name="options"></textarea></label><label><input type="checkbox" name="required"> Bắt buộc</label><button type="button" class="btn small danger" data-action="remove-question">Xóa câu hỏi</button></fieldset>`}
-async function loadDashboard(){const d=await api('/api/admin/dashboard');$('#mCustomers').textContent=d.customers;$('#mFeedback').textContent=d.openFeedback;$('#mSurveys').textContent=d.openSurveys}
-async function loadCustomers(){const q=$('#search')?.value||'',n=$('#needFilter')?.value||'',s=$('#customerStatus')?.value||'';customers=(await api(`/api/admin/customers?q=${encodeURIComponent(q)}&need=${encodeURIComponent(n)}&status=${s}`)).customers;render()}
-async function loadFeedback(){const s=$('#feedbackStatus')?.value||'',f=$('#feedbackFrom')?.value||'',t=$('#feedbackTo')?.value||'';feedback=(await api(`/api/admin/feedback?status=${s}&from=${f}&to=${t}&hidden=${showHiddenFeedback}`)).feedback;render()}
-async function loadSurveys(){const q=$('#surveySearch')?.value||'',s=$('#surveyStatus')?.value||'';surveys=(await api(`/api/admin/surveys?q=${encodeURIComponent(q)}&status=${s}`)).surveys;render()}
-async function selectPage(x){page=x;if(x==='customers')await loadCustomers();else if(x==='feedback')await loadFeedback();else if(x==='reports'){[report,surveyReport]=await Promise.all([api('/api/admin/reports/feedback'),api('/api/admin/reports/surveys')]);render()}else if(x==='surveys')await loadSurveys();else{render();await loadDashboard()}}
-document.addEventListener('submit',async e=>{e.preventDefault();try{if(e.target.id==='login'){const r=await api('/api/auth/login',{method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});if(!['ADMIN','MANAGER'].includes(r.user.role))throw Error('Tài khoản này không có quyền vận hành CRM.');sessionStorage.setItem(TOKEN,r.token);me=r.user;render();await loadDashboard()}if(e.target.id==='surveyForm'){const q=[...$('#questions').querySelectorAll('fieldset')].map(x=>({text:x.querySelector('[name=questionText]').value,type:x.querySelector('[name=questionType]').value,options:x.querySelector('[name=options]').value,required:x.querySelector('[name=required]').checked}));const v=Object.fromEntries(new FormData(e.target));await api('/api/admin/surveys',{method:'POST',body:JSON.stringify({...v,questions:q})});toast('Đã tạo khảo sát.');await loadSurveys()}}catch(err){const e=$('#error');if(e)e.textContent=err.message;else toast(err.message)}});
-document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-page]');if(!b)return;try{if(b.dataset.page)return await selectPage(b.dataset.page);const a=b.dataset.action;if(a==='logout'){sessionStorage.removeItem(TOKEN);me=null;render()}if(a==='search-customers')await loadCustomers();if(a==='filter-feedback')await loadFeedback();if(a==='filter-surveys')await loadSurveys();if(a==='status'){await api(`/api/admin/customers/${b.dataset.id}/status`,{method:'PATCH',body:JSON.stringify({status:b.dataset.status})});toast('Đã cập nhật trạng thái.');await loadCustomers()}if(a==='save-feedback'){const id=b.dataset.id;await api(`/api/admin/feedback/${id}`,{method:'PATCH',body:JSON.stringify({status:$(`#status-${id}`).value,reply:$(`#reply-${id}`).value})});toast('Đã lưu phản hồi.');await loadFeedback()}if(a==='delete-feedback'){if(!confirm('Xóa vĩnh viễn phản hồi đã xử lý?'))return;await api(`/api/admin/feedback/${b.dataset.id}`,{method:'DELETE'});toast('Đã xóa phản hồi.');await loadFeedback()}if(a==='edit-survey'){const s=surveys.find(x=>x.id===b.dataset.id),title=prompt('Tiêu đề khảo sát:',s.title);if(title===null)return;const description=prompt('Mô tả khảo sát:',s.description);if(description===null)return;const dueDate=prompt('Hạn khảo sát (YYYY-MM-DD, để trống nếu không đặt):',s.due_date?s.due_date.slice(0,10):'');if(dueDate===null)return;const status=prompt('Trạng thái: DRAFT, OPEN hoặc CLOSED',s.status);if(status===null)return;await api(`/api/admin/surveys/${s.id}`,{method:'PATCH',body:JSON.stringify({title,description,dueDate,status:status.toUpperCase()})});toast('Đã cập nhật khảo sát.');await loadSurveys()}if(a==='show-create')$('#createSurvey').innerHTML=createForm();if(a==='add-question')$('#questions').insertAdjacentHTML('beforeend',questionBlock());if(a==='remove-question')b.closest('fieldset').remove()}catch(err){toast(err.message)}});
-(async()=>{if(!sessionStorage.getItem(TOKEN))return render();try{me=(await api('/api/me')).user;if(!['ADMIN','MANAGER'].includes(me.role))throw Error();render();await loadDashboard()}catch(_){sessionStorage.removeItem(TOKEN);me=null;render()}})();
+/* Staff core: shared session, API, rendering and role-aware login.
+ * Page views: role-ui.js. Surveys: staff-surveys.js. Events: staff-controller.js.
+ */
+const $ = (selector) => document.querySelector(selector);
+const TOKEN = 'backline_crm_admin_token';
+const esc = (value) =>
+  String(value ?? '').replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
+let me = null,
+  page = 'dashboard',
+  customers = [],
+  feedback = [],
+  surveys = [];
+let accounts = [],
+  showCustomerCreate = false,
+  showHiddenFeedback = false;
+let accountFilters = { q: '', role: '', status: '' };
+let customerFilters = { q: '', need: '', status: '' };
+let feedbackFilters = { status: '', from: '', to: '' };
+let surveyFilters = { q: '', status: '' };
+let staffSessionVersion = 0;
+const staffActions = Object.create(null);
+const staffForms = Object.create(null);
+const filteredAccounts = () =>
+  accounts.filter(
+    (a) =>
+      (!accountFilters.role || a.role === accountFilters.role) &&
+      (!accountFilters.status || a.status === accountFilters.status) &&
+      (!accountFilters.q ||
+        [a.name, a.email, a.phone].some((v) =>
+          String(v || '')
+            .toLocaleLowerCase('vi')
+            .includes(accountFilters.q.toLocaleLowerCase('vi'))
+        ))
+  );
 
-// Các thao tác chi tiết được tách riêng để giữ đúng vòng đời DRAFT -> OPEN -> CLOSED.
-document.addEventListener('click', async e => {
-  const b = e.target.closest('[data-action]'); if (!b) return;
-  try {
-    if (b.dataset.action === 'edit-survey') {
-      const d = await api(`/api/admin/surveys/${b.dataset.id}`), s = d.survey;
-      if (s.status === 'OPEN') {
-        await api(`/api/admin/surveys/${s.id}`, {method:'PATCH', body:JSON.stringify({status:'DRAFT'})});
-        toast('Đã chuyển khảo sát về DRAFT. Bấm Chỉnh sửa lần nữa để sửa nội dung.');
-        return loadSurveys();
-      }
-      if (s.status !== 'DRAFT') return;
-      const title = prompt('Tiêu đề khảo sát:', s.title); if (title === null) return;
-      const description = prompt('Mô tả khảo sát:', s.description); if (description === null) return;
-      const dueDate = prompt('Hạn khảo sát (YYYY-MM-DD, để trống nếu không đặt):', s.due_date ? s.due_date.slice(0,10) : ''); if (dueDate === null) return;
-      const questions = [];
-      for (const q of d.questions) {
-        const text = prompt('Nội dung câu hỏi:', q.question_text); if (text === null) return;
-        const options = ['ONE','MULTI'].includes(q.question_type) ? prompt('Lựa chọn, mỗi dòng một lựa chọn:', q.options.join('\n')) : q.options.join('\n');
-        if (options === null) return;
-        questions.push({text, type:q.question_type, options, required:Boolean(q.is_required)});
-      }
-      const status = prompt('Trạng thái sau khi lưu: DRAFT, OPEN hoặc CLOSED', 'DRAFT'); if (status === null) return;
-      await api(`/api/admin/surveys/${s.id}`, {method:'PATCH', body:JSON.stringify({title,description,dueDate,status:status.toUpperCase(),questions})});
-      toast('Đã cập nhật khảo sát.'); await loadSurveys();
-    }
-    if (b.dataset.action === 'view-responses') {
-      const data = await api(`/api/admin/surveys/${b.dataset.id}/responses`);
-      const content = data.responses.length ? data.responses.map(r => `<article class="card"><b>${esc(r.full_name)}</b> · ${esc(r.email)}<br><span class="muted">Hoàn thành: ${new Date(r.submitted_at).toLocaleString('vi-VN')}</span>${r.answers.map(a=>`<p><b>${esc(a.question)}</b><br>${esc(a.answer)}</p>`).join('')}</article>`).join('') : '<p class="muted">Chưa có khách hàng hoàn thành khảo sát này.</p>';
-      $('#createSurvey').innerHTML = `<h2>Kết quả khảo sát: ${esc(data.survey.title)}</h2>${content}`;
-      window.scrollTo({top:0,behavior:'smooth'});
-    }
-  } catch (error) { toast(error.message); }
-});
-
-// Chạy ở capture phase để chặn bộ xử lý cũ còn lại trong file; chỉ còn một luồng chỉnh sửa.
-document.addEventListener('click', async e => {
-  const button = e.target.closest('[data-action="edit-survey"]');
-  if (!button || surveyEditInProgress) return;
-  e.stopImmediatePropagation();
-  surveyEditInProgress = true;
-  try {
-    const d = await api(`/api/admin/surveys/${button.dataset.id}`), s = d.survey;
-    if (s.status === 'OPEN') {
-      await api(`/api/admin/surveys/${s.id}`, {method:'PATCH', body:JSON.stringify({status:'DRAFT'})});
-      toast('Đã chuyển khảo sát về DRAFT. Bấm Chỉnh sửa lần nữa để sửa nội dung.');
-      return await loadSurveys();
-    }
-    if (s.status !== 'DRAFT') return;
-    showSurveyEditor(d);
-  } catch (error) { toast(error.message); }
-  finally { surveyEditInProgress = false; }
-}, true);
-
-// Một khảo sát đã có câu trả lời phải được đóng trước khi xem kết quả; không thể quay về DRAFT.
-function surveyPage(){return `<h1>Quản lý khảo sát</h1><p class="muted">DRAFT được sửa tự do. OPEN chưa có câu trả lời có thể chuyển về DRAFT để sửa. OPEN đã có câu trả lời chỉ có thể đóng ngay. CLOSED dùng để xem lịch sử trả lời.</p><div class="toolbar"><label>Tìm kiếm<input id="surveySearch" placeholder="Tiêu đề hoặc mô tả"></label><label>Trạng thái<select id="surveyStatus"><option value="">Tất cả</option><option>DRAFT</option><option>OPEN</option><option>CLOSED</option></select></label><button class="btn primary" data-action="filter-surveys">Lọc</button><button class="btn" data-action="show-create">Tạo khảo sát</button></div><div id="createSurvey"></div><div class="card table-wrap"><table class="table"><thead><tr><th>Khảo sát</th><th>Hạn</th><th>Trạng thái</th><th>Phản hồi</th><th>Thao tác</th></tr></thead><tbody>${surveys.map(s=>{const answered=Number(s.response_count)>0;const actions=s.status==='CLOSED'?`<button class="btn small" data-action="view-responses" data-id="${s.id}">Xem chi tiết</button> <button class="btn small primary" data-action="copy-survey" data-id="${s.id}" title="Sao chép câu hỏi thành một khảo sát mới">Lập khảo sát</button>`:s.status==='DRAFT'?`<button class="btn small" data-action="edit-survey" data-id="${s.id}">Chỉnh sửa</button> <button class="btn small danger" data-action="close-survey" data-id="${s.id}">Đóng ngay</button>`:answered?`<button class="btn small danger" data-action="close-survey" data-id="${s.id}">Đóng ngay</button>`:`<button class="btn small" data-action="edit-survey" data-id="${s.id}">Chuyển DRAFT / sửa</button> <button class="btn small danger" data-action="close-survey" data-id="${s.id}">Đóng ngay</button>`;return `<tr><td><b>${esc(s.title)}</b><br><span class="muted">${esc(s.description)}</span></td><td>${s.due_date?new Date(s.due_date).toLocaleDateString('vi-VN'):'Không đặt'}</td><td><span class="badge ${s.status}">${s.status}</span></td><td>${s.response_count}</td><td>${actions}</td></tr>`}).join('')||'<tr><td colspan="5">Chưa có khảo sát phù hợp.</td></tr>'}</tbody></table></div>`}
-
-// Thêm nút đóng ngay cho khảo sát DRAFT/OPEN; trạng thái CLOSED chặn câu trả lời mới lập tức.
-function addCloseButtons() {
-  document.querySelectorAll('[data-action="edit-survey"]').forEach(edit => {
-    if (edit.parentElement.querySelector('[data-action="close-survey"]')) return;
-    const close = document.createElement('button');
-    close.className = 'btn small danger'; close.textContent = 'Đóng ngay';
-    close.dataset.action = 'close-survey'; close.dataset.id = edit.dataset.id;
-    edit.insertAdjacentElement('afterend', close);
-  });
+function staffPortal() {
+  return /\/manager\.html$/i.test(globalThis.location?.pathname || '')
+    ? 'MANAGER'
+    : /\/admin\.html$/i.test(globalThis.location?.pathname || '')
+      ? 'ADMIN'
+      : null;
 }
-new MutationObserver(addCloseButtons).observe(document.querySelector('#app'), {childList:true, subtree:true});
-document.addEventListener('click', async e => {
-  const button = e.target.closest('[data-action="close-survey"]'); if (!button) return;
-  if (!confirm('Đóng khảo sát ngay? Khách hàng sẽ không thể gửi câu trả lời mới.')) return;
-  try { await api(`/api/admin/surveys/${button.dataset.id}/close`, {method:'POST'}); toast('Đã đóng khảo sát.'); await loadSurveys(); }
-  catch (error) { toast(error.message); }
-});
+function admitStaff(user, restoring = false) {
+  if (!['ADMIN', 'MANAGER'].includes(user?.role))
+    throw Error('Tài khoản này không có quyền vận hành CRM.');
+  const portal = staffPortal();
+  if (portal === 'MANAGER' && user.role !== 'MANAGER') {
+    if (restoring) {
+      globalThis.location.replace('admin.html');
+      return false;
+    }
+    throw Error('Trang này chỉ cho phép Quản lý đăng nhập. Vui lòng dùng trang Admin.');
+  }
+  if (portal === 'ADMIN' && user.role === 'MANAGER') {
+    globalThis.location.replace('manager.html');
+    return false;
+  }
+  return true;
+}
 
-document.addEventListener('click', async e => {
-  const button = e.target.closest('[data-action]'); if (!button) return;
-  if (button.dataset.action === 'add-editor-question') $('#questions').insertAdjacentHTML('beforeend', editorQuestion());
-  if (button.dataset.action === 'cancel-survey-edit') { page='surveys'; await loadSurveys(); }
-});
-document.addEventListener('submit', async e => {
-  if (e.target.id !== 'surveyEditor') return;
-  e.preventDefault();
-  try {
-    const form=e.target, questions=[...form.querySelectorAll('.survey-question')].map(q=>({text:q.querySelector('[name="questionText"]').value,type:q.querySelector('[name="questionType"]').value,options:q.querySelector('[name="options"]').value,required:q.querySelector('[name="required"]').checked}));
-    if (!questions.length) throw new Error('Khảo sát cần ít nhất một câu hỏi.');
-    const v=Object.fromEntries(new FormData(form));
-    await api(`/api/admin/surveys/${form.dataset.id}`, {method:'PATCH',body:JSON.stringify({...v,questions})});
-    toast('Đã lưu toàn bộ khảo sát.'); page='surveys'; await loadSurveys();
-  } catch (error) { toast(error.message); }
-});
+async function api(url, options = {}) {
+  const requestVersion = staffSessionVersion;
+  const token = sessionStorage.getItem(TOKEN);
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(url, { ...options, headers });
+  const data = await response.json();
+  if (requestVersion !== staffSessionVersion) {
+    const error = Error('Phiên làm việc đã thay đổi.');
+    error.staleSession = true;
+    throw error;
+  }
+  if (!response.ok) throw Error(data.error || 'Không thể kết nối máy chủ.');
+  return data;
+}
 
-document.addEventListener('click', async e => {
-  const button=e.target.closest('[data-action]'); if(!button) return;
-  try {
-    if(button.dataset.action==='edit-customer'){const c=customers.find(x=>x.id===button.dataset.id);const name=prompt('Họ tên:',c.name);if(name===null)return;const phone=prompt('Số điện thoại:',c.phone);if(phone===null)return;const addr=prompt('Địa chỉ:',c.addr||'');if(addr===null)return;await api(`/api/admin/customers/${c.id}`,{method:'PUT',body:JSON.stringify({...c,name,phone,addr,year:c.year,gender:c.gender,need:c.need})});toast('Đã cập nhật khách hàng.');await loadCustomers();}
-    if(button.dataset.action==='delete-customer'){if(!confirm('Xóa khách hàng chưa có lịch sử dữ liệu?'))return;await api(`/api/admin/customers/${button.dataset.id}`,{method:'DELETE'});toast('Đã xóa khách hàng.');await loadCustomers();}
-    if(button.dataset.action==='toggle-hidden-feedback'){showHiddenFeedback=!showHiddenFeedback;await loadFeedback();}
-    if(button.dataset.action==='hide-feedback'){if(!confirm('Ẩn phản hồi này? Bạn có thể xem và khôi phục lại sau.'))return;await api(`/api/admin/feedback/${button.dataset.id}/visibility`,{method:'PATCH',body:JSON.stringify({hidden:true})});toast('Đã ẩn phản hồi.');await loadFeedback();}
-    if(button.dataset.action==='restore-feedback'){await api(`/api/admin/feedback/${button.dataset.id}/visibility`,{method:'PATCH',body:JSON.stringify({hidden:false})});toast('Đã khôi phục phản hồi.');await loadFeedback();}
-  }catch(error){toast(error.message);}
-});
+function toast(t) {
+  const e = $('#toast');
+  e.textContent = t;
+  e.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => e.classList.remove('show'), 2600);
+}
+
+function render() {
+  $('#identity').innerHTML = me
+    ? `<span class="identity-name">${esc(me.name)} <small>${me.role === 'ADMIN' ? 'Quản trị viên' : 'Quản lý'}</small></span><button class="btn small" data-action="logout">Đăng xuất</button>`
+    : '<span class="header-caption">Hệ thống quản trị quan hệ khách hàng</span>';
+  $('#app').innerHTML = me ? main() : login();
+}
+
+function login() {
+  return `<section class="login"><span class="login-eyebrow">BACKLINE WORKSPACE</span><h1>Đăng nhập ${staffPortal() === 'MANAGER' ? 'Quản lý' : 'Admin'}</h1><p>${staffPortal() === 'MANAGER' ? 'Chỉ dành cho tài khoản Quản lý.' : 'Dành cho Admin. Tài khoản Quản lý sẽ được chuyển sang trang Quản lý.'}</p><form id="login"><label>Email<input type="email" name="email" autocomplete="username" required></label><label>Mật khẩu<input type="password" name="password" autocomplete="current-password" required></label><div id="error" class="error"></div><button class="btn primary full">Đăng nhập</button></form></section>`;
+}
+
+function resetStaffSession() {
+  staffSessionVersion++;
+  sessionStorage.removeItem(TOKEN);
+  me = null;
+  page = 'dashboard';
+  customers = [];
+  feedback = [];
+  surveys = [];
+  accounts = [];
+  showCustomerCreate = false;
+  showHiddenFeedback = false;
+  accountFilters = { q: '', role: '', status: '' };
+  customerFilters = { q: '', need: '', status: '' };
+  feedbackFilters = { status: '', from: '', to: '' };
+  surveyFilters = { q: '', status: '' };
+  if (typeof resetReports === 'function') resetReports();
+  if (typeof resetRecoveryAdmin === 'function') resetRecoveryAdmin();
+}

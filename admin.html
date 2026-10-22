@@ -1,23 +1,33 @@
 <!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Backline CRM - Quản lý</title>
-  <link rel="stylesheet" href="admin.css">
-  <link rel="stylesheet" href="customer-details.css">
-  <link rel="stylesheet" href="recovery.css">
-  <link rel="stylesheet" href="account-password.css">
-  <link rel="stylesheet" href="reports.css">
-</head>
-<body>
-  <header class="top"><a href="/" class="brand">Backline CRM</a><span id="identity"></span></header>
-  <main id="app" class="container"></main>
-  <div id="toast" role="status"></div>
-  <script src="admin.js"></script>
-  <script src="role-ui.js"></script>
-  <script src="reports.js"></script>
-  <script src="recovery-admin.js"></script>
-  <script src="customer-details.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Backline CRM - Admin</title>
+    <link rel="stylesheet" href="admin.css" />
+    <link rel="stylesheet" href="reports.css" />
+    <link rel="stylesheet" href="recovery.css" />
+    <link rel="stylesheet" href="customer-details.css" />
+    <link rel="stylesheet" href="account-password.css" />
+    <script src="admin.js" defer></script>
+    <script src="role-ui.js" defer></script>
+    <script src="staff-surveys.js" defer></script>
+    <script src="staff-controller.js" defer></script>
+    <script src="reports.js" defer></script>
+    <script src="recovery-admin.js" defer></script>
+    <script src="customer-details.js" defer></script>
+    <script src="staff-bootstrap.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#app">Chuyển đến nội dung chính</a>
+    <header class="top">
+      <a href="admin.html" class="brand" aria-label="Về trang chính Admin"
+        ><span class="brand-monogram" aria-hidden="true">B</span> Backline <span>CRM</span></a
+      >
+      <div id="identity" aria-label="Thông tin phiên đăng nhập"></div>
+    </header>
+    <main id="app" class="container"></main>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <noscript>Vui lòng bật JavaScript để sử dụng hệ thống.</noscript>
+  </body>
 </html>

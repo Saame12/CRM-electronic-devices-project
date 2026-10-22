@@ -143,3 +143,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     .wrap { padding: 12px; }
     .who .profile-trigger { max-width: 122px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+.customer-password { position: relative; display: block; }
+.customer-password input { width: 100%; padding-right: 46px; }
+.customer-password-eye { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--tx); cursor: pointer; }
+.customer-password-eye:hover { background: rgba(127,127,127,.14); }
+.customer-password-eye:focus-visible { outline: 2px solid currentColor; }
+.customer-password-eye .eye-slash { display: none; }
+.customer-password-eye[aria-pressed="true"] .eye-slash { display: initial; }
+.survey-history-heading { margin-top: 24px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; gap: 12px; }
+.survey-history-heading h2 { margin: 0; }
+

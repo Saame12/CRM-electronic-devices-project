@@ -6,7 +6,7 @@ CREATE DATABASE IF NOT EXISTS backline_crm
   COLLATE utf8mb4_unicode_ci;
 USE backline_crm;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id CHAR(36) PRIMARY KEY,
   email VARCHAR(254) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE users (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id CHAR(36) PRIMARY KEY,
   name VARCHAR(160) NOT NULL UNIQUE,
   category VARCHAR(80) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE products (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE feedback (
+CREATE TABLE IF NOT EXISTS feedback (
   id CHAR(36) PRIMARY KEY,
   customer_id CHAR(36) NOT NULL,
   product_id CHAR(36) NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE feedback (
   INDEX idx_feedback_status (status)
 ) ENGINE=InnoDB;
 
-CREATE TABLE surveys (
+CREATE TABLE IF NOT EXISTS surveys (
   id CHAR(36) PRIMARY KEY,
   title VARCHAR(180) NOT NULL,
   description TEXT NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE surveys (
   INDEX idx_survey_status (status)
 ) ENGINE=InnoDB;
 
-CREATE TABLE survey_questions (
+CREATE TABLE IF NOT EXISTS survey_questions (
   id CHAR(36) PRIMARY KEY,
   survey_id CHAR(36) NOT NULL,
   question_text TEXT NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE survey_questions (
   CONSTRAINT uq_question_order UNIQUE (survey_id, display_order)
 ) ENGINE=InnoDB;
 
-CREATE TABLE question_options (
+CREATE TABLE IF NOT EXISTS question_options (
   id CHAR(36) PRIMARY KEY,
   question_id CHAR(36) NOT NULL,
   option_text VARCHAR(255) NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE question_options (
   CONSTRAINT uq_option_order UNIQUE (question_id, display_order)
 ) ENGINE=InnoDB;
 
-CREATE TABLE survey_recipients (
+CREATE TABLE IF NOT EXISTS survey_recipients (
   survey_id CHAR(36) NOT NULL,
   customer_id CHAR(36) NOT NULL,
   sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -98,7 +98,7 @@ CREATE TABLE survey_recipients (
   CONSTRAINT fk_recipient_customer FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE survey_responses (
+CREATE TABLE IF NOT EXISTS survey_responses (
   id CHAR(36) PRIMARY KEY,
   survey_id CHAR(36) NOT NULL,
   customer_id CHAR(36) NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE survey_responses (
   CONSTRAINT uq_response_per_customer UNIQUE (survey_id, customer_id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE response_details (
+CREATE TABLE IF NOT EXISTS response_details (
   id CHAR(36) PRIMARY KEY,
   response_id CHAR(36) NOT NULL,
   question_id CHAR(36) NOT NULL,
