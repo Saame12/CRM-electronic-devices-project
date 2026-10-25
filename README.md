@@ -49,7 +49,7 @@ Mở terminal ngay tại thư mục có `package.json`, `package-lock.json` và 
 Ví dụ đường dẫn hiện tại trên máy tác giả (máy khác phải thay bằng đường dẫn của mình):
 
 ```powershell
-cd "C:\Users\sangl\source\repos\CRM-electronic-devices-project"
+cd "C:\Users\admin\source\repos\CRM-electronic-devices-project"
 ```
 
 macOS/Linux, ví dụ:
