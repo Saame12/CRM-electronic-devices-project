@@ -1,106 +1,96 @@
-# Backline CRM — Node.js & MySQL
+# Hướng dẫn setup database và chạy Backline CRM
 
-## Chạy bản demo sau khi tải từ GitHub
+Áp dụng cho Windows, macOS và Linux. Chạy bằng Node.js + MySQL Server, không mở trực tiếp `index.html` hay chạy bằng Live Server. Visual Studio/VS Code là trình soạn thảo, không thay thế Node.js và MySQL.
 
-Bản demo là dữ liệu giả lập được lưu thật trong MySQL, không phải dữ liệu khách hàng thật hoặc nội dung giao diện giả.
-Dữ liệu MySQL trên máy tác giả không tự đi kèm GitHub; bộ seed trong database/demo-data.js sẽ tạo lại dữ liệu ở máy người tải.
+## Cài nhanh từ repo chính — khuyến nghị cho người tải mới
 
-Yêu cầu: Node.js 20.19+ (khuyến nghị Node.js 24 LTS), npm, MySQL 8.0+ đang chạy.
-Không thể chạy toàn bộ hệ thống chỉ bằng cách mở index.html hoặc dùng GitHub Pages vì cần backend và MySQL.
+Repo: https://github.com/Saame12/CRM-electronic-devices-project
 
-Mở Terminal trong thư mục tải về:
+Tải Code → Download ZIP rồi giải nén, hoặc clone bằng Git. Trong Visual Studio chọn File → Open → Folder (VS Code: Open Folder), mở thư mục có `package.json`, sau đó mở terminal tại thư mục đó.
 
-```powershell
+```bash
 npm ci
-npm run demo:setup
-npm run demo:start
+npm run config
 ```
 
-- demo:setup tự tạo file .env.demo riêng; không ghi đè .env đang có.
-- Nếu máy chưa có .env, thông tin mặc định là root, cổng 3306, mật khẩu rỗng.
-  Nếu MySQL có mật khẩu hoặc dùng cổng khác, mở .env.demo, sửa DB_USER/DB_PASSWORD/DB_PORT,
-  rồi chạy lại npm run demo:setup. Không đưa .env.demo lên GitHub.
-- Nếu đã có .env, lần đầu sẽ dùng thông tin kết nối MySQL từ đó nhưng chọn database riêng backline_crm_demo
-  và tạo JWT_SECRET ngẫu nhiên riêng. File .env chính không thay đổi.
-- Người dùng MySQL cần quyền tạo database/bảng. Có thể đổi DB_NAME trong .env.demo sang database demo khác;
-  tên phải có chữ demo để hạn chế dùng nhầm.
-- Nếu cổng 3000 đã có chương trình khác, đổi PORT trong .env.demo hoặc dừng server cũ.
-- npm run demo:start sử dụng .env.demo; npm start vẫn sử dụng .env của hệ thống chính.
+Mở `.env` vừa được tạo, điền tài khoản/mật khẩu MySQL trên máy mình. JWT_SECRET đã được sinh ngẫu nhiên; nếu `.env` đã có thì file không bị ghi đè, cần tự kiểm tra khóa hiện có. Bật MySQL Server rồi chạy:
 
-### Tài khoản để tương tác ngay
+```bash
+npm run setup
+npm start
+```
 
-| Vai trò | Email | Mật khẩu | Địa chỉ mặc định |
-| --- | --- | --- | --- |
-| Admin | admin@backline.vn | Admin@123 | http://localhost:3000/admin.html |
-| Quản lý | manager@demo.vn | Manager@123 | http://localhost:3000/manager.html |
-| Khách hàng | khach@demo.vn | 123456 | http://localhost:3000/ |
-| Quản lý bổ sung | manager2@demo.vn | Manager@123 | http://localhost:3000/manager.html |
-| Khách chưa hoàn thiện hồ sơ | khach12@demo.vn | 123456 | http://localhost:3000/ |
-| Khách bị khóa để thử kiểm tra đăng nhập | khach11@demo.vn | 123456 | Bị từ chối đăng nhập |
+`setup` tạo database/bảng theo `.env`. Nếu tất cả bảng nghiệp vụ còn trống, nạp đủ bộ dữ liệu giả lập vào database đó để tương tác ngay (Admin/Quản lý/Khách, khảo sát, phản hồi, báo cáo). Nếu database đã có dữ liệu thì giữ nguyên, không trộn bộ mẫu hoặc reset mật khẩu.
 
-Các khách còn lại: khach2@demo.vn đến khach12@demo.vn, mật khẩu 123456.
-Khách chính khach@demo.vn có hồ sơ đầy đủ và số điện thoại demo 0901234567,
-có thể xem khảo sát ngay hoặc tự gửi yêu cầu quên mật khẩu để thử luồng xác minh Admin.
-Các thông tin tên, địa chỉ, phản hồi và câu trả lời đều là giả lập. Không liên hệ các số điện thoại demo.
+Database mới đã nạp mẫu: Admin `admin@backline.vn / Admin@123`, Quản lý `manager@demo.vn / Manager@123`, Khách `khach@demo.vn / 123456`. Truy cập lần lượt `/admin.html`, `/manager.html`, `/` tại http://localhost:3000. Chỉ dùng tài khoản mặc định để trình diễn local.
 
-### Bộ dữ liệu bao gồm
+Lần sau: bật MySQL → `npm start`. Không cần `.env.demo` trong luồng này. Để chỉ tạo schema: `npm run setup -- --empty`; lưu ý server vẫn bổ sung seed cơ bản khi chạy. Các phần dưới giải thích chi tiết và giữ hướng dẫn chế độ demo cách ly nếu cần.
 
-- 15 tài khoản: 1 Admin, 2 Quản lý, 12 Khách hàng, gồm khách bị khóa và hồ sơ còn thiếu.
-- 14 sản phẩm, 36 phản hồi đủ loại/điểm/trạng thái, có phản hồi đã xử lý và phản hồi đã ẩn.
-- 6 khảo sát, 15 câu hỏi đủ bốn loại và các lựa chọn tương ứng.
-- 55 lượt gửi, 17 lượt hoàn thành, 52 dòng chi tiết câu trả lời để báo cáo có số liệu.
-- 2 bản ghi lịch sử khôi phục mật khẩu giả lập, không chứa token có thể sử dụng.
-  Để thử đổi mật khẩu thực sự, gửi một yêu cầu mới từ trang đăng nhập.
+## 1. Chuẩn bị máy
 
-Ba khảo sát theo yêu cầu đều nằm thật trong DB:
-Mức độ hài lòng về dịch vụ; Nhu cầu mua sắm PC và laptop; Trải nghiệm bảo hành và hỗ trợ.
-Ngoài ra có bản nháp để chỉnh sửa/gửi, khảo sát quá hạn chưa trả lời và khảo sát đóng không có câu trả lời.
-Ngày tạo/hạn khảo sát được tính theo ngày cài demo, không cố định ở năm 2026.
+- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS), kèm npm.
+- Cài MySQL Server 8.0 trở lên và khởi động dịch vụ MySQL. Chỉ có MySQL Workbench thì chưa đủ vì Workbench là công cụ quản trị.
+- Biết tài khoản, mật khẩu và cổng MySQL của máy này. Người dùng setup cần quyền tạo database/bảng và quyền cập nhật cấu trúc, đọc/ghi dữ liệu của database dự án.
+- Tải ZIP dự án từ GitHub và giải nén, hoặc clone bằng Git.
 
-### Những thao tác có thể thử
+Mở lại terminal sau khi cài Node, kiểm tra:
 
-1. Admin: xem/tìm/lọc tài khoản, thêm/xóa tài khoản chưa có lịch sử, xác minh yêu cầu đổi mật khẩu mới.
-2. Quản lý: xem hồ sơ, thêm/khóa khách, xử lý/ẩn/khôi phục phản hồi, tạo/sửa/gửi/đóng/sao chép khảo sát.
-3. Khách: trả lời khảo sát đang mở, gửi phản hồi, cập nhật hồ sơ, ẩn/bỏ ẩn khảo sát.
-4. Báo cáo: xem số liệu khách hàng, chất lượng phản hồi, tỷ lệ hoàn thành và chi tiết từng câu trả lời.
+```bash
+node --version
+npm --version
+```
 
-Thay đổi trên giao diện được lưu thật vào database demo. Chạy lại demo:setup không nhập trùng,
-không mở lại khảo sát đã đóng, không đặt lại mật khẩu và không ghi đè dữ liệu đã chỉnh.
-Nếu database có dữ liệu nhưng chưa có dấu cài demo, lệnh sẽ từ chối trộn dữ liệu.
-Muốn bộ demo hoàn toàn mới, đổi DB_NAME trong .env.demo sang tên demo khác rồi chạy lại setup;
-không cần xóa database cũ.
+Windows dùng PowerShell/CMD; macOS/Linux dùng Terminal. Các lệnh npm trong tài liệu giống nhau trên cả ba hệ điều hành.
 
-Kiểm tra backend demo đang chạy:
+## 2. Mở đúng thư mục và cài thư viện
+
+Mở terminal ngay tại thư mục có `package.json`, `package-lock.json` và `server.mysql.js`.
+
+Ví dụ đường dẫn hiện tại trên máy tác giả (máy khác phải thay bằng đường dẫn của mình):
 
 ```powershell
-npm run demo:check
-# Nếu đổi cổng:
-npm run demo:check -- http://127.0.0.1:3001
+cd "C:\Users\sangl\source\repos\CRM-electronic-devices-project"
 ```
 
-Lệnh kiểm tra chỉ đọc qua API, dành cho database demo chưa thay đổi so với bộ ban đầu.
+macOS/Linux, ví dụ:
 
-### Đưa lên GitHub an toàn
+```bash
+cd ~/Downloads/CRM-electronic-devices-project
+```
 
-Commit mã nguồn, database/schema.sql, database/demo-data.js, database/catalog.js,
-database/real-surveys.js, scripts/, package.json, package-lock.json, .env.example và tài liệu.
-Không commit .env, .env.demo, file env cũ, node_modules/, .vs/, hoặc bản xuất dữ liệu khách hàng thực.
-.gitignore đã khai báo các mục này. Nếu file bí mật từng được Git theo dõi, thêm .gitignore chưa đủ:
-cần gỡ khỏi danh sách theo dõi trước khi đẩy và thay các bí mật đã bị lộ.
-Bộ tài khoản demo công khai chỉ dùng cho máy cục bộ/đồ án, không triển khai nguyên trạng lên Internet.
+Cài thư viện theo phiên bản đã khóa trong dự án:
 
+```bash
+npm ci
+```
 
+Không cần mang thư mục `node_modules` từ máy tác giả sang. Lệnh này cần mạng để tải thư viện. Nếu báo không thấy `package.json`, bạn đang đứng sai thư mục; nếu thiếu `package-lock.json`, hãy tải bản dự án đầy đủ.
 
-## Chạy trong Visual Studio / Terminal
+## 3. Tạo file cấu hình cho máy mới
 
-1. Cài Node.js LTS và MySQL. Sau khi cài Node, đóng rồi mở lại Terminal.
-2. Chạy npm install trong thư mục dự án.
-3. Tạo .env theo cấu hình bên dưới; không đưa .env lên Git.
-4. Với cơ sở dữ liệu mới: chạy npm run db:setup. Không chạy lại bước này chỉ để cập nhật giao diện.
-5. Khởi động bằng npm start.
-6. Khách hàng: http://localhost:3000/
-7. Admin: http://localhost:3000/admin.html
-8. Quản lý: http://localhost:3000/manager.html
+Nếu đã có `.env`, giữ nguyên file và kiểm tra thông tin, không sao chép đè lên cấu hình đang dùng.
+
+Nếu chưa có, sao chép file mẫu:
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Windows CMD:
+
+```bat
+copy .env.example .env
+```
+
+macOS/Linux:
+
+```bash
+cp .env.example .env
+```
+
+Mở `.env` bằng trình soạn thảo, sửa thành thông tin của máy mới:
 
 ```dotenv
 PORT=3000
@@ -108,99 +98,129 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=backline_crm
 DB_USER=root
-DB_PASSWORD=mat_khau_mysql_cua_ban
-JWT_SECRET=chuoi_bi_mat_dai_va_ngau_nhien
+DB_PASSWORD="mat_khau_mysql_cua_may_nay"
+JWT_SECRET=thay_bang_chuoi_ngau_nhien_dai
 ```
 
-Nếu gặp ECONNREFUSED 127.0.0.1:3306, kiểm tra dịch vụ MySQL đang chạy và cổng DB_PORT.
-Nếu báo Unknown database, kiểm tra DB_NAME và bước thiết lập cơ sở dữ liệu.
-node server.js được giữ làm lối vào tương thích, chạy cùng backend MySQL với npm start;
-không còn backend JSON độc lập.
+- `DB_PASSWORD` là mật khẩu tài khoản MySQL, không phải mật khẩu website. Nếu MySQL thật sự không có mật khẩu thì dùng `DB_PASSWORD=""`.
+- `DB_USER` không bắt buộc là root; hãy điền tài khoản MySQL có quyền phù hợp. Trên máy chỉ cho root đăng nhập qua socket, cần cấu hình tài khoản có thể kết nối TCP tới `127.0.0.1`.
+- `DB_NAME` là tên database sẽ đọc và ghi. Để tách chính/demo, dùng `backline_crm` cho chính và `backline_crm_demo` cho demo.
+- `PORT` là cổng website; `DB_PORT` là cổng MySQL, hai cổng này khác nhau.
+- Giá trị có ký tự đặc biệt như `#` nên đặt trong dấu nháy phù hợp để dotenv không hiểu thành comment. Nếu mật khẩu có cả dấu nháy, cần chọn kiểu nháy không làm thay đổi giá trị.
 
-## Phân quyền
+Sinh `JWT_SECRET` bằng lệnh này trên cả ba hệ điều hành:
 
-- Admin: tài khoản và xác minh yêu cầu khôi phục mật khẩu. Chọn vai trò khi tạo tài khoản, không đổi vai trò tài khoản đang có.
-- Quản lý: khách hàng, phản hồi, khảo sát, báo cáo. Hồ sơ cá nhân được xem qua hộp thoại chỉ đọc; không có luồng sửa hồ sơ của khách hàng.
-- Khách hàng: trang riêng, cookie HttpOnly, hoàn thiện hồ sơ và thực hiện khảo sát.
-- Quản lý đăng nhập từ admin.html được chuyển sang manager.html. manager.html không nhận đăng nhập Admin.
-- Kiểm tra quyền API phía máy chủ được giữ độc lập với việc ẩn/hiện nút trên giao diện.
-
-## Cấu trúc Admin / Quản lý
-
-```text
-admin.html / manager.html
-  admin.js                Phiên, API, phân vai đăng nhập, render dùng chung
-  role-ui.js              Giao diện điều hướng, tài khoản, khách hàng, tổng quan, phản hồi
-  staff-surveys.js         Giao diện danh sách, tạo và chỉnh sửa khảo sát
-  staff-controller.js      Nạp dữ liệu, bản đồ thao tác và biểu mẫu, một bộ xử lý sự kiện chung
-  reports.js               Ba nhóm báo cáo, xuất CSV, in, thống kê câu hỏi
-  recovery-admin.js        Duyệt yêu cầu khôi phục mật khẩu và thông báo
-  customer-details.js      Hộp thoại hồ sơ chỉ đọc
-  staff-bootstrap.js       Khởi động sau khi tất cả module đã được tải
-
-admin.css                  Hệ thiết kế chung cho cả hai vai trò
-public-assets.js           Danh sách tài nguyên được phục vụ cho trình duyệt
-server.mysql.js            Backend Express / MySQL đang sử dụng
-reports-service.js         Tổng hợp và truy vấn báo cáo
-password-recovery.js       Luồng khôi phục mật khẩu
-customer-session.js        Cookie phiên khách hàng
-survey-copy.js             Sao chép khảo sát bằng transaction
-scripts/*.test.js          Kiểm thử tự động, không cần MySQL thật
+```bash
+node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 ```
 
-Các file giao diện sử dụng classic scripts theo thứ tự cố định, không cần bước build.
-Không thêm lại các hàm toàn cục trùng tên, không ghi đè main/render/selectPage từ module khác.
-Các chức năng báo cáo/khôi phục/hồ sơ có namespace sự kiện riêng; thao tác nghiệp vụ đi qua staffActions/staffForms.
+Dán kết quả vào `JWT_SECRET`. Không sử dụng nguyên chuỗi ví dụ. Không chia sẻ `.env`, `.env.demo`, mật khẩu hoặc khóa bí mật lên GitHub.
 
-## Kiểm tra và định dạng
+## 4. Chọn cách chạy
 
-```powershell
-npm test
-npm run check:staff
-npm run format:staff
+| Mục đích | File cấu hình | Tạo database | Chạy website |
+| --- | --- | --- | --- |
+| Luồng chuẩn, có dữ liệu mẫu nếu database trống | `.env` | `npm run setup` | `npm start` |
+| Xem đồ án với dữ liệu mẫu hoạt động ngay | `.env.demo` | `npm run demo:setup` | `npm run demo:start` |
+| Dùng database chính | `.env` | `npm run db:setup` | `npm start` |
+
+Chỉ chọn một chế độ để chạy tại một thời điểm nếu hai file dùng cùng PORT.
+
+### Cách A — Dữ liệu mẫu để trải nghiệm đồ án
+
+Sau khi đã cấu hình `.env` đúng kết nối MySQL:
+
+```bash
+npm run demo:setup
+npm run demo:start
 ```
 
-Kiểm tra báo cáo trên MySQL thực, chỉ đọc và không tự khởi động server:
+`demo:setup` thực hiện:
 
-```powershell
-node scripts/check-reports-db.js
+1. Nếu chưa có `.env.demo`: lấy thông tin kết nối từ `.env`, đặt database riêng `backline_crm_demo` và sinh JWT_SECRET riêng.
+2. Tạo database, các bảng và nhập dữ liệu giả lập có thể tương tác thật.
+3. Nếu bộ demo đã được cài, không nhập trùng hoặc ghi đè các chỉnh sửa demo đã có.
+
+Nếu `.env.demo` đã tồn tại, lệnh không tự ghi đè. Đổi mật khẩu/cổng MySQL trong `.env` không tự sửa `.env.demo`; hãy mở đúng file demo và cập nhật rồi chạy lại setup. Tên DB demo phải có chữ `demo`.
+
+Nếu script từ chối vì database chứa dữ liệu không phải bộ demo, hãy chọn một tên database demo mới trong `.env.demo`; không xóa database đang có dữ liệu để vượt kiểm tra.
+
+Khi thấy thông báo server đang chạy, mở:
+
+| Vai trò | Địa chỉ | Email demo | Mật khẩu demo |
+| --- | --- | --- | --- |
+| Khách hàng | http://localhost:3000/ | `khach@demo.vn` | `123456` |
+| Quản lý | http://localhost:3000/manager.html | `manager@demo.vn` | `Manager@123` |
+| Admin | http://localhost:3000/admin.html | `admin@backline.vn` | `Admin@123` |
+
+Đây là tài khoản của bộ demo, không phải mật khẩu đảm bảo cho mọi database sẵn có. Nếu đã đổi mật khẩu thì dùng mật khẩu đã đổi. Không công khai bản demo chứa tài khoản mặc định lên Internet.
+
+Có thể kiểm tra bộ demo bằng:
+
+```bash
+npm run demo:check
 ```
 
-Xem docs/REFACTOR-2026-10-22.md để biết các luồng cũ đã loại bỏ và phạm vi kiểm thử.
+### Cách B — Database chính
 
-## Dữ liệu và bảo mật
+Kiểm tra `DB_NAME=backline_crm` trong `.env`, rồi chạy:
 
-- Không xóa thư mục data/ hoặc tự nhập dữ liệu JSON cũ vào MySQL.
-- Thư mục dự án không còn được công khai toàn bộ: chỉ tài nguyên có trong public-assets.js được tải.
-- File backend, SQL, scripts, node_modules, data và .env không được phục vụ cho trình duyệt.
-- Thêm file JS/CSS dùng ở trình duyệt phải cập nhật public-assets.js và hai trang tương ứng.
-- Không dùng các tài khoản/mật khẩu demo cho môi trường triển khai thật.
+```bash
+npm run db:setup
+npm start
+```
 
-## Tài liệu giải thích logic code
+- `db:setup` dùng `database/schema.sql` để tạo database/bảng theo tên trong `.env`. Không cần tạo thủ công database trước nếu tài khoản MySQL đủ quyền.
+- Script dùng CREATE IF NOT EXISTS, không xóa các bảng/dữ liệu đang có; đây không phải lệnh reset DB hoặc cơ chế nâng cấp mọi cấu trúc cũ. Sao lưu trước khi dùng với dữ liệu quan trọng.
+- Server có bước bổ sung một số cột/bảng còn thiếu và seed cơ bản khi khởi động.
+- Riêng lệnh `db:setup` chỉ tạo bảng nên database chính mới chưa có đầy đủ bộ mẫu. Seed cơ bản của server tạo sản phẩm, Admin và khách thử nếu chưa tồn tại; không tự tạo Quản lý. Muốn bộ mẫu đầy đủ hãy dùng `npm run setup` trên database trống TRƯỚC lần chạy server đầu tiên; nếu đã có dữ liệu thì giữ lại và thêm MANAGER qua Admin, hoặc chọn database mới trong `.env` để thử bộ mẫu.
+- Nếu chưa có Admin, seed tạo `admin@backline.vn` với mật khẩu khởi tạo `Admin@123`. Nếu đã có Admin thì không đặt lại mật khẩu tài khoản cũ.
 
-Đọc [LOGIC_HE_THONG.md](LOGIC_HE_THONG.md) để hiểu luồng giao diện -> API -> MySQL, bảng nào bị thay đổi, khác nhau giữa ẩn/khóa/xóa, quy tắc khảo sát/phản hồi và khôi phục mật khẩu. Các ghi chú `LOGIC` trong mã nguồn đánh dấu điểm xử lý chính. Tài liệu cũng chỉ rõ những giới hạn hiện tại, không coi chức năng dự kiến là chức năng đã có.
+Không dùng tài khoản mặc định và cấu hình local này như một cấu hình triển khai production hoàn chỉnh.
 
-## Khôi phục mật khẩu bằng mã cá nhân
+## 5. Những lần chạy sau
 
-- Khách mới nhận mã trong trang thông tin cá nhân sau khi đăng ký; cần lưu mã ở nơi riêng tư.
-- Khách đang có tài khoản: đăng nhập, bấm tên mình, nhập mật khẩu hiện tại tại mục Mã khôi phục tài khoản để tạo mã.
-- Quên mật khẩu: nhập email + mã cá nhân, rồi tự nhập mật khẩu mới trong 15 phút; không cần Admin duyệt.
-- Đổi mật khẩu thành công sẽ tự cấp mã mới, kể cả khi Admin hỗ trợ. Lưu mã hiển thị một lần rồi bấm Tôi đã lưu mã — Đăng nhập.
-- Admin xem Thông báo & lịch sử tương tác, nhận thông báo sau khi đổi thành công và đánh dấu đã đọc.
-- Khách chưa có/mất mã vẫn có lối hỗ trợ xác minh thủ công riêng; không tự duyệt bằng thông tin cá nhân.
-- Admin không xem được mã cá nhân hoặc mật khẩu. Không đưa mã khôi phục cá nhân lên GitHub.
+Không cần cài thư viện hoặc tạo database lại mỗi lần. Bật MySQL, mở terminal trong dự án, rồi chọn:
 
-Xem PASSWORD_RECOVERY.md để biết chi tiết, tự cập nhật cấu trúc database và kiểm thử cách ly.
-## Ẩn và khôi phục khảo sát trong trang Quản lý
+```bash
+# Database chính
+npm start
+```
 
-- Mỗi khảo sát trong danh sách chính có nút Ẩn khảo sát.
-- Chọn Xem khảo sát đã ẩn để tìm/lọc các khảo sát đã ẩn, rồi chọn Khôi phục khảo sát.
-- Áp dụng cho DRAFT, OPEN và CLOSED; lưu trong MySQL và dùng chung danh sách Quản lý.
-- Ẩn không tự đóng khảo sát, không sửa hạn và không xóa câu trả lời. Khách vẫn thấy/làm khảo sát OPEN theo quy tắc hiện có.
-- Báo cáo vẫn tính các khảo sát đã ẩn. Khôi phục không chuyển trạng thái và không mở lại khảo sát đã đóng.
-- Khởi động server tự bổ sung is_hidden và hidden_at vào bảng surveys, không xóa dữ liệu cũ.
+Hoặc:
 
-Kiểm tra cách ly trên MySQL: node scripts/check-survey-visibility-db.js.
+```bash
+# Database demo
+npm run demo:start
+```
 
+Giữ terminal chạy trong khi sử dụng web. Nhấn `Ctrl + C` để dừng Node server; dữ liệu MySQL vẫn còn. Nếu sửa `.env`/`.env.demo`, dừng và khởi động lại server để đọc cấu hình mới. Nếu đổi PORT thành 3001, thay 3000 bằng 3001 trong địa chỉ web.
 
+Sau khi tải cập nhật source có thay đổi thư viện, chạy lại `npm ci`. Với thay đổi giao diện, dùng Ctrl + F5 trên Windows/Linux hoặc tải lại bỏ cache trên trình duyệt macOS nếu vẫn thấy bản cũ.
 
+## 6. Kiểm tra và xử lý lỗi
+
+Khi server đã chạy, mở http://localhost:3000/api/health — nếu kết nối DB tốt sẽ trả `{"ok":true}`. Chạy `npm test` để kiểm tra các quy tắc có bài test; đây không thay thế kiểm tra MySQL hoặc thao tác thực tế trên trình duyệt.
+
+| Thông báo/hiện tượng | Cách xử lý |
+| --- | --- |
+| `node` / `npm` không được nhận diện | Cài Node.js, mở lại terminal/VS Code/Visual Studio, kiểm tra PATH. |
+| PowerShell chặn `npm.ps1` | Dùng `npm.cmd` thay `npm`, ví dụ `npm.cmd ci`, `npm.cmd run demo:start`; không cần tắt chính sách bảo vệ toàn hệ thống. |
+| `ENOENT ... package.json` | Mở terminal đúng thư mục gốc dự án. |
+| `ECONNREFUSED 127.0.0.1:3306` | Kiểm tra MySQL Server đang chạy và DB_HOST/DB_PORT; thường không phải do mạng Internet yếu. |
+| `Access denied` | Kiểm tra DB_USER/DB_PASSWORD và quyền tài khoản trên đúng host. Nhớ sửa đúng file của chế độ đang chạy. |
+| `Unknown database` | Chạy `db:setup` hoặc `demo:setup` tương ứng, kiểm tra DB_NAME. |
+| Không tạo được database/bảng hoặc ALTER bị từ chối | Tài khoản MySQL thiếu quyền; cần người quản trị cấp quyền phù hợp cho database dự án. |
+| `JWT_SECRET` thiếu/quá ngắn trong demo | Tạo chuỗi ngẫu nhiên, điền đúng file, khởi động lại server. |
+| `EADDRINUSE` / cổng 3000 bị chiếm | Dừng server cũ hoặc đổi PORT trong file cấu hình đang dùng, rồi dùng địa chỉ mới. |
+| Demo setup vẫn dùng mật khẩu cũ | `.env.demo` đã tồn tại nên không được tự ghi đè từ `.env`; sửa trực tiếp `.env.demo`. |
+| Đăng nhập đúng nhưng sai trang | Admin dùng admin.html, Quản lý dùng manager.html, khách dùng trang gốc. |
+| Không có khảo sát như trên máy tác giả | MySQL không đi theo GitHub. Chạy bộ demo để có dữ liệu mẫu hoặc nhập bản sao lưu DB riêng. |
+
+Trên Windows bật MySQL từ Services theo tên dịch vụ thực tế đã cài. Trên macOS/Linux dùng trình quản lý dịch vụ tương ứng với cách cài MySQL của máy; tên dịch vụ và lệnh không giống nhau trên mọi máy. Không cài thêm server thứ hai chỉ vì dịch vụ hiện tại chưa được bật.
+
+## 7. Khi chia sẻ dự án qua GitHub
+
+Đưa source, `package.json`, `package-lock.json`, `.env.example`, thư mục `database` và `scripts` lên repository. Không đưa `.env`, `.env.demo`, `node_modules`, `.vs` hoặc dữ liệu khách hàng thật lên GitHub.
+
+Người tải tạo cấu hình MySQL của chính họ và chạy theo hướng dẫn này. Muốn giữ nguyên dữ liệu đã nhập trên máy tác giả thì phải xuất/nhập bản sao lưu MySQL riêng; `demo:setup` chỉ tạo bộ dữ liệu giả lập của dự án, không sao chép DB máy tác giả.
