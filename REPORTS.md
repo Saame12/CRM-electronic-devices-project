@@ -26,3 +26,5 @@ CSV xuất nhóm đang xem, có BOM để mở tiếng Việt bằng Excel; khi 
 `npm run test:reports` kiểm tra các công thức, lọc ngày, phân quyền endpoint và tích hợp mã giao diện.
 
 `node scripts/check-reports-db.js` kiểm tra truy vấn báo cáo với MySQL cấu hình trong `.env`, chỉ đọc, không tạo/xóa dữ liệu.
+“Chưa xác định” là một lựa chọn nhu cầu hợp lệ và không làm hồ sơ bị tính là chưa đầy đủ. Chưa chọn nhu cầu là trường trống riêng, được thống kê thành “Chưa chọn / chưa khai báo”.
+

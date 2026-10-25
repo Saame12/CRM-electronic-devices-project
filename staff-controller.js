@@ -16,6 +16,8 @@ const canUseStaffAction = (action) =>
       ? me.role === 'ADMIN'
       : me.role === 'MANAGER'));
 
+// LOGIC ĐỌC AN TOÀN: Chỉ nhận kết quả của lần tải mới nhất, đúng người đang đăng nhập.
+// Tránh request trả chậm của tài khoản trước ghi đè dữ liệu sau đăng xuất/đổi trang.
 async function loadStaffCollection(kind, url, key, apply) {
   const actor = me?.id,
     version = (staffLoadVersions[kind] || 0) + 1;
@@ -137,6 +139,7 @@ Object.assign(staffActions, {
       throw Error('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
     return loadFeedback();
   },
+  // LOGIC: Gom trạng thái + câu trả lời -> PATCH -> tải lại từ DB, không chỉ đổi nhãn trên màn hình.
   async 'save-feedback'(button) {
     const id = button.dataset.id;
     await api('/api/admin/feedback/' + staffId(button), {
@@ -167,8 +170,35 @@ Object.assign(staffActions, {
     toast('Đã khôi phục phản hồi.');
     await loadFeedback();
   },
+  'toggle-hidden-surveys'() {
+    surveyFilters.hidden = !surveyFilters.hidden;
+    return loadSurveys();
+  },
+  async 'hide-survey'(button) {
+    if (
+      !confirm(
+        'Ẩn khảo sát khỏi danh sách Quản lý? Khảo sát vẫn giữ trạng thái và câu trả lời; khách vẫn thực hiện được nếu đang mở.'
+      )
+    )
+      return;
+    await api('/api/admin/surveys/' + staffId(button) + '/visibility', {
+      method: 'PATCH',
+      body: JSON.stringify({ hidden: true })
+    });
+    toast('Đã ẩn khảo sát.');
+    await loadSurveys();
+  },
+  async 'restore-survey'(button) {
+    await api('/api/admin/surveys/' + staffId(button) + '/visibility', {
+      method: 'PATCH',
+      body: JSON.stringify({ hidden: false })
+    });
+    toast('Đã khôi phục khảo sát.');
+    await loadSurveys();
+  },
   'filter-surveys'() {
     surveyFilters = {
+      hidden: surveyFilters.hidden,
       q: $('#surveySearch')?.value.trim() || '',
       status: $('#surveyStatus')?.value || ''
     };
@@ -190,6 +220,8 @@ Object.assign(staffActions, {
     page = 'surveys';
     return loadSurveys();
   },
+  // LOGIC: Nếu OPEN chưa có câu trả lời, bấm Sửa sẽ gọi API đổi thật về DRAFT trước khi mở editor.
+  // Hủy editor không tự hoàn tác trạng thái OPEN; backend từ chối nếu đã có câu trả lời.
   async 'edit-survey'(button) {
     let data = await api('/api/admin/surveys/' + staffId(button));
     if (data.survey.status === 'OPEN') {
@@ -203,6 +235,7 @@ Object.assign(staffActions, {
       throw Error('Chỉ chỉnh sửa nội dung khảo sát ở trạng thái DRAFT.');
     if (me?.role === 'MANAGER' && page === 'surveys') showSurveyEditor(data);
   },
+  // LOGIC: Nút Lập khảo sát ghi ngay một bản DRAFT mới vào DB rồi mới mở trang chỉnh sửa.
   async 'copy-survey'(button) {
     const data = await api('/api/admin/surveys/' + staffId(button) + '/copy', { method: 'POST' });
     if (me?.role !== 'MANAGER') return;
@@ -300,6 +333,8 @@ Object.assign(staffForms, {
     toast('Đã thêm khách hàng.');
     await loadCustomers();
   },
+  // LOGIC: Tạo phiếu trước; nếu chọn OPEN thì gọi thêm /send để ghi người nhận.
+  // Đây là HAI request, không phải một transaction chung; lỗi send không tự xóa phiếu vừa tạo.
   async surveyForm(form) {
     const values = formValues(form),
       questions = readSurveyQuestions(form);
@@ -314,6 +349,7 @@ Object.assign(staffForms, {
     toast(values.status === 'OPEN' ? 'Đã tạo và gửi khảo sát.' : 'Đã lưu bản nháp khảo sát.');
     await loadSurveys();
   },
+  // LOGIC: Gửi toàn bộ câu hỏi/lựa chọn lên PATCH; thành công mới quay về danh sách và tải lại.
   async surveyEditor(form) {
     const questions = readSurveyQuestions(form, '.survey-question');
     await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id), {
@@ -339,6 +375,8 @@ function resetStaffViewState() {
   if (typeof resetRecoveryAdmin === 'function') resetRecoveryAdmin();
 }
 
+// LOGIC CHỐNG BẤM LẶP: Khóa cùng khóa tác vụ trong tab, disable nút khi chờ, mở lại ở finally.
+// Không thay thế UNIQUE/transaction hay kiểm tra quyền trên server.
 async function runStaffTask(key, element, task) {
   if (staffPending.has(key)) return;
   staffPending.add(key);

@@ -8,7 +8,8 @@ async function main(){
   await recovery.ensureSchema(connection);
   await connection.query('CREATE TEMPORARY TABLE recovery_test_users LIKE users');
   await connection.query('CREATE TEMPORARY TABLE recovery_test_requests LIKE password_recovery_requests');
-  const rewrite=sql=>sql.replace(/\bpassword_recovery_requests\b/g,'recovery_test_requests').replace(/\busers\b/g,'recovery_test_users');
+  await connection.query('CREATE TEMPORARY TABLE recovery_test_codes LIKE customer_recovery_codes');
+  const rewrite=sql=>sql.replace(/\bcustomer_recovery_codes\b/g,'recovery_test_codes').replace(/\bpassword_recovery_requests\b/g,'recovery_test_requests').replace(/\busers\b/g,'recovery_test_users');
   const execute=(sql,values)=>connection.execute(rewrite(sql),values);
   const id=crypto.randomUUID(),oldHash=await bcrypt.hash('before-testing',4);
   await execute("INSERT INTO users (id,email,password_hash,role,full_name,phone) VALUES (?,?,?,'CUSTOMER',?,?)",[id,'test@example.invalid',oldHash,'Khách kiểm thử cách ly','0909999988']);

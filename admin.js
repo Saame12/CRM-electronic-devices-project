@@ -19,7 +19,7 @@ let accounts = [],
 let accountFilters = { q: '', role: '', status: '' };
 let customerFilters = { q: '', need: '', status: '' };
 let feedbackFilters = { status: '', from: '', to: '' };
-let surveyFilters = { q: '', status: '' };
+let surveyFilters = { q: '', status: '', hidden: false };
 let staffSessionVersion = 0;
 const staffActions = Object.create(null);
 const staffForms = Object.create(null);
@@ -110,7 +110,7 @@ function resetStaffSession() {
   accountFilters = { q: '', role: '', status: '' };
   customerFilters = { q: '', need: '', status: '' };
   feedbackFilters = { status: '', from: '', to: '' };
-  surveyFilters = { q: '', status: '' };
+  surveyFilters = { q: '', status: '', hidden: false };
   if (typeof resetReports === 'function') resetReports();
   if (typeof resetRecoveryAdmin === 'function') resetRecoveryAdmin();
 }

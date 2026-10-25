@@ -1,4 +1,6 @@
 const crypto=require('node:crypto');
+// LOGIC: Khóa khảo sát nguồn trong transaction, sao chép nội dung với UUID mới cho mọi cấp.
+// Không chép người nhận/câu trả lời/hạn cũ; kết quả luôn DRAFT độc lập. Lỗi -> rollback.
 async function copySurvey(db,sourceId,creatorId){
  const connection=await db.getConnection();
  try{

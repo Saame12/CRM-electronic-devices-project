@@ -4,7 +4,7 @@ function main() {
   const nav = isAdmin
     ? [
         ['accounts', 'Tài khoản'],
-        ['requests', 'Khôi phục mật khẩu']
+        ['requests', 'Thông báo & lịch sử tương tác']
       ]
     : [
         ['dashboard', 'Tổng quan'],

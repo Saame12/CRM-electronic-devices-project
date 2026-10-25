@@ -1,3 +1,10 @@
 .recovery-card h1{margin-top:18px}.recovery-card{max-width:530px}.recovery-password{display:flex;gap:6px;align-items:center}.recovery-password input{min-width:0}.recovery-password .btn{flex-shrink:0;margin-top:4px}.recovery-panel{margin-top:22px}.recovery-admin-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.recovery-admin-notice{background:#e6f3ed;color:#166534;border:1px solid #b4dfc4;border-radius:9px;padding:12px 16px;margin:14px 0}.recovery-status{font-weight:700;white-space:nowrap}.recovery-status.PENDING{color:#b45309}.recovery-status.APPROVED{color:#2563eb}.recovery-status.COMPLETED{color:#15803d}.recovery-review{max-width:620px;margin-bottom:20px}.recovery-review input[type=checkbox]{width:auto}.recovery-review .toolbar{flex-wrap:wrap}.recovery-table td{max-width:350px;overflow-wrap:anywhere}.recovery-table small{display:block;color:#64748b}
 .onboarding-notice::backdrop{background:rgba(0,0,0,.5)}
 .onboarding-notice{margin:auto;max-width:520px}
+.recovery-code-panel{margin-top:20px}
+.recovery-secret{padding:16px;border:1px solid #b4dfc4;background:#eaf7f0;border-radius:10px}
+.recovery-secret code{display:block;padding:12px;background:#fff;border-radius:6px;font-size:16px;letter-spacing:1px;overflow-wrap:anywhere;user-select:all;color:#123b35}
+.recovery-secret p{font-size:13px;line-height:1.6}
+.recovery-support{margin-top:24px}
+.recovery-support summary{cursor:pointer;font-weight:700;color:#087f8c}
+.recovery-support-row{display:flex;justify-content:space-between;gap:14px;align-items:center;border-top:1px solid #dce5e9;padding:12px 0;flex-wrap:wrap}

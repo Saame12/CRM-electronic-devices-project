@@ -21,11 +21,11 @@ function showSurveyEditor(data) {
 }
 
 function surveyPage() {
-  return `<h1>Quản lý khảo sát</h1><p class="muted">DRAFT được sửa tự do. OPEN chưa có câu trả lời có thể chuyển về DRAFT để sửa. OPEN đã có câu trả lời chỉ có thể đóng ngay. CLOSED dùng để xem lịch sử trả lời.</p><div class="toolbar"><label>Tìm kiếm<input id="surveySearch" value="${esc(surveyFilters.q)}" placeholder="Tiêu đề hoặc mô tả"></label><label>Trạng thái<select id="surveyStatus"><option value="">Tất cả</option>${['DRAFT', 'OPEN', 'CLOSED'].map((v) => `<option${surveyFilters.status === v ? ' selected' : ''}>${v}</option>`).join('')}</select></label><button class="btn primary" data-action="filter-surveys">Lọc</button><button class="btn" data-action="show-create">Tạo khảo sát</button></div><div id="createSurvey"></div><div class="card table-wrap"><table class="table"><thead><tr><th>Khảo sát</th><th>Hạn</th><th>Trạng thái</th><th>Phản hồi</th><th>Thao tác</th></tr></thead><tbody>${
+  return `<h1>${surveyFilters.hidden ? 'Khảo sát đã ẩn' : 'Quản lý khảo sát'}</h1><p class="muted">DRAFT được sửa tự do. OPEN chưa có câu trả lời có thể chuyển về DRAFT để sửa. OPEN đã có câu trả lời chỉ có thể đóng ngay. CLOSED dùng để xem lịch sử trả lời. Ẩn chỉ dọn danh sách Quản lý, không đóng khảo sát hoặc xóa dữ liệu.</p><div class="toolbar"><label>Tìm kiếm<input id="surveySearch" value="${esc(surveyFilters.q)}" placeholder="Tiêu đề hoặc mô tả"></label><label>Trạng thái<select id="surveyStatus"><option value="">Tất cả</option>${['DRAFT', 'OPEN', 'CLOSED'].map((v) => `<option${surveyFilters.status === v ? ' selected' : ''}>${v}</option>`).join('')}</select></label><button class="btn primary" data-action="filter-surveys">Lọc</button><button class="btn" data-action="toggle-hidden-surveys" aria-pressed="${surveyFilters.hidden}">${surveyFilters.hidden ? '← Danh sách khảo sát' : 'Xem khảo sát đã ẩn'}</button>${!surveyFilters.hidden ? '<button class="btn" data-action="show-create">Tạo khảo sát</button>' : ''}</div><div id="createSurvey"></div><div class="card table-wrap"><table class="table"><thead><tr><th>Khảo sát</th><th>Hạn</th><th>Trạng thái</th><th>Phản hồi</th><th>Thao tác</th></tr></thead><tbody>${
     surveys
       .map((s) => {
         const answered = Number(s.response_count) > 0;
-        const actions =
+        const normalActions =
           s.status === 'CLOSED'
             ? `<button class="btn small" data-action="view-responses" data-id="${s.id}">Xem chi tiết</button> <button class="btn small primary" data-action="copy-survey" data-id="${s.id}" title="Sao chép câu hỏi thành một khảo sát mới">Lập khảo sát</button>`
             : s.status === 'DRAFT'
@@ -33,6 +33,9 @@ function surveyPage() {
               : answered
                 ? `<button class="btn small danger" data-action="close-survey" data-id="${s.id}">Đóng ngay</button>`
                 : `<button class="btn small" data-action="edit-survey" data-id="${s.id}">Chuyển DRAFT / sửa</button> <button class="btn small danger" data-action="close-survey" data-id="${s.id}">Đóng ngay</button>`;
+        const actions = surveyFilters.hidden
+          ? `<button class="btn small primary" data-action="restore-survey" data-id="${esc(s.id)}">Khôi phục khảo sát</button>${s.status === 'CLOSED' ? ` <button class="btn small" data-action="view-responses" data-id="${esc(s.id)}">Xem chi tiết</button>` : ''}`
+          : `${normalActions} <button class="btn small" data-action="hide-survey" data-id="${esc(s.id)}">Ẩn khảo sát</button>`;
         return `<tr><td><b>${esc(s.title)}</b><br><span class="muted">${esc(s.description)}</span></td><td>${s.due_date ? new Date(s.due_date).toLocaleDateString('vi-VN') : 'Không đặt'}</td><td><span class="badge ${s.status}">${s.status}</span></td><td>${s.response_count}</td><td>${actions}</td></tr>`;
       })
       .join('') || '<tr><td colspan="5">Chưa có khảo sát phù hợp.</td></tr>'

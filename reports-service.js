@@ -12,15 +12,17 @@ function distribution(rows, getLabel, labels=[]) {
   for(const row of rows){const label=getLabel(row);counts.set(label,(counts.get(label)||0)+1)}
   return [...counts].map(([label,total])=>({label,total,percentage:percent(total,rows.length)}));
 }
+// LOGIC BÁO CÁO: Hàm tính toán thuần trên dữ liệu đọc được, không INSERT/UPDATE/DELETE.
+// Tỷ lệ mẫu số 0 trả null (không giả 0%); phản hồi/khảo sát đã ẩn vẫn tính.
 function buildOverview(customers, feedback, surveys, now=new Date()) {
   const year=Number(day(now).slice(0,4));
   const validBirth=u=>Number.isInteger(Number(u.birth_year))&&u.birth_year!==null&&Number(u.birth_year)>=year-120&&Number(u.birth_year)<=year;
-  const complete=u=>Boolean(String(u.address||'').trim()&&validBirth(u)&&u.gender&&u.need&&u.need!=='Chưa xác định');
+  const complete=u=>Boolean(String(u.address||'').trim()&&validBirth(u)&&u.gender&&['Gaming','Đồ họa','Văn phòng','Chưa xác định'].includes(u.need));
   const customer={total:customers.length,active:customers.filter(x=>x.account_status==='ACTIVE').length,locked:customers.filter(x=>x.account_status==='LOCKED').length,complete:customers.filter(complete).length};
   customer.completionRate=percent(customer.complete,customer.total);
   customer.byAge=distribution(customers,u=>!validBirth(u)?'Chưa có năm sinh hợp lệ':year-u.birth_year<18?'Dưới 18':year-u.birth_year<25?'18–24':year-u.birth_year<35?'25–34':year-u.birth_year<45?'35–44':'Từ 45 trở lên',['Dưới 18','18–24','25–34','35–44','Từ 45 trở lên','Chưa có năm sinh hợp lệ']);
   customer.byGender=distribution(customers,u=>u.gender||'Chưa khai báo',['Nam','Nữ','Khác','Chưa khai báo']);
-  customer.byNeed=distribution(customers,u=>u.need||'Chưa xác định').sort((a,b)=>b.total-a.total);
+  customer.byNeed=distribution(customers,u=>u.need||'Chưa chọn / chưa khai báo').sort((a,b)=>b.total-a.total);
   const ratings=feedback.map(x=>Number(x.rating)).filter(x=>Number.isInteger(x)&&x>=1&&x<=5);
   const f={total:feedback.length,respondents:new Set(feedback.map(x=>x.customer_id)).size,resolved:feedback.filter(x=>x.status==='RESOLVED').length,hidden:feedback.filter(x=>Boolean(x.is_hidden)).length,complaints:feedback.filter(x=>x.feedback_type==='Báo lỗi / Khiếu nại').length,averageRating:average(ratings),rated:ratings.length};
   f.pending=f.total-f.resolved;f.resolutionRate=percent(f.resolved,f.total);f.satisfactionRate=percent(ratings.filter(x=>x>=4).length,ratings.length);f.complaintRate=percent(f.complaints,f.total);
@@ -31,6 +33,8 @@ function buildOverview(customers, feedback, surveys, now=new Date()) {
   const surveyItems=surveys.map(s=>{const recipients=Number(s.recipients),responses=Number(s.responses),matched=Number(s.matched_responses);return {...s,recipients,responses,matchedResponses:matched,outsideResponses:responses-matched,notAnswered:recipients-matched,completionRate:percent(matched,recipients),effectiveStatus:s.status==='OPEN'&&s.due_day&&s.due_day<day(now)?'EXPIRED':s.status}});
   return {customers:customer,feedback:f,trend:[...months.values()].sort((a,b)=>a.month.localeCompare(b.month)),surveys:{total:surveyItems.length,responses:surveyItems.reduce((n,s)=>n+s.responses,0),byStatus:distribution(surveyItems,s=>s.effectiveStatus,['DRAFT','OPEN','EXPIRED','CLOSED']),items:surveyItems}};
 }
+// LOGIC THỐNG KÊ CÂU HỎI: Đếm người trả lời duy nhất mỗi lựa chọn, chia số người có trả lời câu đó.
+// MULTI có thể tổng >100%; câu TEXT chỉ trả tối đa 100 ví dụ, không phải toàn bộ danh sách chi tiết.
 function aggregateQuestion(question, options, details, responseTotal) {
   details=details.filter(d=>question.question_type==='TEXT'?Boolean(String(d.text_answer||'').trim()):question.question_type==='RATING'?Number.isInteger(Number(d.rating_value))&&Number(d.rating_value)>=1&&Number(d.rating_value)<=5:options.some(o=>o.id===d.option_id));
   const answered=new Set(details.map(x=>x.response_id)).size;
@@ -40,6 +44,8 @@ function aggregateQuestion(question, options, details, responseTotal) {
   if(result.type==='TEXT'){result.textCount=details.length;result.texts=details.slice(0,100).map(d=>({text:d.text_answer,at:d.submitted_at}));}
   return result;
 }
+// LOGIC ĐỌC NHẤT QUÁN: Transaction REPEATABLE READ để các số tổng hợp cùng một ảnh chụp dữ liệu.
+// Commit ở đây kết thúc phiên đọc, KHÔNG có nghĩa báo cáo ghi dữ liệu nghiệp vụ vào DB.
 function registerReports(app,db,auth,staff,wrap) {
   app.get('/api/admin/reports/overview',auth,staff,wrap(async(req,res)=>{
     let filter;try{filter=range(req.query)}catch(e){return res.status(400).json({error:e.message})}

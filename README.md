@@ -176,3 +176,31 @@ Xem docs/REFACTOR-2026-10-22.md để biết các luồng cũ đã loại bỏ v
 - Thêm file JS/CSS dùng ở trình duyệt phải cập nhật public-assets.js và hai trang tương ứng.
 - Không dùng các tài khoản/mật khẩu demo cho môi trường triển khai thật.
 
+## Tài liệu giải thích logic code
+
+Đọc [LOGIC_HE_THONG.md](LOGIC_HE_THONG.md) để hiểu luồng giao diện -> API -> MySQL, bảng nào bị thay đổi, khác nhau giữa ẩn/khóa/xóa, quy tắc khảo sát/phản hồi và khôi phục mật khẩu. Các ghi chú `LOGIC` trong mã nguồn đánh dấu điểm xử lý chính. Tài liệu cũng chỉ rõ những giới hạn hiện tại, không coi chức năng dự kiến là chức năng đã có.
+
+## Khôi phục mật khẩu bằng mã cá nhân
+
+- Khách mới nhận mã trong trang thông tin cá nhân sau khi đăng ký; cần lưu mã ở nơi riêng tư.
+- Khách đang có tài khoản: đăng nhập, bấm tên mình, nhập mật khẩu hiện tại tại mục Mã khôi phục tài khoản để tạo mã.
+- Quên mật khẩu: nhập email + mã cá nhân, rồi tự nhập mật khẩu mới trong 15 phút; không cần Admin duyệt.
+- Đổi mật khẩu thành công sẽ tự cấp mã mới, kể cả khi Admin hỗ trợ. Lưu mã hiển thị một lần rồi bấm Tôi đã lưu mã — Đăng nhập.
+- Admin xem Thông báo & lịch sử tương tác, nhận thông báo sau khi đổi thành công và đánh dấu đã đọc.
+- Khách chưa có/mất mã vẫn có lối hỗ trợ xác minh thủ công riêng; không tự duyệt bằng thông tin cá nhân.
+- Admin không xem được mã cá nhân hoặc mật khẩu. Không đưa mã khôi phục cá nhân lên GitHub.
+
+Xem PASSWORD_RECOVERY.md để biết chi tiết, tự cập nhật cấu trúc database và kiểm thử cách ly.
+## Ẩn và khôi phục khảo sát trong trang Quản lý
+
+- Mỗi khảo sát trong danh sách chính có nút Ẩn khảo sát.
+- Chọn Xem khảo sát đã ẩn để tìm/lọc các khảo sát đã ẩn, rồi chọn Khôi phục khảo sát.
+- Áp dụng cho DRAFT, OPEN và CLOSED; lưu trong MySQL và dùng chung danh sách Quản lý.
+- Ẩn không tự đóng khảo sát, không sửa hạn và không xóa câu trả lời. Khách vẫn thấy/làm khảo sát OPEN theo quy tắc hiện có.
+- Báo cáo vẫn tính các khảo sát đã ẩn. Khôi phục không chuyển trạng thái và không mở lại khảo sát đã đóng.
+- Khởi động server tự bổ sung is_hidden và hidden_at vào bảng surveys, không xóa dữ liệu cũ.
+
+Kiểm tra cách ly trên MySQL: node scripts/check-survey-visibility-db.js.
+
+
+

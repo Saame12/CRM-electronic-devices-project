@@ -5,7 +5,7 @@ async function environment(user){const nodes=new Map(),events=[],storage=new Map
  const context=vm.createContext({document:{querySelector:node,addEventListener:(type,handler)=>events.push({type,handler})},sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},localStorage:{getItem:()=>null},console,setTimeout:()=>0,clearTimeout(){}});
  for(const file of ['birth-date.js','app.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
  await new Promise(resolve=>setImmediate(resolve));
- context.record=async(url,options)=>{if(url==='/api/me'&&options?.method==='PUT'){saves++;return {user:{...complete}}}return {user:{...user}}};context.countRefresh=()=>{fetched++};
+ context.record=async(url,options)=>{if(url==='/api/me'&&options?.method==='PUT'){saves++;return {user:{...complete,...JSON.parse(options.body)}}}return {user:{...user}}};context.countRefresh=()=>{fetched++};
  vm.runInContext('api=record;refreshData=async()=>countRefresh()',context);
  return {context,node,storage,events,get fetched(){return fetched},get saves(){return saves}};
 }
@@ -28,3 +28,26 @@ test('Invalid profile cannot unlock surveys; successful save loads surveys and u
 test('Complete profile enters surveys directly and clears an obsolete completion flag',async()=>{
  const env=await environment(complete);env.storage.set('backline_crm_profile_onboarding','1');await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);assert.equal(vm.runInContext('onboarding',env.context),false);assert.equal(vm.runInContext('onboardingNoticeOpen',env.context),false);assert.equal(env.fetched,1);assert.equal(env.storage.has('backline_crm_profile_onboarding'),false);
 });
+test('Undetermined need is valid on login and does not force profile completion',async()=>{
+ const env=await environment({...complete,need:'Chưa xác định'});
+ await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
+ assert.equal(vm.runInContext('onboarding',env.context),false);assert.equal(env.fetched,1);
+ assert.ok(vm.runInContext('profView()',env.context).includes('value="Chưa xác định" selected'));
+});
+test('Saving an otherwise complete profile with undetermined need unlocks surveys',async()=>{
+ const env=await environment({...complete,addr:'',need:'Chưa xác định'});
+ await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
+ await vm.runInContext("H.prof({name:'Khách',phone:'0901234567',addr:'Hà Nội',birthDate:'21/10/1998',gender:'Nữ',need:'Chưa xác định'})",env.context);
+ assert.equal(env.saves,1);assert.equal(vm.runInContext('me.need',env.context),'Chưa xác định');assert.equal(vm.runInContext('onboarding',env.context),false);
+});
+test('Empty or invalid need still requires a real choice instead of silently defaulting to Gaming',async()=>{
+ for(const need of ['', 'Không hợp lệ']){
+  const env=await environment({...complete,need});env.context.testNeed=need;
+  await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
+  assert.equal(vm.runInContext('onboarding',env.context),true);
+  assert.ok(vm.runInContext('profView()',env.context).includes('value="" disabled selected>Vui lòng chọn nhu cầu sử dụng'));
+  await vm.runInContext("H.prof({name:'Khách',phone:'0901234567',addr:'Hà Nội',birthDate:'21/10/1998',gender:'Nữ',need:testNeed})",env.context);
+  assert.equal(env.saves,0);
+ }
+});
+
