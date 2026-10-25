@@ -1,0 +1,381 @@
+/* Shared, local staff theme. Loaded last in both portals, no business-logic changes.
+ * Muted work surfaces + high-contrast text; priority is also expressed with labels/borders.
+ */
+:root {
+  color-scheme: light;
+  --navy: #263e4a;
+  --blue: #365d78;
+  --bg: #eef2ef;
+  --surface: #fbfcfa;
+  --line: #d3ddd7;
+  --text: #23343b;
+  --muted: #52646a;
+  --ok: #286044;
+  --warn: #825315;
+  --bad: #a4313d;
+  --shadow: 0 3px 16px #263e4a05;
+  --focus-soft: #e5edf3;
+}
+body {
+  font-size: 15px;
+  line-height: 1.65;
+}
+.top {
+  background: #f7f9f6;
+}
+.sidebar {
+  background: #e7ede8;
+}
+.brand,
+.table b {
+  color: var(--navy);
+}
+.sidebar-label,
+.sidebar-foot,
+.sidebar-foot small,
+.workspace-breadcrumb {
+  color: var(--muted);
+  font-size: 12px;
+}
+.sidebar-heading small,
+.identity-name small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.staff-nav button {
+  color: #40565c;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.staff-nav button:hover {
+  background: #f3f6f1;
+  color: var(--navy);
+}
+.staff-nav button.on {
+  color: #294e68;
+  background: #dce7ed;
+  box-shadow: inset 3px 0 var(--blue);
+  font-weight: 750;
+}
+.nav-symbol {
+  color: inherit;
+  opacity: 1;
+}
+h1 {
+  color: var(--navy);
+}
+h2 {
+  color: var(--text);
+  font-weight: 700;
+}
+.muted,
+.page-description {
+  color: var(--muted);
+  font-size: 14px;
+}
+label {
+  color: #374f57;
+  font-size: 14px;
+  font-weight: 600;
+}
+input,
+select,
+textarea {
+  background: var(--surface);
+  color: var(--text);
+  border-color: #b9c9c1;
+  font-size: 14px;
+  min-height: 42px;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #63757a;
+  opacity: 1;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px #365d781a;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  min-height: 0;
+  accent-color: var(--blue);
+}
+.btn {
+  color: #344e59;
+  background: #f6f8f5;
+  border-color: #bdcdc4;
+  font-size: 13px;
+  min-height: 36px;
+}
+.btn:hover {
+  background: #e5ece7;
+  border-color: #94ada0;
+}
+.btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  font-weight: 700;
+}
+.btn.primary:hover {
+  background: #294b63;
+  border-color: #294b63;
+}
+.btn.danger {
+  background: #faedf0;
+  border-color: #dfb7bd;
+  color: var(--bad);
+}
+.btn.danger:hover {
+  background: #f5dde2;
+  border-color: #c38a94;
+}
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.card,
+.login,
+.customer-detail-dialog {
+  background: var(--surface);
+  border-color: var(--line);
+}
+#accountFilters,
+.rpt-filters {
+  background: #f0f4ef;
+  border-color: var(--line);
+}
+.table {
+  font-size: 14px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.table th,
+.table td {
+  border-bottom-color: #d9e2dc;
+  padding: 15px 13px;
+  line-height: 1.65;
+}
+.table th {
+  background: #e4ebe6;
+  color: #3d535b;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.35px;
+}
+.table tbody tr:nth-child(even) {
+  background: #f0f4ef;
+}
+.table tbody tr:hover {
+  background: #e5edf3;
+}
+.table b {
+  font-weight: 750;
+}
+.table td .muted {
+  font-size: 13px;
+  color: var(--muted);
+}
+.table td small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.badge {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 5px 9px;
+  background: #e5ebef;
+  color: #3f5a6e;
+  border: 1px solid #c8d5de;
+}
+.badge.NEW {
+  background: #fff0d6;
+  color: #825315;
+  border-color: #dbc38c;
+}
+.badge.IN_PROGRESS {
+  background: #e5edf8;
+  color: #34577b;
+  border-color: #b9cce3;
+}
+.badge.RESOLVED,
+.badge.OPEN {
+  background: #e6f0e7;
+  color: #286044;
+  border-color: #b8d0bc;
+}
+.badge.DRAFT,
+.badge.CLOSED {
+  background: #e9edeb;
+  color: #52615b;
+  border-color: #c9d2cc;
+}
+.badge.locked {
+  background: #fae9ed;
+  color: #a4313d;
+  border-color: #dfb7bd;
+}
+.feedback .card:has(.badge.NEW) {
+  border-left: 4px solid #b78739;
+}
+.feedback .card:has(.badge.IN_PROGRESS) {
+  border-left: 4px solid #6086ad;
+}
+.cards .card {
+  border-top-color: #769880;
+}
+.cards .card:nth-child(2) {
+  border-top-color: #b18a48;
+}
+.cards .card:nth-child(2) .metric {
+  color: #825315;
+}
+.cards .card:nth-child(3) {
+  border-top-color: #6487a3;
+}
+.metric {
+  color: var(--navy);
+}
+.error {
+  color: var(--bad);
+  font-weight: 600;
+}
+.recovery-admin-notice {
+  background: #e8f0e5;
+  color: #31583d;
+  border-color: #b8cdb0;
+  font-size: 14px;
+}
+.recovery-status.PENDING {
+  color: #825315;
+}
+.recovery-status.APPROVED {
+  color: #34577b;
+}
+.recovery-status.COMPLETED {
+  color: #286044;
+}
+.recovery-support summary {
+  color: var(--blue);
+  font-size: 15px;
+}
+.recovery-support-row {
+  border-color: var(--line);
+}
+.recovery-table small,
+.customer-detail-grid dt {
+  color: var(--muted);
+}
+.customer-detail-grid dd {
+  color: var(--text);
+}
+.account-password-eye {
+  color: var(--muted);
+}
+/* Reports use the same tokens so a tab change does not change visual intensity. */
+.reports {
+  --rpt-accent: #365d78;
+  --rpt-soft: #e8eef2;
+  --rpt-ink: #23343b;
+}
+.rpt-filters,
+.rpt-metric,
+.rpt-panel {
+  background: var(--surface);
+}
+.rpt-tabs {
+  background: #e1e8e3;
+}
+.rpt-tabs button {
+  color: #4b6068;
+}
+.rpt-tabs button.active {
+  background: var(--surface);
+  color: var(--blue);
+}
+.rpt-tabs button span {
+  opacity: 1;
+  color: #536770;
+}
+.rpt-subtitle,
+.rpt-scope,
+.rpt-note,
+.rpt-section-title p,
+.rpt-metric > span,
+.rpt-metric small,
+.rpt-bar-row small {
+  color: var(--muted);
+}
+.rpt-scope,
+.rpt-note,
+.rpt-metric small,
+.rpt-filters label {
+  font-size: 13px;
+}
+.rpt-metric > span {
+  font-size: 14px;
+}
+.rpt-metric.positive strong {
+  color: var(--ok);
+}
+.rpt-metric.warning strong {
+  color: var(--warn);
+}
+.rpt-insight p {
+  color: #435e6c;
+}
+.rpt-table {
+  font-size: 14px;
+}
+.rpt-track {
+  background: #e5ebe7;
+}
+.rpt-track > span {
+  background: #527a91;
+}
+.rpt-track .rpt-color-1 {
+  background: #6c7b9f;
+}
+.rpt-track .rpt-color-2 {
+  background: #719789;
+}
+.rpt-track .rpt-color-3 {
+  background: #ac8951;
+}
+:focus-visible {
+  outline: 3px solid #365d78;
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .staff-nav button {
+    font-size: 13px;
+  }
+  .staff-nav button.on {
+    box-shadow: inset 0 -3px var(--blue);
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  .table input,
+  .table select {
+    font-size: 14px;
+  }
+}
+@media print {
+  body,
+  .card,
+  .table,
+  .table tbody tr:nth-child(even) {
+    background: #fff;
+    color: #111;
+  }
+  .table th {
+    background: #eee;
+    color: #111;
+  }
+}

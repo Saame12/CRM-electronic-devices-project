@@ -1,6 +1,44 @@
 # Backline CRM — Node.js & MySQL
 
-## Chạy bản demo sau khi tải từ GitHub
+Hướng dẫn từng bước cho Windows, macOS và Linux: [HUONG_DAN_CAI_DAT.md](HUONG_DAN_CAI_DAT.md) — cấu hình MySQL, tạo database, chạy dữ liệu mẫu/database chính và xử lý lỗi thường gặp.
+
+## Cài lần đầu từ GitHub — dùng npm start
+
+1. Cài Node.js tương thích dự án và MySQL Server 8.0+, bật dịch vụ MySQL.
+2. Tải ZIP từ https://github.com/Saame12/CRM-electronic-devices-project (Code → Download ZIP) rồi giải nén; hoặc clone:
+
+```bash
+git clone https://github.com/Saame12/CRM-electronic-devices-project.git
+cd CRM-electronic-devices-project
+```
+
+3. Visual Studio: **File → Open → Folder** mở thư mục có `package.json`, rồi mở Terminal. VS Code cũng mở cả thư mục đó. Không cần tạo project C#, không chạy Live Server hay mở thẳng index.html.
+4. Cài thư viện và tạo cấu hình riêng:
+
+```bash
+npm ci
+npm run config
+```
+
+5. Mở `.env`, điền `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` theo MySQL của máy mới. Giữ `DB_NAME=backline_crm` nếu muốn dùng tên mặc định. Lệnh config tự sinh JWT_SECRET, không ghi đè `.env` đã có. Nếu copy từ `.env.example` thủ công, phải tự thay khóa mẫu.
+6. Tạo database/bảng, nạp dữ liệu mẫu nếu database trống rồi chạy:
+
+```bash
+npm run setup
+npm start
+```
+
+Mở http://localhost:3000/ (Khách), http://localhost:3000/manager.html (Quản lý), http://localhost:3000/admin.html (Admin). Nếu đổi PORT thì thay cổng trong URL.
+
+Database mới có tài khoản mẫu `khach@demo.vn / 123456`, `manager@demo.vn / Manager@123`, `admin@backline.vn / Admin@123`. Đây là dữ liệu giả lập lưu thật trong MySQL để trình diễn local, không dùng tài khoản mặc định khi public Internet. Database đã có dữ liệu sẽ được giữ nguyên; setup không đặt lại mật khẩu cũ.
+
+Những lần sau chỉ cần bật MySQL và `npm start`. Muốn chỉ tạo bảng, không nạp bộ mẫu: `npm run setup -- --empty` (server vẫn có seed cơ bản khi chạy). Lệnh cũ `npm run db:setup` cũng chỉ tạo bảng.
+
+Windows PowerShell chặn `npm.ps1` thì thay `npm` bằng `npm.cmd`, ví dụ `npm.cmd ci`. Nếu không nhận diện node/npm, mở lại terminal sau khi cài Node.js.
+
+**Luồng chuẩn trên dùng `.env`, không cần `.env.demo`.** Chế độ demo cách ly dưới đây là tùy chọn nâng cao, không bắt buộc để chạy đồ án.
+
+## Tùy chọn: chạy bản demo cách ly
 
 Bản demo là dữ liệu giả lập được lưu thật trong MySQL, không phải dữ liệu khách hàng thật hoặc nội dung giao diện giả.
 Dữ liệu MySQL trên máy tác giả không tự đi kèm GitHub; bộ seed trong database/demo-data.js sẽ tạo lại dữ liệu ở máy người tải.

@@ -5,8 +5,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 function viewContext() {
+  const nodes = new Map();
   const context = vm.createContext({
-    document: { addEventListener() {}, querySelector: () => null },
+    document: {
+      addEventListener() {},
+      querySelector: (selector) => {
+        if (!nodes.has(selector))
+          nodes.set(selector, { innerHTML: '', classList: { add() {}, remove() {} } });
+        return nodes.get(selector);
+      }
+    },
     localStorage: { getItem: () => null },
     sessionStorage: { getItem: () => null },
     setTimeout,
@@ -53,16 +61,46 @@ test('Redesigned survey cards retain start, hide and restore actions and escape 
   assert.ok(run('showHiddenSurveys=true;svList()').includes('Không có khảo sát đã ẩn.'));
 });
 
-test('Customer onboarding stays gated while normal portal keeps feedback and profile controls', () => {
+test('Customer onboarding stays gated while profile entry is only in the header', () => {
   const run = viewContext();
   const html = run('main()');
   assert.ok(html.includes('aria-label="Điều hướng khách hàng"'));
   assert.ok(html.includes('data-v="fb"'));
-  assert.ok(html.includes('data-act="profile"'));
+  assert.ok(!html.includes('data-act="profile"'));
+  assert.ok(!html.includes('HỒ SƠ CỦA BẠN'));
+  assert.ok(!html.includes('customer-aside'));
+  run('render()');
+  const header = run("document.querySelector('#who').innerHTML");
+  assert.equal((header.match(/data-act="profile"/g) || []).length, 1);
+  assert.ok(header.includes('profile-chevron'));
   const gated = run('onboarding=true;main()');
   assert.ok(gated.includes('id="prof"'));
   assert.ok(!gated.includes('Điều hướng khách hàng'));
   assert.ok(!gated.includes('data-act="start"'));
+});
+
+test('Profile form groups basic information and needs without a repeated page heading', () => {
+  const html = viewContext()('profView()');
+  assert.equal((html.match(/<h1/g) || []).length, 0);
+  assert.ok(html.includes('<legend>Thông tin cơ bản</legend>'));
+  assert.ok(html.includes('<legend>Nhu cầu sử dụng</legend>'));
+  assert.ok(html.includes('name="need"'));
+  assert.ok(html.includes('Lưu thay đổi'));
+});
+
+test('Security is collapsed normally but opens to show a newly issued code once', () => {
+  const run = viewContext();
+  run(fs.readFileSync(path.join(__dirname, '..', 'recovery-client.js'), 'utf8'));
+  const collapsed = run('recoveryCodePanel()');
+  assert.ok(collapsed.startsWith('<details'));
+  assert.ok(!/<details[^>]* open/.test(collapsed));
+  assert.ok(collapsed.includes('Bảo mật tài khoản'));
+  const issued = run(
+    "me.id='test';setInitialRecoveryCode('NEW-TEST-CODE','test');recoveryCodePanel()"
+  );
+  assert.ok(/<details[^>]* open/.test(issued));
+  assert.ok(issued.includes('NEW-TEST-CODE'));
+  assert.ok(!run("me.id='other';recoveryCodePanel()").includes('NEW-TEST-CODE'));
 });
 
 test('Customer authentication preserves password visibility, birth date, remember login and recovery insertion anchor', () => {

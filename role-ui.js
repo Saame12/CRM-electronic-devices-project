@@ -58,7 +58,7 @@ function accountPage() {
     filteredAccounts()
       .map(
         (a) =>
-          `<tr><td><b>${esc(a.name)}</b><br><span class="muted">${esc(a.email)}</span></td><td>${esc(a.phone)}</td><td><span class="badge">${esc({ ADMIN: 'Admin', MANAGER: 'Quản lý', CUSTOMER: 'Khách hàng' }[a.role] || a.role)}</span></td><td>${a.status === 'ACTIVE' ? 'Hoạt động' : 'Đã khóa'}</td><td>${a.id === me.id ? 'Tài khoản hiện tại' : `<button class="btn small danger" data-action="delete-account" data-id="${a.id}">Xóa</button>`}</td></tr>`
+          `<tr><td><b>${esc(a.name)}</b><br><span class="muted">${esc(a.email)}</span></td><td>${esc(a.phone)}</td><td><span class="badge">${esc({ ADMIN: 'Admin', MANAGER: 'Quản lý', CUSTOMER: 'Khách hàng' }[a.role] || a.role)}</span></td><td><span class="badge ${a.status === 'LOCKED' ? 'locked' : ''}">${a.status === 'ACTIVE' ? 'Hoạt động' : 'Đã khóa'}</span></td><td>${a.id === me.id ? 'Tài khoản hiện tại' : `<button class="btn small danger" data-action="delete-account" data-id="${a.id}">Xóa</button>`}</td></tr>`
       )
       .join('') || '<tr><td colspan="5" class="muted">Không có tài khoản phù hợp.</td></tr>'
   }</tbody></table></div>`;

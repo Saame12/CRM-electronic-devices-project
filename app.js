@@ -157,6 +157,7 @@ function applyProfileGate() {
 }
 
 // Hàm render chính để vẽ lại giao diện dựa trên trạng thái đăng nhập
+// LOGIC HỒ SƠ: Chỉ header mở pop-up; không lặp đường dẫn hồ sơ ở menu hoặc thẻ bên cạnh.
 function render() {
   $('#who').innerHTML = me
     ? `<button class="profile-trigger" data-act="profile" title="Mở thông tin cá nhân"><span class="header-avatar" aria-hidden="true">${esc(
@@ -164,7 +165,7 @@ function render() {
           .trim()
           .charAt(0)
           .toUpperCase()
-      )}</span><span>${esc(me.name)}</span></button><button class="btn sm" data-act="out">Đăng xuất</button>`
+      )}</span><span class="profile-name">${esc(me.name)}</span><svg class="profile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><button class="btn sm" data-act="out">Đăng xuất</button>`
     : '';
   $('#app').innerHTML = me ? main() : auth();
   $('#profileModal').innerHTML =
@@ -213,14 +214,6 @@ function customerWelcome() {
   const completed = Object.keys(DONE[me.email] || {}).length;
   return `<section class="customer-welcome"><div><span class="eyebrow">BACKLINE / KHÔNG GIAN KHÁCH HÀNG</span><h2>Xin chào, ${esc(me.name)}.</h2><p>Mỗi chia sẻ của bạn giúp chúng tôi mang đến trải nghiệm tốt hơn.</p><span class="welcome-caption">${customerIcon('shield')} Đồng hành cùng bạn, từ lựa chọn đến trải nghiệm.</span></div><div class="welcome-art" aria-hidden="true"><div class="art-orbit"></div><span class="art-survey">${customerIcon('survey')}</span><span class="art-check">${customerIcon('check')}</span><span class="art-chat">${customerIcon('chat')}</span></div></section><section class="customer-metrics" aria-label="Tổng quan hoạt động"><article><span class="metric-icon">${customerIcon('survey')}</span><div><strong>${pending().length}</strong><span>Khảo sát đang chờ</span></div></article><article><span class="metric-icon blue">${customerIcon('check')}</span><div><strong>${completed}</strong><span>Khảo sát đã gửi</span></div></article><article><span class="metric-icon amber">${customerIcon('chat')}</span><div><strong>${(FB[me.email] || []).length}</strong><span>Phản hồi đã gửi</span></div></article></section>`;
 }
-function customerAside() {
-  return `<aside class="customer-aside"><section class="card profile-summary"><span class="eyebrow">HỒ SƠ CỦA BẠN</span><span class="profile-avatar">${esc(
-    String(me.name || 'K')
-      .trim()
-      .charAt(0)
-      .toUpperCase()
-  )}</span><h2>${esc(me.name)}</h2><p class="mu">${esc(me.email)}</p><dl><dt>Nhu cầu hiện tại</dt><dd>${esc(me.need || 'Chưa chọn')}</dd></dl><button class="btn full" data-act="profile">${customerIcon('user')} Xem thông tin cá nhân</button></section><section class="card help-card"><span class="help-icon">${customerIcon('chat')}</span><h2>Bạn cần hỗ trợ?</h2><p>Gửi câu hỏi hoặc góp ý về sản phẩm. Theo dõi câu trả lời của cửa hàng ngay trong mục phản hồi.</p><button class="text-button" data-act="tab" data-v="fb">Gửi phản hồi ${customerIcon('arrow')}</button></section><div class="privacy-note">${customerIcon('shield')}<p>Giữ riêng mật khẩu và mã khôi phục. Không gửi chúng trong nội dung khảo sát hoặc phản hồi.</p></div></aside>`;
-}
 
 // Giao diện Đăng nhập / Đăng ký
 function auth() {
@@ -245,7 +238,7 @@ function main() {
   ];
   const content =
     tab === 'survey' ? (open ? svForm(SV.find((s) => s.id === open)) : svList()) : fbView();
-  return `<div class="customer-shell"><aside class="customer-sidebar"><span class="sidebar-caption">KHÔNG GIAN CỦA BẠN</span><nav aria-label="Điều hướng khách hàng">${nav.map(([key, label, icon]) => `<button class="${tab === key ? 'on' : ''}" data-act="tab" data-v="${key}" ${tab === key ? 'aria-current="page"' : ''}>${customerIcon(icon)}<span>${label}</span>${key === 'survey' && n ? `<span class="nav-count">${n}</span>` : ''}</button>`).join('')}<button data-act="profile">${customerIcon('user')}<span>Thông tin cá nhân</span></button></nav><div class="sidebar-security">${customerIcon('shield')}<span>Mã khôi phục là riêng tư.<small>Lưu ở nơi an toàn của bạn.</small></span></div></aside><div class="customer-body">${!open ? customerWelcome() : ''}<div class="customer-workspace ${tab !== 'survey' || open ? 'wide' : ''}"><section class="customer-content">${content}</section>${tab === 'survey' && !open ? customerAside() : ''}</div></div></div>`;
+  return `<div class="customer-shell"><aside class="customer-sidebar"><span class="sidebar-caption">KHÔNG GIAN CỦA BẠN</span><nav aria-label="Điều hướng khách hàng">${nav.map(([key, label, icon]) => `<button class="${tab === key ? 'on' : ''}" data-act="tab" data-v="${key}" ${tab === key ? 'aria-current="page"' : ''}>${customerIcon(icon)}<span>${label}</span>${key === 'survey' && n ? `<span class="nav-count">${n}</span>` : ''}</button>`).join('')}</nav></aside><div class="customer-body">${!open ? customerWelcome() : ''}<div class="customer-workspace ${tab !== 'survey' || open ? 'wide' : ''}"><section class="customer-content">${content}</section></div></div></div>`;
 }
 
 // Danh sách các phiếu khảo sát
@@ -294,7 +287,7 @@ function svForm(s) {
 function fbView() {
   const L = FB[me.email] || [];
   return (
-    `<div class="feedback-layout"><form id="fb" class="card feedback-form" novalidate><span class="eyebrow">KẾT NỐI VỚI BACKLINE</span><h1>Gửi phản hồi về sản phẩm</h1><p class="mu">Ý kiến của bạn giúp cửa hàng cải thiện sản phẩm và dịch vụ.</p><div class="grid"><label>Sản phẩm<select name="prod"><option value="">Chọn sản phẩm</option>${PRODS.map((p) => `<option>${esc(p)}</option>`).join('')}</select></label><label>Loại phản hồi<select name="type">${FTYPE.map((p) => `<option>${p}</option>`).join('')}</select></label></div><label>Mức độ hài lòng${stars('fbRate', 0)}</label><label>Tiêu đề<input name="title" maxlength="80" placeholder="Tóm tắt ngắn gọn"></label><label>Nội dung<textarea name="body" placeholder="Bạn thấy sản phẩm thế nào? Có vấn đề gì cần hỗ trợ không?"></textarea></label><div class="err" id="err" role="alert"></div><button class="btn pri">Gửi phản hồi</button></form><section class="feedback-history"><div class="section-heading"><h2>Phản hồi đã gửi (${L.length})</h2></div>` +
+    `<div class="feedback-layout"><form id="fb" class="card feedback-form" novalidate><span class="eyebrow">KẾT NỐI VỚI BACKLINE</span><h1>Gửi phản hồi về sản phẩm</h1><p class="mu">Bạn cần tư vấn hoặc hỗ trợ? Gửi phản hồi tại đây và theo dõi câu trả lời của Backline bên cạnh.</p><div class="grid"><label>Sản phẩm<select name="prod"><option value="">Chọn sản phẩm</option>${PRODS.map((p) => `<option>${esc(p)}</option>`).join('')}</select></label><label>Loại phản hồi<select name="type">${FTYPE.map((p) => `<option>${p}</option>`).join('')}</select></label></div><label>Mức độ hài lòng${stars('fbRate', 0)}</label><label>Tiêu đề<input name="title" maxlength="80" placeholder="Tóm tắt ngắn gọn"></label><label>Nội dung<textarea name="body" placeholder="Bạn thấy sản phẩm thế nào? Có vấn đề gì cần hỗ trợ không?"></textarea></label><div class="err" id="err" role="alert"></div><button class="btn pri">Gửi phản hồi</button></form><section class="feedback-history"><div class="section-heading"><h2>Phản hồi đã gửi (${L.length})</h2></div>` +
     (L.length
       ? L.map(
           (f) =>
@@ -311,7 +304,7 @@ function fbView() {
 
 // Giao diện Thông tin cá nhân (Profile)
 function profView() {
-  return `<form id="prof" class="card" novalidate><h1>Thông tin cá nhân</h1><p class="mu">Thông tin chính xác giúp cửa hàng tư vấn và hỗ trợ bạn tốt hơn.</p><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" value="${esc(BirthDate.display(me.birthDate))}" placeholder="dd/mm/yyyy"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map((g) => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Chọn giới tính'}</option>`).join('')}</select></label></div><label>Nhu cầu sử dụng PC / laptop<select name="need" required><option value="" disabled${!NEEDS.includes(me.need) ? ' selected' : ''}>Vui lòng chọn nhu cầu sử dụng</option>${NEEDS.map((g) => `<option value="${g}"${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label><div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>${typeof recoveryCodePanel === 'function' ? recoveryCodePanel() : ''}`;
+  return `<form id="prof" class="card" novalidate><fieldset class="profile-section"><legend>Thông tin cơ bản</legend><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" value="${esc(BirthDate.display(me.birthDate))}" placeholder="dd/mm/yyyy"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map((g) => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Chọn giới tính'}</option>`).join('')}</select></label></div></fieldset><fieldset class="profile-section"><legend>Nhu cầu sử dụng</legend><p class="mu">Giúp Backline gợi ý sản phẩm phù hợp với bạn.</p><label>Nhu cầu sử dụng PC / laptop<select name="need" required><option value="" disabled${!NEEDS.includes(me.need) ? ' selected' : ''}>Vui lòng chọn nhu cầu sử dụng</option>${NEEDS.map((g) => `<option value="${g}"${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label></fieldset><div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>${typeof recoveryCodePanel === 'function' ? recoveryCodePanel() : ''}`;
 }
 
 /* ==========================================

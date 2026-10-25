@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node --test scripts/*.test.js",
     "start": "node server.mysql.js",
+    "config": "node scripts/setup-project.js --config-only",
+    "setup": "node scripts/setup-project.js",
+    "setup:check": "node scripts/check-installation-db.js",
     "format:staff": "prettier --write admin.js role-ui.js staff-*.js reports.js recovery-admin.js public-assets.js admin.css admin.html manager.html",
     "check:staff": "prettier --check admin.js role-ui.js staff-*.js reports.js recovery-admin.js public-assets.js admin.css admin.html manager.html",
     "test:reports": "node --test scripts/reports.test.js",

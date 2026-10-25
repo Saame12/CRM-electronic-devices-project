@@ -26,11 +26,12 @@ function clearRecoveryCodeState() {
 }
 function recoveryCodePanel() {
   const visibleCode = issuedRecoveryCodeOwner === (me?.id || '') ? issuedRecoveryCode : '';
-  return `<section class="card recovery-code-panel" id="recoveryCodePanel"><h2>Mã khôi phục tài khoản</h2><p class="mu">Giữ mã ở nơi riêng tư để tự đặt lại mật khẩu khi quên, không cần chờ Admin. Admin không xem được mã này.</p>${
+  // LOGIC: Bảo mật mặc định thu gọn; mã vừa cấp phải mở để khách lưu, tránh giấu mã chỉ hiện một lần.
+  return `<details class="card recovery-code-panel" id="recoveryCodePanel"${visibleCode ? ' open' : ''}><summary>Bảo mật tài khoản<span>Mã khôi phục khi quên mật khẩu</span></summary><div class="security-content"><h3>Mã khôi phục tài khoản</h3><p class="mu">Giữ mã ở nơi riêng tư để tự đặt lại mật khẩu khi quên, không cần chờ Admin. Admin không xem được mã này.</p>${
     visibleCode
       ? `<div class="recovery-secret" role="status"><p><b>Hãy lưu mã ngay — mã chỉ hiển thị lần này.</b></p><code>${esc(visibleCode)}</code><p>Mã dùng một lần khi đổi mật khẩu thành công. Mã mới thay thế mã trước đó. Không gửi mã cho người khác.</p><button type="button" class="btn" data-recovery="saved-code">Tôi đã lưu mã</button></div>`
       : `<form id="recoveryCodeGenerate"><label>Mật khẩu hiện tại<span class="recovery-password"><input name="currentPassword" type="password" required autocomplete="current-password"><button class="btn sm" type="button" data-recovery="eye" aria-label="Hiện mật khẩu" aria-pressed="false">👁</button></span></label><p class="mu">Tạo mã mới vô hiệu hóa mã cũ và các phiên khôi phục bằng mã cũ.</p><div class="err" id="recoveryCodeError" role="alert"></div><button class="btn" type="submit">Tạo mã khôi phục mới</button></form>`
-  }</section>`;
+  }</div></details>`;
 }
 auth = function () {
   if (!recoveryView) {

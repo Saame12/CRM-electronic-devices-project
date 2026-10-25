@@ -20,7 +20,8 @@ const files = new Set([
   '/recovery-admin.js',
   '/customer-details.js',
   '/customer-details.css',
-  '/account-password.css'
+  '/account-password.css',
+  '/staff-focus.css'
 ]);
 function publicAssetsOnly(req, res, next) {
   if (req.path.startsWith('/api/')) return next();
