@@ -28,7 +28,10 @@ Lần sau: bật MySQL → `npm start`. Không cần `.env.demo` trong luồng n
 
 ## 1. Chuẩn bị máy
 
-- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS), kèm npm.
+- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS),  kèm npm.
+```bash
+winget install --id OpenJS.NodeJS.LTS -e
+```
 - Cài MySQL Server 8.0 trở lên và khởi động dịch vụ MySQL. Chỉ có MySQL Workbench thì chưa đủ vì Workbench là công cụ quản trị.
 - Biết tài khoản, mật khẩu và cổng MySQL của máy này. Người dùng setup cần quyền tạo database/bảng và quyền cập nhật cấu trúc, đọc/ghi dữ liệu của database dự án.
 - Tải ZIP dự án từ GitHub và giải nén, hoặc clone bằng Git.
