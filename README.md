@@ -1,38 +1,6 @@
 # Hướng dẫn setup database và chạy Backline CRM
 
-## Bản cập nhật nghiệm thu 01/11/2026
-
-Đã bổ sung nhiều sở thích, chọn nhóm/từng người nhận khảo sát, kiểm tra dữ liệu backend, tính tuổi theo ngày sinh và lịch sử tương tác theo khách. Xem [kết quả khắc phục và hướng dẫn thao tác](docs/KET_QUA_KHAC_PHUC.md), [bản tự đánh giá hiệu chỉnh](docs/BAO_CAO_TU_DANH_GIA_DA_HIEU_CHINH.md) và [sao lưu/phục hồi](docs/SAO_LUU_VA_PHUC_HOI.md).
-
-Khách hàng có thể [xem lại bài khảo sát đã gửi](docs/XEM_LAI_BAI_KHAO_SAT.md) ở chế độ chỉ đọc, kể cả khi khảo sát đã đóng; chỉ xem được bài của chính mình.
-
-Với database đang có dữ liệu, sao lưu bằng `npm run db:backup`, kiểm chứng bản sao lưu rồi chạy `npm run db:migrate` và khởi động lại server. Migration chỉ thêm bảng sở thích/danh mục, không nạp lại demo hoặc suy diễn sở thích cho khách cũ. Cài mới vẫn dùng quy trình setup bên dưới.
-
 ## Chạy bản demo sau khi tải từ GitHub
-
-## Cài nhanh từ repo chính — khuyến nghị cho người tải mới
-
-Repo: https://github.com/Saame12/CRM-electronic-devices-project
-
-Tải Code → Download ZIP rồi giải nén, hoặc clone bằng Git. Trong Visual Studio chọn File → Open → Folder (VS Code: Open Folder), mở thư mục có `package.json`, sau đó mở terminal tại thư mục đó.
-
-```bash
-npm ci
-npm run config
-```
-
-Mở `.env` vừa được tạo, điền tài khoản/mật khẩu MySQL trên máy mình. JWT_SECRET đã được sinh ngẫu nhiên; nếu `.env` đã có thì file không bị ghi đè, cần tự kiểm tra khóa hiện có. Bật MySQL Server rồi chạy:
-
-```bash
-npm run setup
-npm start
-```
-
-`setup` tạo database/bảng theo `.env`. Nếu tất cả bảng nghiệp vụ còn trống, nạp đủ bộ dữ liệu giả lập vào database đó để tương tác ngay (Admin/Quản lý/Khách, khảo sát, phản hồi, báo cáo). Nếu database đã có dữ liệu thì giữ nguyên, không trộn bộ mẫu hoặc reset mật khẩu.
-
-Database mới đã nạp mẫu: Admin `admin@backline.vn / Admin@123`, Quản lý `manager@demo.vn / Manager@123`, Khách `khach@demo.vn / 123456`. Truy cập lần lượt `/admin.html`, `/manager.html`, `/` tại http://localhost:3000. Chỉ dùng tài khoản mặc định để trình diễn local.
-
-Lần sau: bật MySQL → `npm start`. Không cần `.env.demo` trong luồng này. Để chỉ tạo schema: `npm run setup -- --empty`; lưu ý server vẫn bổ sung seed cơ bản khi chạy. Các phần dưới giải thích chi tiết và giữ hướng dẫn chế độ demo cách ly nếu cần.
 
 ## 1. Chuẩn bị máy
 
@@ -53,55 +21,35 @@ npm --version
 
 Windows dùng PowerShell/CMD; macOS/Linux dùng Terminal. Các lệnh npm trong tài liệu giống nhau trên cả ba hệ điều hành.
 
-## 2. Mở đúng thư mục và cài thư viện
+## 2. Cài nhanh từ repo chính — khuyến nghị cho người tải mới
 
-Mở terminal ngay tại thư mục có `package.json`, `package-lock.json` và `server.mysql.js`.
+Repo: https://github.com/Saame12/CRM-electronic-devices-project
 
-Ví dụ đường dẫn hiện tại trên máy tác giả (máy khác phải thay bằng đường dẫn của mình):
+Tải Code → Download ZIP rồi giải nén, hoặc clone bằng Git. Trong Visual Studio chọn File → Open → Folder (VS Code: Open Folder), mở thư mục có `package.json`, sau đó mở terminal tại thư mục đó.
 
-```powershell
-cd "C:\Users\admin\source\repos\CRM-electronic-devices-project"
-```
-
-macOS/Linux, ví dụ:
-
-```bash
-cd ~/Downloads/CRM-electronic-devices-project
-```
-
-Cài thư viện theo phiên bản đã khóa trong dự án:
+Mở `.env.example` điền tài khoản/mật khẩu MySQL trên máy mình. JWT_SECRET đã được sinh ngẫu nhiên; đổi tên thành `.env` nếu đã có thì file tự ghi đè sau đó nhập các lệnh dưới trong Developer Command Prompt (visual studio)
 
 ```bash
 npm ci
+npm run config
 ```
 
-Không cần mang thư mục `node_modules` từ máy tác giả sang. Lệnh này cần mạng để tải thư viện. Nếu báo không thấy `package.json`, bạn đang đứng sai thư mục; nếu thiếu `package-lock.json`, hãy tải bản dự án đầy đủ.
+khởi động MySQL Server sau đó mở Developer Command Prompt ( visual studio ) và nhập lần lượt 2 lệnh dưới:
+
+```bash
+npm run setup
+npm start
+```
+
+`setup` tạo database/bảng theo `.env`. Nếu tất cả bảng nghiệp vụ còn trống, nạp đủ bộ dữ liệu giả lập vào database đó để tương tác ngay (Admin/Quản lý/Khách, khảo sát, phản hồi, báo cáo). Nếu database đã có dữ liệu thì giữ nguyên, không trộn bộ mẫu hoặc reset mật khẩu.
+
+Database mới đã nạp mẫu: Admin `admin@backline.vn / Admin@123`, Quản lý `manager@demo.vn / Manager@123`, Khách `khach@demo.vn / 123456`. Truy cập lần lượt `/admin.html`, `/manager.html`, `/` tại http://localhost:3000. Chỉ dùng tài khoản mặc định để trình diễn local.
+
+Lần sau: bật MySQL → `npm start`. Không cần `.env.demo` trong luồng này. Để chỉ tạo schema: `npm run setup -- --empty`; lưu ý server vẫn bổ sung seed cơ bản khi chạy. Các phần dưới giải thích chi tiết và giữ hướng dẫn chế độ demo cách ly nếu cần.
 
 ## 3. Tạo file cấu hình cho máy mới
 
-Nếu đã có `.env`, giữ nguyên file và kiểm tra thông tin, không sao chép đè lên cấu hình đang dùng.
-
-Nếu chưa có, sao chép file mẫu:
-
-Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Windows CMD:
-
-```bat
-copy .env.example .env
-```
-
-macOS/Linux:
-
-```bash
-cp .env.example .env
-```
-
-Mở `.env` bằng trình soạn thảo, sửa thành thông tin của máy mới:
+Giải thích cho `.env` :
 
 ```dotenv
 PORT=3000
