@@ -5,14 +5,14 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {buildOverview,aggregateQuestion,range,registerReports}=require('../reports-service');
 const now=new Date('2026-10-20T12:00:00+07:00');
-const customer={birth_year:2000,address:'Hà Nội',gender:'Nam',need:'Gaming',account_status:'ACTIVE',created_at:'2026-10-01'};
+const customer={birth_year:2000,birth_date:'2000-10-20',address:'Hà Nội',gender:'Nam',need:'Gaming',account_status:'ACTIVE',created_at:'2026-10-01'};
 const feedback=(id,rate,extra={})=>({id,customer_id:'customer',product_id:'pc',product_name:'PC',rating:rate,status:'NEW',is_hidden:0,feedback_type:'Góp ý',created_at:'2026-10-02',...extra});
 test('Empty data has no invented percentages or scores',()=>{
  const d=buildOverview([],[],[],now);assert.equal(d.customers.completionRate,null);assert.equal(d.feedback.averageRating,null);assert.equal(d.feedback.satisfactionRate,null);assert.equal(d.feedback.resolutionRate,null);assert.equal(d.surveys.responses,0);
 });
 test('Customer cohorts include unknown ages, unknown needs, locked accounts',()=>{
- const d=buildOverview([customer,{...customer,birth_year:null,need:'Chưa xác định',account_status:'LOCKED'},{...customer,birth_year:0,gender:''}],[],[],now).customers;
- assert.equal(d.total,3);assert.equal(d.active,2);assert.equal(d.locked,1);assert.equal(d.complete,1);assert.equal(d.completionRate,33.3);assert.equal(d.byAge.find(x=>x.label==='Chưa có năm sinh hợp lệ').total,2);assert.equal(d.byNeed.find(x=>x.label==='Chưa xác định').percentage,33.3);
+ const d=buildOverview([customer,{...customer,birth_year:null,birth_date:null,need:'Chưa xác định',account_status:'LOCKED'},{...customer,birth_year:0,birth_date:null,gender:''}],[],[],now).customers;
+ assert.equal(d.total,3);assert.equal(d.active,2);assert.equal(d.locked,1);assert.equal(d.complete,1);assert.equal(d.completionRate,33.3);assert.equal(d.byAge.find(x=>x.label==='Chưa có ngày sinh hợp lệ').total,2);assert.equal(d.byNeed.find(x=>x.label==='Chưa xác định').percentage,33.3);
 });
 test('Average uses all individual ratings, hidden feedback remains counted',()=>{
  const d=buildOverview([], [feedback('a',5),feedback('b',5),feedback('c',1,{product_id:'laptop',product_name:'Laptop',is_hidden:1,status:'RESOLVED',feedback_type:'Báo lỗi / Khiếu nại'})],[],now).feedback;
@@ -45,13 +45,16 @@ test('Overview parameterizes inclusive end date and commits a consistent snapsho
  await routes[0].at(-1)({query:{from:'2026-10-01',to:'2026-10-20'}},{json:d=>output=d});
  assert.equal(output.asOf,'2026-10-20');const queries=calls.filter(x=>x[1]);assert.equal(queries.length,3);for(const [sql,params] of queries){assert.ok(sql.includes('< DATE_ADD(?, INTERVAL 1 DAY)'));assert.deepEqual(params,['2026-10-01','2026-10-20'])}assert.deepEqual(calls.slice(-2),[['commit'],['release']]);
 });
-test('Reports render safely after both existing scripts, with no MySQL dependency',()=>{
+test('Reports render safely and export exact age and interest distributions without MySQL',async()=>{
  const elements=new Map(),events=[],element=s=>{if(!elements.has(s))elements.set(s,{innerHTML:'',textContent:'',querySelector:()=>null,querySelectorAll:()=>[],classList:{add(){},remove(){}}});return elements.get(s)};
  const context=vm.createContext({console,document:{querySelector:element,querySelectorAll:()=>[],addEventListener:(...x)=>events.push(x),createElement:()=>({click(){}})},MutationObserver:class{observe(){}},sessionStorage:{getItem:()=>null},setTimeout:()=>0,clearTimeout(){},URLSearchParams,URL,Blob,window:{},fetch:()=>{throw Error('Unexpected network access')}});
- for(const file of ['admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','recovery-admin.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
- context.fixture=buildOverview([customer],[],[],now);context.fixture.generatedAt=now.toISOString();context.fixture.asOf='2026-10-20';
+ for(const file of ['crm-domain.js','customer-fields.js','admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','recovery-admin.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
+ context.fixture=buildOverview([{...customer,interests:['gaming','design']}],[],[],now);context.fixture.generatedAt=now.toISOString();context.fixture.asOf='2026-10-20';
  vm.runInContext("me={role:'MANAGER',name:'Quản lý'};page='reports';reportData=fixture;render()",context);
  assert.ok(element('#app').innerHTML.includes('Chân dung khách hàng'));
+ let exported;context.capture=blob=>{exported=blob;return 'blob:test'};
+ vm.runInContext("URL={createObjectURL:capture,revokeObjectURL(){}};exportReports()",context);
+ const csv=await exported.text();assert.ok(csv.includes('Sở thích (nhiều lựa chọn)'));assert.ok(csv.includes('"Gaming","1","100"'));assert.ok(csv.includes('"Đồ họa","1","100"'));assert.ok(csv.includes('"25–34","1","100"'));
  context.fixture.feedback.byProduct=[{name:'<script>alert(1)</script>',total:1}];
  vm.runInContext("reportSection='feedback';render()",context);assert.ok(element('#app').innerHTML.includes('&lt;script&gt;'));assert.ok(!element('#app').innerHTML.includes('<script>alert'));
  vm.runInContext("reportSection='surveys';render()",context);assert.ok(element('#app').innerHTML.includes('Hiệu quả khảo sát'));

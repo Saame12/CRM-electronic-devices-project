@@ -1,0 +1,29 @@
+{
+  "startedAt": "2026-11-01T05:20:58.166Z",
+  "backup": "C:\\Users\\sangl\\source\\repos\\CRM-electronic-devices-project\\data\\backups\\backline_crm-sau-nghiem-thu-20261101.sql",
+  "checks": [
+    "Checksum và số bản ghi 14 bảng khớp bản sao lưu",
+    "Không có bản ghi mồ côi phản hồi, câu trả lời và chi tiết",
+    "Đăng nhập Quản lý và khách bằng mật khẩu đã phục hồi",
+    "Dashboard/báo cáo khớp 12 khách, 36 phản hồi, 6 khảo sát; khách đọc được khảo sát và phản hồi"
+  ],
+  "counts": {
+    "customer_interests": 0,
+    "customer_recovery_codes": 0,
+    "demo_datasets": 1,
+    "feedback": 36,
+    "interests": 6,
+    "password_recovery_requests": 2,
+    "products": 14,
+    "question_options": 27,
+    "response_details": 52,
+    "survey_questions": 15,
+    "survey_recipients": 55,
+    "survey_responses": 17,
+    "surveys": 6,
+    "users": 15
+  },
+  "status": "PASS",
+  "cleaned": true,
+  "finishedAt": "2026-11-01T05:20:59.829Z"
+}

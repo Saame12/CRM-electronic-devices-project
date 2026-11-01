@@ -1,0 +1,62 @@
+{
+  "checkedAt": "2026-11-01T05:21:16.078Z",
+  "base": "http://127.0.0.1:3000",
+  "roles": [
+    {
+      "role": "CUSTOMER",
+      "total": 12
+    },
+    {
+      "role": "MANAGER",
+      "total": 2
+    },
+    {
+      "role": "ADMIN",
+      "total": 1
+    }
+  ],
+  "totals": {
+    "accounts": 15,
+    "products": 14,
+    "surveys": 6,
+    "feedback": 36,
+    "responses": 17
+  },
+  "configurationTemplatePresent": true,
+  "results": [
+    {
+      "name": "Kết nối máy chủ và MySQL",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "name": "Đăng nhập tài khoản mẫu ADMIN",
+      "status": 200,
+      "role": "ADMIN"
+    },
+    {
+      "name": "Đăng nhập tài khoản mẫu MANAGER",
+      "status": 200,
+      "role": "MANAGER"
+    },
+    {
+      "name": "Tổng số báo cáo hiện tại",
+      "customers": 12,
+      "feedback": 36,
+      "surveys": 6
+    },
+    {
+      "name": "Đăng nhập tài khoản mẫu CUSTOMER",
+      "status": 200,
+      "role": "CUSTOMER"
+    },
+    {
+      "name": "Mức hoàn thiện hồ sơ khách mẫu",
+      "missing": []
+    },
+    {
+      "name": "Khảo sát hiển thị cho khách",
+      "count": 3
+    }
+  ]
+}

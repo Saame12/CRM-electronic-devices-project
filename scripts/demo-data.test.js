@@ -161,7 +161,7 @@ test('DB setup honors the selected database safely and is non-destructive', () =
   const sql = schemaSQL('backline_crm_demo_test');
   assert.ok(sql.includes('USE `backline_crm_demo_test`;'));
   assert.ok(!sql.includes('USE backline_crm;'));
-  assert.equal((sql.match(/CREATE TABLE IF NOT EXISTS/g) || []).length, 9);
+  assert.equal((sql.match(/CREATE TABLE IF NOT EXISTS/g) || []).length, 11);
   assert.ok(!/DROP|TRUNCATE/.test(sql));
 });
 test('Generated dotenv values round trip without leaking or corrupting special characters', () => {

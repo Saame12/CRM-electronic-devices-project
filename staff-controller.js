@@ -2,7 +2,12 @@
 const staffPending = new Set();
 const staffLoadVersions = Object.create(null);
 const staffId = (button) => encodeURIComponent(button.dataset.id);
-const formValues = (form) => Object.fromEntries(new FormData(form));
+const formValues = (form) => {
+  const f = new FormData(form),
+    v = Object.fromEntries(f);
+  if (form.querySelector?.('[data-interest-fields]')) v.interests = f.getAll('interests');
+  return v;
+};
 const canUseStaffAction = (action) =>
   action === 'logout' ||
   (me &&
@@ -111,7 +116,10 @@ Object.assign(staffActions, {
     customerFilters = {
       q: $('#search')?.value.trim() || '',
       need: $('#needFilter')?.value || '',
-      status: $('#customerStatus')?.value || ''
+      status: $('#customerStatus')?.value || '',
+      interest: $('#interestFilter')?.value || '',
+      minAge: $('#minAgeFilter')?.value || '',
+      maxAge: $('#maxAgeFilter')?.value || ''
     };
     return loadCustomers();
   },
@@ -244,9 +252,27 @@ Object.assign(staffActions, {
     toast('Đã lập bản nháp mới. Bạn có thể chỉnh sửa trước khi mở.');
   },
   async 'send-survey'(button) {
-    await api('/api/admin/surveys/' + staffId(button) + '/send', { method: 'POST' });
-    toast('Đã gửi khảo sát đến khách hàng đang hoạt động.');
-    await loadSurveys();
+    $('#app').innerHTML =
+      `<button class="btn" data-action="cancel-survey-edit">← Danh sách khảo sát</button><form id="surveyAudienceForm" class="card" data-id="${esc(button.dataset.id)}"><h1>Chọn người nhận khảo sát</h1>${audienceFields()}<button class="btn primary">Gửi khảo sát</button></form>`;
+  },
+  async 'load-audience-customers'(button) {
+    const form = button.closest('form'),
+      data = await api('/api/admin/customers?status=ACTIVE');
+    form.querySelector('[data-audience-customers]').innerHTML = data.customers
+      .map(
+        (u) =>
+          `<label><input type="checkbox" name="audienceCustomer" value="${esc(u.id)}"> ${esc(u.name)} · ${esc(u.email)}</label>`
+      )
+      .join('');
+  },
+  async 'preview-audience'(button) {
+    const form = button.closest('form'),
+      data = await api('/api/admin/surveys/recipients-preview', {
+        method: 'POST',
+        body: JSON.stringify({ audience: readAudience(form) })
+      });
+    form.querySelector('[data-audience-preview]').innerHTML =
+      `<p>${data.count} khách phù hợp</p><ul>${data.customers.map((u) => '<li>' + esc(u.name) + ' · ' + esc(u.email) + '</li>').join('')}</ul>`;
   },
   async 'close-survey'(button) {
     if (!confirm('Đóng khảo sát ngay? Khách hàng sẽ không thể gửi câu trả lời mới.')) return;
@@ -327,6 +353,14 @@ Object.assign(staffForms, {
     toast('Đã tạo tài khoản.');
     await loadAccounts();
   },
+  async surveyAudienceForm(form) {
+    await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id) + '/send', {
+      method: 'POST',
+      body: JSON.stringify({ audience: readAudience(form) })
+    });
+    toast('Đã ghi nhận người nhận khảo sát.');
+    await loadSurveys();
+  },
   async managerCustomerForm(form) {
     await api('/api/admin/customers', { method: 'POST', body: JSON.stringify(formValues(form)) });
     showCustomerCreate = false;
@@ -340,7 +374,7 @@ Object.assign(staffForms, {
       questions = readSurveyQuestions(form);
     const created = await api('/api/admin/surveys', {
       method: 'POST',
-      body: JSON.stringify({ ...values, questions })
+      body: JSON.stringify({ ...values, questions, audience: readAudience(form) })
     });
     if (values.status === 'OPEN')
       await api('/api/admin/surveys/' + encodeURIComponent(created.id) + '/send', {
@@ -354,7 +388,7 @@ Object.assign(staffForms, {
     const questions = readSurveyQuestions(form, '.survey-question');
     await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id), {
       method: 'PATCH',
-      body: JSON.stringify({ ...formValues(form), questions })
+      body: JSON.stringify({ ...formValues(form), questions, audience: readAudience(form) })
     });
     toast('Đã lưu toàn bộ khảo sát.');
     page = 'surveys';

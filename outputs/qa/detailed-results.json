@@ -1,0 +1,1516 @@
+{
+  "startedAt": "2026-11-01T06:08:18.673Z",
+  "finishedAt": "2026-11-01T06:08:28.836Z",
+  "environment": "Isolated MySQL database and isolated Node HTTP server using current source",
+  "databaseCleaned": true,
+  "summary": {
+    "total": 167,
+    "passed": 167,
+    "failed": 0
+  },
+  "results": [
+    {
+      "group": "Hạ tầng",
+      "cn": "",
+      "name": "Kết nối Node và MySQL",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "HTTP 200 và ok=true",
+      "ms": 5
+    },
+    {
+      "group": "Hạ tầng",
+      "cn": "",
+      "name": "Tải tài nguyên /",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 20
+    },
+    {
+      "group": "Hạ tầng",
+      "cn": "",
+      "name": "Tải tài nguyên /admin.html",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Hạ tầng",
+      "cn": "",
+      "name": "Tải tài nguyên /manager.html",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 3
+    },
+    {
+      "group": "Hạ tầng",
+      "cn": "",
+      "name": "Tải tài nguyên /app.js",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Hạ tầng",
+      "cn": "",
+      "name": "Tải tài nguyên /reports.js",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 3
+    },
+    {
+      "group": "Bảo vệ dữ liệu",
+      "cn": "",
+      "name": "Không công khai /.env",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 10
+    },
+    {
+      "group": "Bảo vệ dữ liệu",
+      "cn": "",
+      "name": "Không công khai /server.mysql.js",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Bảo vệ dữ liệu",
+      "cn": "",
+      "name": "Không công khai /database/schema.sql",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 1
+    },
+    {
+      "group": "Bảo vệ dữ liệu",
+      "cn": "",
+      "name": "Không công khai /node_modules/dotenv/package.json",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 0
+    },
+    {
+      "group": "Bảo vệ dữ liệu",
+      "cn": "",
+      "name": "Không công khai /outputs/qa/detailed-system-check.cjs",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Từ chối truy cập khi chưa đăng nhập",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Từ chối JWT sai",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Từ chối JWT hết hạn",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Đăng nhập Admin",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 25
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Đăng nhập Quản lý",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 8
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Đăng nhập Khách",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Xác thực",
+      "cn": "CN02",
+      "name": "Sai mật khẩu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN02",
+      "name": "Khách vào Admin",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN02",
+      "name": "Admin vào Quản lý",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN02",
+      "name": "Quản lý vào Khách",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN42",
+      "name": "ADMIN được phép tại /api/admin/accounts",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 18
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN42",
+      "name": "MANAGER bị chặn tại /api/admin/accounts",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 2
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN42",
+      "name": "CUSTOMER bị chặn tại /api/admin/accounts",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN45",
+      "name": "ADMIN được phép tại /api/admin/password-recovery",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 19
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN45",
+      "name": "MANAGER bị chặn tại /api/admin/password-recovery",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN45",
+      "name": "CUSTOMER bị chặn tại /api/admin/password-recovery",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN36",
+      "name": "ADMIN bị chặn tại /api/admin/dashboard",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN36",
+      "name": "MANAGER được phép tại /api/admin/dashboard",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 18
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN36",
+      "name": "CUSTOMER bị chặn tại /api/admin/dashboard",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN19",
+      "name": "ADMIN bị chặn tại /api/admin/customers",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN19",
+      "name": "MANAGER được phép tại /api/admin/customers",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 20
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN19",
+      "name": "CUSTOMER bị chặn tại /api/admin/customers",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 11
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN24",
+      "name": "ADMIN bị chặn tại /api/admin/feedback",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN24",
+      "name": "MANAGER được phép tại /api/admin/feedback",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 18
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN24",
+      "name": "CUSTOMER bị chặn tại /api/admin/feedback",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN28",
+      "name": "ADMIN bị chặn tại /api/admin/surveys",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 2
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN28",
+      "name": "MANAGER được phép tại /api/admin/surveys",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN28",
+      "name": "CUSTOMER bị chặn tại /api/admin/surveys",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN37",
+      "name": "ADMIN bị chặn tại /api/admin/reports/overview",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN37",
+      "name": "MANAGER được phép tại /api/admin/reports/overview",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 40
+    },
+    {
+      "group": "Phân quyền",
+      "cn": "CN37",
+      "name": "CUSTOMER bị chặn tại /api/admin/reports/overview",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 2
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Đăng ký hợp lệ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 253
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Thiếu họ tên",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Sai email",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Sai điện thoại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Ngày sinh không tồn tại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Ngày sinh tương lai",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Thiếu giới tính",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 1
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Mật khẩu quá ngắn",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Không đăng ký trùng email hoặc điện thoại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 274
+    },
+    {
+      "group": "Tài khoản",
+      "cn": "CN01",
+      "name": "Mật khẩu lưu dạng băm và không lộ qua API",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 254
+    },
+    {
+      "group": "Phiên đăng nhập",
+      "cn": "CN03",
+      "name": "Ghi nhớ 7 ngày có cookie HttpOnly và thời hạn đúng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 249
+    },
+    {
+      "group": "Phiên đăng nhập",
+      "cn": "CN03",
+      "name": "Không ghi nhớ dùng token 8 giờ và cookie phiên",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 0
+    },
+    {
+      "group": "Phiên đăng nhập",
+      "cn": "CN05",
+      "name": "Cookie khách đọc được hồ sơ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 11
+    },
+    {
+      "group": "Hồ sơ",
+      "cn": "CN06",
+      "name": "Cập nhật đủ hồ sơ và đọc lại từ MySQL",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 32
+    },
+    {
+      "group": "Hồ sơ",
+      "cn": "CN06",
+      "name": "Từ chối nhu cầu ngoài danh mục",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Hồ sơ",
+      "cn": "CN06",
+      "name": "Từ chối điện thoại bị trùng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 18
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN07",
+      "name": "API phải từ chối hồ sơ thiếu địa chỉ và giới tính",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN20",
+      "name": "Quản lý thêm khách",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 276
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN19",
+      "name": "Tìm theo tên email điện thoại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 47
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN19",
+      "name": "Lọc nhu cầu Gaming",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN21",
+      "name": "Xem chi tiết khách",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN22",
+      "name": "Khóa khách và chặn đăng nhập",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 273
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN22",
+      "name": "Lọc danh sách bị khóa",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 6
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN22",
+      "name": "Mở khóa khách",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 271
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN22",
+      "name": "Từ chối trạng thái không hợp lệ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 6
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN23",
+      "name": "Xóa khách chưa có lịch sử",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 32
+    },
+    {
+      "group": "Admin",
+      "cn": "CN43",
+      "name": "Admin tạo Quản lý mới",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 261
+    },
+    {
+      "group": "Admin",
+      "cn": "CN43",
+      "name": "Quản lý mới đăng nhập đúng cổng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 252
+    },
+    {
+      "group": "Admin",
+      "cn": "CN42",
+      "name": "Danh sách tài khoản không lộ mật khẩu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Admin",
+      "cn": "CN43",
+      "name": "Không đổi vai trò tài khoản đã có",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Admin",
+      "cn": "CN44",
+      "name": "Không được tự xóa Admin đang đăng nhập",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Admin",
+      "cn": "CN44",
+      "name": "Xóa tài khoản Quản lý chưa có nghiệp vụ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 31
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN29",
+      "name": "Tạo DRAFT đủ bốn loại câu hỏi",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 34
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN28",
+      "name": "Tìm và lọc phiếu DRAFT",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN29",
+      "name": "Thiếu tiêu đề",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN29",
+      "name": "Không có câu hỏi",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN29",
+      "name": "Câu chọn một thiếu lựa chọn",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN29",
+      "name": "Rollback phiếu khi câu hỏi không hợp lệ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 2
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN30",
+      "name": "Sửa nội dung DRAFT",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 29
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN32",
+      "name": "Gửi phiếu tới khách ACTIVE và không nhân đôi người nhận",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 33
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN08",
+      "name": "Khách thấy phiếu đang OPEN",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 21
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN30",
+      "name": "OPEN chưa có bài có thể về DRAFT và mở lại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 43
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN34",
+      "name": "Ẩn OPEN không đóng phiếu và khách vẫn thấy",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 46
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN35",
+      "name": "Khôi phục phiếu ẩn giữ trạng thái OPEN",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 29
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN34",
+      "name": "Từ chối giá trị ẩn không phải boolean",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN10",
+      "name": "Từ chối câu TEXT chỉ có khoảng trắng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 4
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN10",
+      "name": "Nộp đủ ONE MULTI TEXT RATING",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN10",
+      "name": "Không nộp hai lần cùng phiếu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN08",
+      "name": "Đọc ngày hoàn thành đã lưu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN30",
+      "name": "OPEN có bài không cho sửa về DRAFT",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN40",
+      "name": "Xem câu trả lời và nội dung chi tiết",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN33",
+      "name": "Đóng ngay ngừng nhận bài và giữ bài cũ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 45
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN33",
+      "name": "Không đóng lại hoặc gửi phiếu đã CLOSED",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN30",
+      "name": "Không mở lại CLOSED",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 4
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN31",
+      "name": "Sao chép phiếu tạo DRAFT độc lập",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 26
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN34",
+      "name": "Ẩn CLOSED vẫn được tính báo cáo",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 36
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN35",
+      "name": "Bỏ ẩn CLOSED không mở lại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 27
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN10",
+      "name": "Từ chối nộp khảo sát quá hạn",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Khảo sát",
+      "cn": "CN39",
+      "name": "Báo cáo nhận biết EXPIRED dù dữ liệu vẫn OPEN",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 31
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN10",
+      "name": "ONE bị bỏ trống",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN10",
+      "name": "MULTI bị bỏ trống",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN10",
+      "name": "RATING bị bỏ trống",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN10",
+      "name": "RATING ngoài khoảng 1 đến 5",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN10",
+      "name": "ONE chứa lựa chọn không có",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 12
+    },
+    {
+      "group": "Gia cố API",
+      "cn": "CN10",
+      "name": "ONE nhận hai lựa chọn",
+      "kind": "boundary",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 8
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Gửi phản hồi hợp lệ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 31
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Sai sản phẩm",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Sai loại phản hồi",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Sao bằng 0",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Sao bằng 6",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Sao không nguyên",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN13",
+      "name": "Nội dung chỉ khoảng trắng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN14",
+      "name": "Khách chỉ đọc phản hồi chính mình",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 32
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN24",
+      "name": "Quản lý lọc phản hồi NEW",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN26",
+      "name": "Không ẩn phản hồi chưa xử lý",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 2
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN25",
+      "name": "Không RESOLVED khi chưa có câu trả lời",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN25",
+      "name": "Lưu IN_PROGRESS và nội dung trả lời",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 31
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN25",
+      "name": "Không lùi IN_PROGRESS về NEW",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN25",
+      "name": "Lưu RESOLVED có trả lời",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN26",
+      "name": "Ẩn phản hồi giữ câu trả lời của khách và báo cáo",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 83
+    },
+    {
+      "group": "Phản hồi",
+      "cn": "CN27",
+      "name": "Khôi phục phản hồi về danh sách chính",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 26
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN23",
+      "name": "Không xóa khách đã có lịch sử",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Admin",
+      "cn": "CN44",
+      "name": "Không xóa khách đã có lịch sử",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Admin",
+      "cn": "CN44",
+      "name": "Không xóa Quản lý đã tạo khảo sát",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN36",
+      "name": "Tổng quan khớp SQL",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 18
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN37",
+      "name": "Phân bố khách cộng đúng tổng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 22
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN38",
+      "name": "Tổng và tỷ lệ phản hồi khớp SQL",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 11
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN39",
+      "name": "Người nhận và tỷ lệ hoàn thành không vượt 100",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 19
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN40",
+      "name": "Câu chi tiết tổng trả lời và bỏ qua đúng tổng bài",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 11
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN37",
+      "name": "Khoảng ngày không có dữ liệu trả null cho tỷ lệ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN37",
+      "name": "Từ chối ngày lọc sai from=2026-02-30",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN37",
+      "name": "Từ chối ngày lọc sai from=2026-12-01&to=2026-01-01",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 15
+    },
+    {
+      "group": "Báo cáo",
+      "cn": "CN37",
+      "name": "Từ chối ngày lọc sai from=sai",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN15",
+      "name": "Tạo mã mới yêu cầu đúng mật khẩu hiện tại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 500
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN15",
+      "name": "Trạng thái mã không trả mã gốc",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 7
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN16",
+      "name": "Mã cũ hết hiệu lực sau tạo mã mới",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN16",
+      "name": "Mã mới cấp quyền APPROVED",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 17
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN18",
+      "name": "Từ chối xác nhận mật khẩu khác nhau",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 2
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN18",
+      "name": "Đổi thành công vô hiệu token cũ và cấp mã mới",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 773
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN18",
+      "name": "Không dùng lại phiên hoàn tất",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 14
+    },
+    {
+      "group": "Admin",
+      "cn": "CN45",
+      "name": "Admin thấy hoàn tất nhưng không thấy mật khẩu mã và token",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Admin",
+      "cn": "CN48",
+      "name": "Đánh dấu thông báo hoàn tất đã đọc",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 31
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN17",
+      "name": "Tạo yêu cầu hỗ trợ PENDING",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 32
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN17",
+      "name": "Theo dõi yêu cầu và không đổi trước khi duyệt",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 16
+    },
+    {
+      "group": "Admin",
+      "cn": "CN46",
+      "name": "Không duyệt nếu thiếu xác nhận xác minh",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Admin",
+      "cn": "CN46",
+      "name": "Duyệt sau xác minh và cấp hạn 15 phút",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 32
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN18",
+      "name": "Hoàn tất bằng hỗ trợ thủ công",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 254
+    },
+    {
+      "group": "Admin",
+      "cn": "CN47",
+      "name": "Từ chối yêu cầu không khớp tài khoản",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 67
+    },
+    {
+      "group": "Khôi phục",
+      "cn": "CN17",
+      "name": "Yêu cầu quá hạn chuyển EXPIRED",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 32
+    },
+    {
+      "group": "Phiên đăng nhập",
+      "cn": "CN04",
+      "name": "Đăng xuất xóa cookie trình duyệt",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 13
+    },
+    {
+      "group": "Khách hàng",
+      "cn": "CN22",
+      "name": "Khóa tài khoản vô hiệu ngay token đang có",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 296
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "BB01",
+      "name": "Lưu hai sở thích, chống trùng, đọc lại đúng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 45
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "BB01",
+      "name": "Bộ lọc và báo cáo sở thích khớp SQL",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 40
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "CL03",
+      "name": "Quản lý tạo khách với ngày sinh và giới tính; đăng nhập đọc đúng",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 536
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "BB02",
+      "name": "Tạo OPEN chọn từng khách chốt người nhận trong cùng transaction",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 64
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "CL01",
+      "name": "Đáp án lỗi không để lại response hoặc detail",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 35
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "BB02",
+      "name": "Gửi lại cộng dồn không trùng; báo cáo mẫu số đúng snapshot",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 52
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "BB02",
+      "name": "Từ chối khách sai vai trò, khóa, trùng hoặc không tồn tại; rollback phiếu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 86
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "BB02",
+      "name": "Xem trước bộ lọc nhu cầu, tuổi, sở thích; mở qua PATCH cùng publisher",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 86
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "CL01",
+      "name": "Đóng và nộp đồng thời: chỉ chấp nhận thứ tự giao dịch hợp lệ",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 209
+    },
+    {
+      "group": "Nghiệm thu",
+      "cn": "TC01",
+      "name": "Lịch sử phân trang đủ sự kiện, đúng quyền, không lộ dữ liệu khôi phục",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 123
+    },
+    {
+      "group": "Xem bài đã gửi",
+      "cn": "KH01",
+      "name": "Khách đọc đúng bốn loại đáp án và câu bỏ trống khi phiếu đang OPEN",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 39
+    },
+    {
+      "group": "Xem bài đã gửi",
+      "cn": "KH02",
+      "name": "Sau khi CLOSED và ẩn phía Quản lý, chủ bài vẫn thấy và đọc được bài",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 67
+    },
+    {
+      "group": "Xem bài đã gửi",
+      "cn": "KH03",
+      "name": "Chặn xem bài người khác, giả mạo ID và truy cập bằng tài khoản nhân viên",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 84
+    },
+    {
+      "group": "Xem bài đã gửi",
+      "cn": "KH04",
+      "name": "Xem chỉ đọc không ghi DB; không có API sửa bài hoặc cho nộp lại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 55
+    }
+  ]
+}

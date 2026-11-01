@@ -10,7 +10,7 @@ test('Importer preserves existing custom questions, closed statuses and answers 
 });
 test('Customer survey list exactly follows API and clears a survey that is no longer returned',async()=>{
  const node={innerHTML:'',classList:{add(){},remove(){}}};const context=vm.createContext({console,document:{querySelector:()=>node,addEventListener(){}},sessionStorage:{getItem:()=>null,removeItem(){}},localStorage:{getItem:()=>null},setTimeout:()=>0,clearTimeout(){}});
- for(const file of ['birth-date.js','app.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
+ for(const file of ['crm-domain.js','customer-fields.js','birth-date.js','app.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
  await new Promise(resolve=>setImmediate(resolve));assert.equal(vm.runInContext('SV.length',context),0);
  vm.runInContext("me={email:'test@example.invalid'};api=async(url)=>url==='/api/surveys'?{surveys:[{id:'from-db',title:'Khảo sát trong DB',qs:[]}]}:url==='/api/feedback'?{feedback:[]}:{completed:{}}",context);await vm.runInContext('refreshData()',context);assert.equal(vm.runInContext('SV[0].id',context),'from-db');
  vm.runInContext("api=async(url)=>url==='/api/surveys'?{surveys:[]}:url==='/api/feedback'?{feedback:[]}:{completed:{}}",context);await vm.runInContext('refreshData()',context);assert.equal(vm.runInContext('SV.length',context),0);

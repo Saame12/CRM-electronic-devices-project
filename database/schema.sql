@@ -122,3 +122,19 @@ CREATE TABLE IF NOT EXISTS response_details (
   CONSTRAINT fk_detail_option FOREIGN KEY (option_id) REFERENCES question_options(id),
   CONSTRAINT chk_rating_value CHECK (rating_value IS NULL OR rating_value BETWEEN 1 AND 5)
 ) ENGINE=InnoDB;
+
+
+-- Additive migration: no conversion of existing needs into interests.
+CREATE TABLE IF NOT EXISTS interests (
+  id VARCHAR(32) PRIMARY KEY,
+  name VARCHAR(80) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS customer_interests (
+  customer_id CHAR(36) NOT NULL,
+  interest_id VARCHAR(32) NOT NULL,
+  PRIMARY KEY(customer_id,interest_id),
+  CONSTRAINT fk_interest_customer FOREIGN KEY(customer_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_interest_catalog FOREIGN KEY(interest_id) REFERENCES interests(id)
+) ENGINE=InnoDB;
+INSERT INTO interests(id,name) VALUES ('gaming','Gaming'),('design','Đồ họa'),('office','Văn phòng'),('programming','Lập trình'),('learning','Học tập'),('other','Khác')
+ON DUPLICATE KEY UPDATE name=VALUES(name);

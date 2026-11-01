@@ -5,6 +5,8 @@ const files = new Set([
   '/app.js',
   '/style.css',
   '/birth-date.js',
+  '/crm-domain.js',
+  '/customer-fields.js',
   '/recovery-client.js',
   '/recovery.css',
   '/admin.html',

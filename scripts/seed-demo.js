@@ -64,6 +64,7 @@ async function seedDemo(
         );
     }
     await ensureSchema(connection);
+    await require('../customer-interests').ensureSchema(connection);
     const data = buildDemo(now),
       hashes = new Map();
     for (const user of data.users) {
@@ -88,6 +89,11 @@ async function seedDemo(
       'need',
       'created_at'
     ]);
+    // Explicit synthetic fixtures only; existing customers are never backfilled from need.
+    const interestFixtures=[['gaming','programming'],['design','learning'],['office'],['learning','other'],[]];
+    const demoCustomers=data.users.filter(u=>u.role==='CUSTOMER');
+    for(const [i,user] of demoCustomers.entries())for(const interest of interestFixtures[i%interestFixtures.length])
+      await connection.execute('INSERT INTO customer_interests(customer_id,interest_id) VALUES (?,?)',[user.id,interest]);
     await insertRows(connection, 'products', data.products, ['id', 'name', 'category']);
     await insertRows(connection, 'feedback', data.feedback, [
       'id',

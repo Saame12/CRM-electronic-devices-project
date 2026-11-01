@@ -59,7 +59,7 @@ test('Visibility APIs require authentication and manager permission, not admin/c
     source('server.mysql.js'),
     /SurveyVisibility.register\(app, db, auth, staff, wrap\)/
   );
-  assert.match(source('server.mysql.js'), /const staff = .*role === 'MANAGER'/);
+  assert.match(source('server.mysql.js'), /const staff = [\s\S]*?role === 'MANAGER'/);
 });
 test('Normal and hidden lists are separated, with parameterized search and status filtering', async () => {
   const s = setup();

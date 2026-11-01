@@ -1,0 +1,6 @@
+
+> fe-httt-trong-dn-main@1.0.0 setup:check
+> node scripts/check-installation-db.js
+
+PASS: tạo schema, nạp 15 tài khoản/6 khảo sát, chạy lại giữ nguyên dữ liệu và mật khẩu.
+Đã xóa database kiểm thử riêng vừa tạo; database người dùng không thay đổi.

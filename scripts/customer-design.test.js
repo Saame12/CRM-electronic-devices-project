@@ -21,6 +21,8 @@ function viewContext() {
     clearTimeout
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'birth-date.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'crm-domain.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'customer-fields.js'), 'utf8'), context);
   const source = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   vm.runInContext(source.slice(0, source.indexOf('// Khởi chạy render lần đầu tiên')), context);
   vm.runInContext(

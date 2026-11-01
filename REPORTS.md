@@ -4,7 +4,7 @@ Chạy backend MySQL bằng `npm start`, đăng nhập tài khoản MANAGER tạ
 
 ## Ba nhóm báo cáo
 
-- **Khách hàng:** tổng số, hoạt động/đã khóa, mức hoàn thiện hồ sơ, độ tuổi, giới tính, nhu cầu và số khách mới theo tháng.
+- **Khách hàng:** tổng số, hoạt động/đã khóa, mức hoàn thiện hồ sơ, độ tuổi, giới tính, nhu cầu, nhiều sở thích và số khách mới theo tháng.
 - **Phản hồi:** số lượt và số khách gửi, điểm trung bình, tỷ lệ đánh giá 4–5 sao, tiến độ xử lý, khiếu nại và đối chiếu theo sản phẩm. Bao gồm phản hồi đã ẩn.
 - **Khảo sát:** phân biệt nháp, mở, quá hạn, đóng; đối chiếu danh sách gửi, người đã trả lời và người chưa trả lời. Có thống kê từng câu hỏi và nội dung trả lời từng người.
 
@@ -14,10 +14,12 @@ Chạy backend MySQL bằng `npm start`, đăng nhập tài khoản MANAGER tạ
 2. Câu trả lời của các khảo sát được chọn tính toàn bộ thời gian. Tỷ lệ hoàn thành = số người trong danh sách gửi đã trả lời / số người trong danh sách gửi. Người trả lời ngoài danh sách được thống kê riêng; không dùng họ để tăng tỷ lệ hoàn thành.
 3. Không có mẫu số thì hiển thị “Chưa đủ dữ liệu” hoặc “—”; không giả định là 0%. Tỷ lệ làm tròn một chữ số thập phân.
 4. Câu hỏi chọn nhiều tính theo số người trả lời câu đó; tổng tỷ lệ lựa chọn có thể vượt 100%. Câu bị bỏ qua hoặc có dữ liệu không hợp lệ được tách khỏi số câu trả lời hợp lệ.
-5. Tuổi chỉ ước tính theo năm sinh. Hồ sơ thiếu hoặc năm sinh ngoài phạm vi 0–120 tuổi được tách riêng, không tự gán vào nhóm tuổi khác.
+5. Tuổi tròn tính từ ngày/tháng/năm sinh tại ngày báo cáo MySQL, dùng chung quy tắc với bộ lọc người nhận. Thiếu ngày sinh đầy đủ hoặc ngoài phạm vi 0–120 tuổi được tách riêng, không tự gán từ năm sinh. Người sinh 29/02 tăng tuổi vào 01/03 trong năm không nhuận.
 6. Nhu cầu trong hồ sơ là mục đích sử dụng. Chưa có dữ liệu doanh số nên không suy diễn tỷ lệ lỗi sản phẩm hoặc nhu cầu mua hàng từ số phản hồi.
 7. Phần ý kiến văn bản hiển thị tối đa 100 mục gần nhất mỗi câu hỏi, có ghi rõ giới hạn. Danh sách người hoàn thành cho phép mở câu trả lời từng người.
 8. Điểm trung bình phản hồi tính từ từng đánh giá hợp lệ (1–5 sao), không lấy trung bình các điểm trung bình sản phẩm. Tỷ lệ tích cực = số đánh giá 4–5 sao / số đánh giá hợp lệ. Tỷ lệ đã xử lý = số phản hồi RESOLVED / số phản hồi tiếp nhận trong kỳ.
+
+9. Sở thích cho chọn nhiều: mỗi nhóm đếm khách duy nhất / tổng khách đã lọc; tổng tỷ lệ có thể vượt 100%. CSV có cùng phân bố với giao diện. Khách chưa khai báo sở thích nằm ở nhóm riêng.
 
 ## Xuất và kiểm tra
 

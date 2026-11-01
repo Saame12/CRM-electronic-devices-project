@@ -3,7 +3,7 @@ const complete={id:'customer',email:'test@example.invalid',name:'Khách',phone:'
 async function environment(user){const nodes=new Map(),events=[],storage=new Map();let fetched=0,saves=0;
  const node=s=>{if(!nodes.has(s))nodes.set(s,{innerHTML:'',textContent:'',open:false,showModal(){this.open=true},focus(){},classList:{add(){},remove(){}}});return nodes.get(s)};
  const context=vm.createContext({document:{querySelector:node,addEventListener:(type,handler)=>events.push({type,handler})},sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},localStorage:{getItem:()=>null},console,setTimeout:()=>0,clearTimeout(){}});
- for(const file of ['birth-date.js','app.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
+ for(const file of ['crm-domain.js','customer-fields.js','birth-date.js','app.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
  await new Promise(resolve=>setImmediate(resolve));
  context.record=async(url,options)=>{if(url==='/api/me'&&options?.method==='PUT'){saves++;return {user:{...complete,...JSON.parse(options.body)}}}return {user:{...user}}};context.countRefresh=()=>{fetched++};
  vm.runInContext('api=record;refreshData=async()=>countRefresh()',context);

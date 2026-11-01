@@ -308,7 +308,7 @@ test('Customer UI offers code verification first, manual support separately, and
     setTimeout: () => 0,
     clearTimeout() {}
   });
-  for (const f of ['birth-date.js', 'app.js', 'recovery-client.js'])
+  for (const f of ['crm-domain.js', 'customer-fields.js', 'birth-date.js', 'app.js', 'recovery-client.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), c);
   await new Promise((r) => setImmediate(r));
   const html = vm.runInContext("recoveryView='request';auth()", c);
@@ -373,7 +373,7 @@ test('After reset, the new code is shown once before login and never persisted i
       }
     }
   });
-  for (const f of ['birth-date.js', 'app.js', 'recovery-client.js'])
+  for (const f of ['crm-domain.js', 'customer-fields.js', 'birth-date.js', 'app.js', 'recovery-client.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), context);
   await new Promise((r) => setImmediate(r));
   vm.runInContext(

@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
-const modules=['admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','recovery-admin.js','customer-details.js'];
+const modules=['crm-domain.js','customer-fields.js','admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','recovery-admin.js','customer-details.js'];
 
 test('Staff brand links stay inside their own role portal instead of opening the customer homepage',()=>{
  for(const page of ['admin','manager']){

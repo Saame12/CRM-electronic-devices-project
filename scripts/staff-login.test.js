@@ -1,10 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
-const source=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
+const source=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8').replace(/app\.(post|get|put|patch|delete)\(\s*'/g,"app.$1('");
 async function browser(portal,role,restore=false){
  const events=[],redirects=[],calls=[],storage=new Map(restore?[['backline_crm_admin_token','old-token']]:[]);
  const nodes=new Map(),node=s=>{if(!nodes.has(s))nodes.set(s,{innerHTML:'',textContent:'',classList:{add(){},remove(){}}});return nodes.get(s)};
  const c=vm.createContext({URLSearchParams,MutationObserver:class{observe(){}},location:{pathname:'/nested/'+portal+'.html',replace:url=>redirects.push(url)},document:{querySelector:node,querySelectorAll:()=>[],addEventListener:(type,fn)=>events.push({type,fn})},sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},FormData:class{*[Symbol.iterator](){yield ['email','test@example.invalid'];yield ['password','secret']}},setTimeout:()=>0,clearTimeout(){},fetch:async(url,o)=>{calls.push({url,body:o?.body&&JSON.parse(o.body)});return {ok:true,json:async()=>url==='/api/me'?{user:{id:'u',role}}:url==='/api/auth/login'?{token:'new-token',user:{id:'u',role}}:url==='/api/admin/accounts'?{accounts:[]}:{customers:0,openFeedback:0,openSurveys:0}}}});
- for(const f of ['admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','staff-bootstrap.js'])vm.runInContext(source(f),c);await new Promise(r=>setImmediate(r));
+ for(const f of ['crm-domain.js','customer-fields.js','admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','staff-bootstrap.js'])vm.runInContext(source(f),c);await new Promise(r=>setImmediate(r));
  if(!restore){await events.find(x=>x.type==='submit').fn({target:{id:'login'},preventDefault(){}})}
  return {c,redirects,calls,storage,node};
 }
@@ -28,7 +28,7 @@ test('Server validates portal and role before issuing a token',async()=>{
  const s=source('server.mysql.js'),start=s.indexOf("app.post('/api/auth/login'"),end=s.indexOf("app.post('/api/auth/logout'",start);
  for(const [portal,role,expected] of [['MANAGER','MANAGER',200],['MANAGER','ADMIN',403],['MANAGER','CUSTOMER',403],['ADMIN','ADMIN',200],['ADMIN','MANAGER',200],['ADMIN','CUSTOMER',403],['invalid','ADMIN',400]]){
   let handler,issued=0,status=200;const user={role,account_status:'ACTIVE',password_hash:'hash'};
-  const c=vm.createContext({app:{post:(_url,fn)=>handler=fn},wrap:fn=>fn,db:{execute:async()=>[[user]]},bcrypt:{compare:async()=>true},CustomerSession:{issue:()=>{issued++;return 'token'}},tokenFor(){},publicUser:u=>u});
+  const c=vm.createContext({app:{post:(_url,fn)=>handler=fn},wrap:fn=>fn,db:{execute:async()=>[[user]]},bcrypt:{compare:async()=>true},CustomerSession:{issue:()=>{issued++;return 'token'}},Interests:{attach:async()=>{}},tokenFor(){},publicUser:u=>u});
   vm.runInContext(s.slice(start,end),c);const res={status:n=>{status=n;return res},json(){}};
   await handler({body:{staffPortal:portal,email:'test@example.invalid',password:'password'}},res);
   assert.equal(status,expected,portal+'/'+role);assert.equal(issued,expected===200?1:0);

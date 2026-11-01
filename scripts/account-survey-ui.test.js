@@ -1,9 +1,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
-const source=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
+const source=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8').replace(/app\.(post|get|put|patch|delete)\(\s*'/g,"app.$1('");
 async function customer(){
  const events=[],storage=new Map(),node={innerHTML:'',classList:{add(){},remove(){}}};
  const c=vm.createContext({document:{querySelector:()=>node,addEventListener:(type,handler)=>events.push({type,handler})},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{getItem:()=>null,removeItem(){}},setTimeout:()=>0,clearTimeout(){}});
- for(const f of ['birth-date.js','app.js'])vm.runInContext(source(f),c);
+ for(const f of ['crm-domain.js','customer-fields.js','birth-date.js','app.js'])vm.runInContext(source(f),c);
  await new Promise(r=>setImmediate(r));return {c,events,storage};
 }
 test('Login and both registration password inputs have independent accessible eye buttons',async()=>{
@@ -28,12 +28,12 @@ test('Completed and expired unanswered surveys can be hidden, reviewed and resto
 test('Account list filters combine name/email/phone, role and status without role editing',()=>{
  const node={innerHTML:'',querySelectorAll:()=>[],classList:{add(){},remove(){}}};
  const c=vm.createContext({document:{querySelector:()=>node,querySelectorAll:()=>[],addEventListener(){}},MutationObserver:class{observe(){}},sessionStorage:{getItem:()=>null},setTimeout:()=>0,clearTimeout(){}});
- for(const f of ['admin.js','role-ui.js'])vm.runInContext(source(f),c);
+ for(const f of ['crm-domain.js','customer-fields.js','admin.js','role-ui.js'])vm.runInContext(source(f),c);
  vm.runInContext("me={id:'admin',role:'ADMIN'};accounts=[{id:'admin',name:'Admin',role:'ADMIN',status:'ACTIVE'},{id:'a',name:'An',email:'an@test.invalid',phone:'0901234567',role:'CUSTOMER',status:'ACTIVE'},{id:'b',name:'Binh',role:'MANAGER',status:'LOCKED'}]",c);
  const html=vm.runInContext('accountPage()',c);assert.ok(!html.includes('data-action="change-role"'));assert.ok(!html.includes('id="role-'));assert.ok(html.includes('id="accountFilters"'));assert.ok(html.includes('name="role"><option value="CUSTOMER"'));
  assert.equal(vm.runInContext("accountFilters={q:'AN@TEST',role:'CUSTOMER',status:'ACTIVE'};filteredAccounts().length",c),1);
  assert.equal(vm.runInContext("accountFilters.status='LOCKED';filteredAccounts().length",c),0);
  assert.equal(vm.runInContext("accountFilters={q:'090123',role:'',status:''};filteredAccounts().length",c),1);
  assert.equal(vm.runInContext("accountFilters={q:'',role:'ADMIN',status:''};filteredAccounts().length",c),1);
- assert.match(source('server.mysql.js'),/accounts\/:id\/role'.*status\(405\)/);
+ assert.match(source('server.mysql.js'),/accounts\/:id\/role'[\s\S]*?status\(405\)/);
 });

@@ -1,5 +1,13 @@
 # Hướng dẫn setup database và chạy Backline CRM
 
+## Bản cập nhật nghiệm thu 01/11/2026
+
+Đã bổ sung nhiều sở thích, chọn nhóm/từng người nhận khảo sát, kiểm tra dữ liệu backend, tính tuổi theo ngày sinh và lịch sử tương tác theo khách. Xem [kết quả khắc phục và hướng dẫn thao tác](docs/KET_QUA_KHAC_PHUC.md), [bản tự đánh giá hiệu chỉnh](docs/BAO_CAO_TU_DANH_GIA_DA_HIEU_CHINH.md) và [sao lưu/phục hồi](docs/SAO_LUU_VA_PHUC_HOI.md).
+
+Khách hàng có thể [xem lại bài khảo sát đã gửi](docs/XEM_LAI_BAI_KHAO_SAT.md) ở chế độ chỉ đọc, kể cả khi khảo sát đã đóng; chỉ xem được bài của chính mình.
+
+Với database đang có dữ liệu, sao lưu bằng `npm run db:backup`, kiểm chứng bản sao lưu rồi chạy `npm run db:migrate` và khởi động lại server. Migration chỉ thêm bảng sở thích/danh mục, không nạp lại demo hoặc suy diễn sở thích cho khách cũ. Cài mới vẫn dùng quy trình setup bên dưới.
+
 ## Chạy bản demo sau khi tải từ GitHub
 
 ## Cài nhanh từ repo chính — khuyến nghị cho người tải mới

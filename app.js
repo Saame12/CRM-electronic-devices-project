@@ -15,7 +15,7 @@ const esc = (s) =>
 const today = () => new Date().toLocaleDateString('vi-VN');
 
 // Danh sách nhu cầu, sản phẩm và loại phản hồi mẫu
-const NEEDS = ['Gaming', 'Đồ họa', 'Văn phòng', 'Chưa xác định'];
+const NEEDS = CrmDomain.needs;
 const PRODS = [
   'Dell Inspiron 15 3530',
   'HP 15-fd0231TU',
@@ -52,6 +52,8 @@ const TOKEN_KEY = 'backline_crm_token';
 const ONBOARDING_KEY = 'backline_crm_profile_onboarding';
 const hiddenSurveyKey = () => `backline_crm_hidden_surveys_${me?.email || ''}`;
 let showHiddenSurveys = false;
+let surveyReview = null,
+  surveyReviewSequence = 0;
 const hiddenSurveys = () => {
   try {
     const ids = JSON.parse(localStorage.getItem(hiddenSurveyKey()) || '[]');
@@ -237,8 +239,14 @@ function main() {
     ['fb', 'Phản hồi sản phẩm', 'chat']
   ];
   const content =
-    tab === 'survey' ? (open ? svForm(SV.find((s) => s.id === open)) : svList()) : fbView();
-  return `<div class="customer-shell"><aside class="customer-sidebar"><span class="sidebar-caption">KHÔNG GIAN CỦA BẠN</span><nav aria-label="Điều hướng khách hàng">${nav.map(([key, label, icon]) => `<button class="${tab === key ? 'on' : ''}" data-act="tab" data-v="${key}" ${tab === key ? 'aria-current="page"' : ''}>${customerIcon(icon)}<span>${label}</span>${key === 'survey' && n ? `<span class="nav-count">${n}</span>` : ''}</button>`).join('')}</nav></aside><div class="customer-body">${!open ? customerWelcome() : ''}<div class="customer-workspace ${tab !== 'survey' || open ? 'wide' : ''}"><section class="customer-content">${content}</section></div></div></div>`;
+    tab === 'survey'
+      ? surveyReview
+        ? svReview()
+        : open
+          ? svForm(SV.find((s) => s.id === open))
+          : svList()
+      : fbView();
+  return `<div class="customer-shell"><aside class="customer-sidebar"><span class="sidebar-caption">KHÔNG GIAN CỦA BẠN</span><nav aria-label="Điều hướng khách hàng">${nav.map(([key, label, icon]) => `<button class="${tab === key ? 'on' : ''}" data-act="tab" data-v="${key}" ${tab === key ? 'aria-current="page"' : ''}>${customerIcon(icon)}<span>${label}</span>${key === 'survey' && n ? `<span class="nav-count">${n}</span>` : ''}</button>`).join('')}</nav></aside><div class="customer-body">${!open && !surveyReview ? customerWelcome() : ''}<div class="customer-workspace ${tab !== 'survey' || open || surveyReview ? 'wide' : ''}"><section class="customer-content">${content}</section></div></div></div>`;
 }
 
 // Danh sách các phiếu khảo sát
@@ -254,9 +262,46 @@ function svList() {
       isDone = Boolean(date),
       expired = !isDone && isExpired(s),
       minutes = Number(s.min) || Math.max(1, Math.ceil(s.qs.length / 3));
-    return `<article class="card survey-card ${type === 'active' ? 'survey-active' : 'survey-completed'}"><div class="survey-card-top"><span class="survey-icon">${customerIcon(isDone ? 'check' : expired ? 'clock' : 'survey')}</span><span class="b ${isDone ? 'ok' : expired ? 'warn' : 'in'}">${isDone ? 'Đã hoàn thành' : expired ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><h2>${esc(s.title)}</h2><p class="survey-description">${esc(s.desc)}</p><div class="survey-meta"><span>${customerIcon('survey')} ${s.qs.length} câu hỏi</span><span>${customerIcon('clock')} Khoảng ${minutes} phút</span></div><div class="survey-card-bottom"><span class="survey-date">${isDone ? 'Đã gửi: ' + esc(date) : 'Hạn: ' + esc(s.due || 'Không đặt hạn')}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${esc(s.id)}">Thực hiện khảo sát ${customerIcon('arrow')}</button>` : `<button class="btn sm" data-act="${showHiddenSurveys ? 'restore-survey' : 'hide-survey'}" data-v="${esc(s.id)}">${showHiddenSurveys ? 'Bỏ ẩn' : 'Ẩn khảo sát'}</button>`}</div></article>`;
+    return `<article class="card survey-card ${type === 'active' ? 'survey-active' : 'survey-completed'}"><div class="survey-card-top"><span class="survey-icon">${customerIcon(isDone ? 'check' : expired ? 'clock' : 'survey')}</span><span class="b ${isDone ? 'ok' : expired ? 'warn' : 'in'}">${isDone ? 'Đã hoàn thành' : expired ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><h2>${esc(s.title)}</h2><p class="survey-description">${esc(s.desc)}</p><div class="survey-meta"><span>${customerIcon('survey')} ${s.qs.length} câu hỏi</span><span>${customerIcon('clock')} Khoảng ${minutes} phút</span></div><div class="survey-card-bottom"><span class="survey-date">${isDone ? 'Đã gửi: ' + esc(date) : 'Hạn: ' + esc(s.due || 'Không đặt hạn')}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${esc(s.id)}">Thực hiện khảo sát ${customerIcon('arrow')}</button>` : ` ${isDone ? `<button class="btn pri" data-act="review-survey" data-v="${esc(s.id)}">Xem bài đã gửi</button>` : ''}<button class="btn sm" data-act="${showHiddenSurveys ? 'restore-survey' : 'hide-survey'}" data-v="${esc(s.id)}">${showHiddenSurveys ? 'Bỏ ẩn' : 'Ẩn khảo sát'}</button>`}</div></article>`;
   };
   return `<div class="page-heading"><span class="eyebrow">CHIA SẺ ĐỂ CÙNG TỐT HƠN</span><h1>Khảo sát dành cho bạn</h1><p class="mu">Khảo sát đang mở có thể thực hiện. Các khảo sát quá hạn chưa trả lời được chuyển vào mục đã hoàn thành.</p></div><div class="section-heading"><h2>Khảo sát mới đang mở <span class="section-count">${active.length}</span></h2><span class="section-hint">Sẵn sàng lắng nghe bạn</span></div><div class="survey-grid">${active.length ? active.map((s) => card(s, 'active')).join('') : customerEmpty('Hiện không có khảo sát mới cần thực hiện.', 'Các khảo sát đang mở sẽ xuất hiện tại đây.')}</div><div class="section-heading survey-history-heading"><div><h2>${showHiddenSurveys ? 'Khảo sát đã ẩn' : 'Đã hoàn thành'} <span class="section-count">${completed.length}</span></h2><p class="mu">Gồm khảo sát đã trả lời và quá hạn chưa trả lời.</p></div><button class="btn sm" data-act="toggle-hidden-surveys" aria-pressed="${showHiddenSurveys}">${showHiddenSurveys ? 'Quay lại đã hoàn thành' : 'Xem khảo sát đã ẩn (' + hiddenCount + ')'}</button></div><div class="survey-grid history-grid">${completed.length ? completed.map((s) => card(s, 'completed')).join('') : customerEmpty(showHiddenSurveys ? 'Không có khảo sát đã ẩn.' : 'Chưa có khảo sát hoàn tất hoặc quá hạn.', 'Lịch sử và trạng thái khảo sát của bạn được hiển thị tại đây.', 'check')}</div>`;
+}
+
+function clearSurveyReview() {
+  surveyReviewSequence++;
+  surveyReview = null;
+}
+async function loadSurveyReview(id) {
+  const actor = me?.id || me?.email,
+    sequence = ++surveyReviewSequence;
+  open = null;
+  surveyReview = { id, loading: true };
+  render();
+  try {
+    const data = await api('/api/surveys/' + encodeURIComponent(id) + '/my-response');
+    if (sequence !== surveyReviewSequence || (me?.id || me?.email) !== actor || tab !== 'survey')
+      return;
+    surveyReview = { id, data };
+  } catch (error) {
+    if (sequence !== surveyReviewSequence || (me?.id || me?.email) !== actor || tab !== 'survey')
+      return;
+    surveyReview = { id, error: error.message };
+  }
+  render();
+}
+function svReview() {
+  const back =
+    '<button class="btn sm" data-act="back" style="margin-bottom:12px">← Danh sách khảo sát</button>';
+  if (surveyReview.loading)
+    return back + '<section class="card" role="status">Đang tải bài đã gửi…</section>';
+  if (surveyReview.error)
+    return back + '<section class="card" role="alert">' + esc(surveyReview.error) + '</section>';
+  const data = surveyReview.data,
+    status = { OPEN: 'Đang mở', CLOSED: 'Đã đóng', DRAFT: 'Bản nháp' };
+  return (
+    back +
+    `<section class="card survey-form" aria-label="Bài khảo sát đã gửi"><span class="eyebrow">BÀI ĐÃ GỬI · CHỈ XEM</span><h1>${esc(data.survey.title)}</h1><p class="mu">${esc(data.survey.description)}</p><p>Đã gửi: ${esc(new Date(data.submittedAt).toLocaleString('vi-VN'))} · ${esc(status[data.survey.status] || data.survey.status)}</p><p class="mu">Bạn có thể xem lại câu trả lời của mình. Bài đã gửi không thể chỉnh sửa hoặc gửi lại.</p>${data.questions.map((q, i) => `<article class="q"><span class="question-label">CÂU ${i + 1} / ${data.questions.length}</span><h2>${esc(q.text)}${q.required ? ' *' : ''}</h2>${!q.answers.length ? '<p class="mu">Chưa trả lời</p>' : q.type === 'RATING' ? '<p>' + esc(q.answers[0]) + ' / 5 sao</p>' : q.type === 'MULTI' ? '<ul>' + q.answers.map((a) => '<li>' + esc(a) + '</li>').join('') + '</ul>' : '<p style="white-space:pre-wrap;overflow-wrap:anywhere">' + esc(q.answers.join('\n')) + '</p>'}</article>`).join('')}</section>`
+  );
 }
 
 // Form chi tiết làm một bảng khảo sát
@@ -304,7 +349,7 @@ function fbView() {
 
 // Giao diện Thông tin cá nhân (Profile)
 function profView() {
-  return `<form id="prof" class="card" novalidate><fieldset class="profile-section"><legend>Thông tin cơ bản</legend><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" value="${esc(BirthDate.display(me.birthDate))}" placeholder="dd/mm/yyyy"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map((g) => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Chọn giới tính'}</option>`).join('')}</select></label></div></fieldset><fieldset class="profile-section"><legend>Nhu cầu sử dụng</legend><p class="mu">Giúp Backline gợi ý sản phẩm phù hợp với bạn.</p><label>Nhu cầu sử dụng PC / laptop<select name="need" required><option value="" disabled${!NEEDS.includes(me.need) ? ' selected' : ''}>Vui lòng chọn nhu cầu sử dụng</option>${NEEDS.map((g) => `<option value="${g}"${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label></fieldset><div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>${typeof recoveryCodePanel === 'function' ? recoveryCodePanel() : ''}`;
+  return `<form id="prof" class="card" novalidate><fieldset class="profile-section"><legend>Thông tin cơ bản</legend><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" value="${esc(BirthDate.display(me.birthDate))}" placeholder="dd/mm/yyyy"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map((g) => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Chọn giới tính'}</option>`).join('')}</select></label></div></fieldset><fieldset class="profile-section"><legend>Nhu cầu sử dụng</legend><p class="mu">Giúp Backline gợi ý sản phẩm phù hợp với bạn.</p><label>Nhu cầu sử dụng PC / laptop<select name="need" required><option value="" disabled${!NEEDS.includes(me.need) ? ' selected' : ''}>Vui lòng chọn nhu cầu sử dụng</option>${NEEDS.map((g) => `<option value="${g}"${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label></fieldset>${interestFields(me.interests || [])}<div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>${typeof recoveryCodePanel === 'function' ? recoveryCodePanel() : ''}`;
 }
 
 /* ==========================================
@@ -404,7 +449,8 @@ const H = {
           addr: v.addr.trim(),
           birthDate,
           gender: v.gender,
-          need: v.need
+          need: v.need,
+          interests: v.interests || me.interests || []
         })
       })
     ).user;
@@ -492,9 +538,15 @@ document.addEventListener('submit', (e) => {
   e.preventDefault();
   const f = e.target;
   if (H[f.id])
-    Promise.resolve(H[f.id](Object.fromEntries(new FormData(f)), f)).catch((err) =>
-      setErr(err.message)
-    );
+    Promise.resolve(
+      H[f.id](
+        {
+          ...Object.fromEntries(new FormData(f)),
+          ...(f.id === 'prof' ? { interests: new FormData(f).getAll('interests') } : {})
+        },
+        f
+      )
+    ).catch((err) => setErr(err.message));
 });
 
 // Lắng nghe sự kiện Click chuột tương tác trên giao diện
@@ -529,6 +581,7 @@ document.addEventListener('click', (e) => {
     render();
     $('#prof input[name="name"]')?.focus();
   } else if (a === 'tab') {
+    clearSurveyReview();
     tab = v;
     open = null;
     if (v === 'survey')
@@ -536,7 +589,11 @@ document.addEventListener('click', (e) => {
         .then(render)
         .catch((err) => toast(err.message));
     else render();
+  } else if (a === 'review-survey') {
+    loadSurveyReview(v);
   } else if (a === 'start') {
+    clearSurveyReview();
+    if ((DONE[me.email] || {})[v]) return;
     open = v;
     render();
     scrollTo(0, 0);
@@ -554,9 +611,11 @@ document.addEventListener('click', (e) => {
     render();
     toast('Đã bỏ ẩn khảo sát.');
   } else if (a === 'back') {
+    clearSurveyReview();
     open = null;
     render();
   } else if (a === 'out') {
+    clearSurveyReview();
     // LOGIC: Gọi server xóa cookie rồi dọn trạng thái UI/token/mã khôi phục đang giữ trong bộ nhớ.
     api('/api/auth/logout', { method: 'POST' })
       .then(() => {

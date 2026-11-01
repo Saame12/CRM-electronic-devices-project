@@ -17,7 +17,7 @@ test('Backend ISO validation rejects rollover dates and unsupported years',()=>{
 test('Registration sends full date and gender; profile preserves the date after save',async()=>{
  const elements=new Map(),requests=[];const element=s=>{if(!elements.has(s))elements.set(s,{innerHTML:'',textContent:'',classList:{add(){},remove(){}}});return elements.get(s)};
  const context=vm.createContext({document:{querySelector:element,addEventListener(){}},sessionStorage:{getItem:()=>null,setItem(){},removeItem(){}},localStorage:{getItem:()=>null},console,setTimeout(){},clearTimeout(){},URLSearchParams});
- for(const file of ['birth-date.js','app.js','recovery-client.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
+ for(const file of ['crm-domain.js','customer-fields.js','birth-date.js','app.js','recovery-client.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
  vm.runInContext("authTab='reg';render()",context);assert.ok(element('#app').innerHTML.includes('placeholder="dd/mm/yyyy"'));assert.ok(element('#app').innerHTML.includes('name="gender"'));assert.ok(!element('#app').innerHTML.includes('name="year"'));
  context.record=(url,o)=>{requests.push({url,body:JSON.parse(o.body)});return {user:{name:'Khách thử',email:'test@example.com',phone:'0901234567',birthDate:'1998-10-21',gender:'Nữ',year:1998,addr:'Hà Nội',need:'Gaming'}}};
  vm.runInContext('api=async(url,o)=>record(url,o);refreshData=async()=>{}',context);
