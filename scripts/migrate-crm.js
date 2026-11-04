@@ -9,7 +9,11 @@ async function main() {
   });
   try {
     await Interests.ensureSchema(c);
-    console.log('Đã bổ sung danh mục và bảng sở thích, giữ nguyên dữ liệu nghiệp vụ.');
+    await require('../survey-enrollment').ensureSchema(c);
+    await require('../survey-audience').ensureSchema(c);
+    console.log(
+      'Đã kiểm tra sở thích, cấu hình nhận khách mới và phạm vi khảo sát; giữ nguyên các bản ghi nghiệp vụ.'
+    );
   } finally {
     await c.end();
   }

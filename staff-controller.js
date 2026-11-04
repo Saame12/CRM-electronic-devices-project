@@ -1,6 +1,7 @@
 /* Application controller: one dispatcher per event, domain-specific action maps. */
 const staffPending = new Set();
 const staffLoadVersions = Object.create(null);
+const audienceLoadVersions = new WeakMap();
 const staffId = (button) => encodeURIComponent(button.dataset.id);
 const formValues = (form) => {
   const f = new FormData(form),
@@ -8,6 +9,112 @@ const formValues = (form) => {
   if (form.querySelector?.('[data-interest-fields]')) v.interests = f.getAll('interests');
   return v;
 };
+function hasAudienceFilters(filters) {
+  return Boolean(
+    filters.need || filters.interests.length || filters.minAge !== '' || filters.maxAge !== ''
+  );
+}
+function resetAudienceList(form) {
+  audienceLoadVersions.set(form, (audienceLoadVersions.get(form) || 0) + 1);
+  const list = form.querySelector('[data-audience-customers]');
+  const savedCount = form.querySelector('[data-audience-saved-count]');
+  if (savedCount) savedCount.textContent = '';
+  list.innerHTML = '';
+  list.hidden = true;
+  const button = form.querySelector('[data-action="load-audience-customers"]');
+  button.setAttribute('aria-expanded', 'false');
+  button.textContent = 'Tải danh sách để chọn từng khách';
+}
+async function toggleAudienceCustomers(button) {
+  const form = button.closest('form'),
+    list = form.querySelector('[data-audience-customers]');
+  if (button.getAttribute('aria-expanded') === 'true') {
+    audienceLoadVersions.set(form, (audienceLoadVersions.get(form) || 0) + 1);
+    list.hidden = true;
+    button.setAttribute('aria-expanded', 'false');
+    button.textContent = 'Tải danh sách để chọn từng khách';
+    return;
+  }
+  const audience = readAudience(form),
+    filters = audience.filters,
+    key = JSON.stringify(filters),
+    actor = me?.id;
+  const selected = new Set(audience.customerIds),
+    selectAll = ['ALL', 'FILTER'].includes(audience.mode),
+    version = (audienceLoadVersions.get(form) || 0) + 1;
+  audienceLoadVersions.set(form, version);
+  list.hidden = false;
+  list.innerHTML = '<p>Đang tải danh sách đã lọc…</p>';
+  button.setAttribute('aria-expanded', 'true');
+  button.textContent = 'Đóng danh sách đã lọc';
+  try {
+    const data = await api('/api/admin/surveys/recipients-preview', {
+      method: 'POST',
+      body: JSON.stringify({
+        audience: { mode: hasAudienceFilters(filters) ? 'FILTER' : 'ALL', filters }
+      })
+    });
+    if (
+      form.isConnected === false ||
+      me?.id !== actor ||
+      me?.role !== 'MANAGER' ||
+      audienceLoadVersions.get(form) !== version ||
+      JSON.stringify(readAudience(form).filters) !== key
+    )
+      return;
+    list.innerHTML =
+      `<p><b>${esc(data.count)} khách phù hợp</b> · Tuổi tại ngày ${esc(data.asOf)}</p>` +
+      data.customers
+        .map((u) => {
+          const interests =
+            CrmDomain.interests
+              .filter((x) => (u.interests || []).includes(x.id))
+              .map((x) => x.name)
+              .join(', ') || 'Chưa khai báo sở thích';
+          return `<label><input type="checkbox" name="audienceCustomer" value="${esc(u.id)}"${selectAll || selected.has(u.id) ? ' checked' : ''}> ${esc(u.name)} · ${esc(u.email)} · ${u.age === null ? 'Chưa có ngày sinh hợp lệ' : esc(u.age) + ' tuổi'} · ${esc(interests)}</label>`;
+        })
+        .join('') +
+      (data.count ? '' : '<p>Không có khách đang hoạt động khớp bộ lọc.</p>');
+  } catch (error) {
+    if (audienceLoadVersions.get(form) === version) resetAudienceList(form);
+    throw error;
+  }
+}
+function handleAudienceChange(event) {
+  if (me?.role !== 'MANAGER') return;
+  const field = event.target,
+    name = field.name,
+    form = field.closest?.('form');
+  if (!form?.querySelector('[data-audience-fields]')) return;
+  const mode = form.querySelector('[name="audienceMode"]');
+  if (name === 'audienceCustomer') {
+    mode.value = 'SELECTED';
+    return;
+  }
+  if (name === 'audienceMode') {
+    if (mode.value === 'ALL')
+      for (const input of form.querySelectorAll(
+        '[name="audienceNeed"],[name="audienceInterest"],[name="audienceMinAge"],[name="audienceMaxAge"]'
+      )) {
+        if (input.type === 'checkbox') input.checked = false;
+        else input.value = '';
+      }
+  } else if (
+    ['audienceNeed', 'audienceInterest', 'audienceMinAge', 'audienceMaxAge'].includes(name)
+  ) {
+    if (!mode.value || mode.value === 'ALL') mode.value = 'FILTER';
+  } else return;
+  resetAudienceList(form);
+}
+document.addEventListener('change', (event) => {
+  handleAudienceChange(event);
+  updateDeadlineFields(event);
+});
+document.addEventListener('input', (event) => {
+  handleAudienceChange(event);
+  updateDeadlineFields(event);
+});
+
 const canUseStaffAction = (action) =>
   action === 'logout' ||
   (me &&
@@ -213,7 +320,25 @@ Object.assign(staffActions, {
     return loadSurveys();
   },
   'show-create'() {
-    $('#createSurvey').innerHTML = createForm();
+    const host = $('#createSurvey');
+    host.innerHTML = host.querySelector('#surveyForm') ? '' : createForm();
+  },
+  'survey-lifecycle'(button) {
+    const s = surveys.find((s) => s.id === button.dataset.id);
+    if (!s || !['OPEN', 'CLOSED'].includes(s.status))
+      throw Error('Hãy tải lại danh sách khảo sát.');
+    $('#createSurvey').innerHTML = lifecycleForm(s);
+    globalThis.scrollTo?.({ top: 0, behavior: 'smooth' });
+  },
+  async 'survey-lifecycle-history'(button) {
+    const actor = me?.id;
+    const data = await api('/api/admin/surveys/' + staffId(button) + '/lifecycle');
+    if (me?.id !== actor || page !== 'surveys') return;
+    const date = (value) =>
+      value ? new Date(value + 'Z').toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '';
+    const due = (value) => (value ? value.split('-').reverse().join('/') : 'Đóng thủ công');
+    $('#createSurvey').innerHTML =
+      `<section class="card"><h2>Lịch sử gia hạn / mở lại: ${esc(data.survey.title)}</h2>${data.survey.auto_closed_at ? `<p>Tự đóng do hết hạn: ${esc(date(data.survey.auto_closed_at))} (giờ Việt Nam)</p>` : ''}<table class="table"><thead><tr><th>Thời điểm (VN)</th><th>Người thực hiện</th><th>Thao tác</th><th>Hạn cũ</th><th>Hạn mới</th></tr></thead><tbody>${data.history.map((h) => `<tr><td>${esc(date(h.created_at))}</td><td>${esc(h.actor)}</td><td>${h.action === 'REOPEN' ? 'Mở lại' : h.action === 'CLOSE' ? 'Đóng thủ công' : 'Gia hạn / điều chỉnh'}</td><td>${esc(due(h.oldDueDate))}</td><td>${esc(due(h.newDueDate))}</td></tr>`).join('') || '<tr><td colspan="5">Chưa có thay đổi.</td></tr>'}</tbody></table><button class="btn" data-action="cancel-survey-edit">Đóng lịch sử</button></section>`;
   },
   'add-question'() {
     $('#questions').insertAdjacentHTML('beforeend', questionBlock());
@@ -251,28 +376,23 @@ Object.assign(staffActions, {
     if (page === 'surveys') showSurveyEditor(data);
     toast('Đã lập bản nháp mới. Bạn có thể chỉnh sửa trước khi mở.');
   },
-  async 'send-survey'(button) {
+  async 'open-survey'(button) {
+    await api('/api/admin/surveys/' + staffId(button) + '/send', {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    toast('Đã mở khảo sát theo phạm vi đã lưu.');
+    await loadSurveys();
+  },
+  async 'setup-legacy-audience'(button) {
+    const data = await api('/api/admin/surveys/' + staffId(button));
+    if (data.survey.status !== 'OPEN' || parseSurveyAudience(data.survey.audience_config))
+      throw Error('Chỉ khảo sát cũ đang mở và chưa có phạm vi mới cần thiết lập.');
     $('#app').innerHTML =
-      `<button class="btn" data-action="cancel-survey-edit">← Danh sách khảo sát</button><form id="surveyAudienceForm" class="card" data-id="${esc(button.dataset.id)}"><h1>Chọn người nhận khảo sát</h1>${audienceFields()}<button class="btn primary">Gửi khảo sát</button></form>`;
+      `<button class="btn" data-action="cancel-survey-edit">← Danh sách khảo sát</button><form id="legacySurveyAudienceForm" class="card" data-id="${esc(button.dataset.id)}"><h1>Thiết lập phạm vi cho khảo sát cũ</h1><p class="muted">Chỉ thực hiện một lần cho dữ liệu cũ chưa lưu phạm vi. Giữ người nhận và bài trả lời trước đây.</p>${audienceFields()}<button class="btn primary">Xác nhận phạm vi</button></form>`;
   },
   async 'load-audience-customers'(button) {
-    const form = button.closest('form'),
-      data = await api('/api/admin/customers?status=ACTIVE');
-    form.querySelector('[data-audience-customers]').innerHTML = data.customers
-      .map(
-        (u) =>
-          `<label><input type="checkbox" name="audienceCustomer" value="${esc(u.id)}"> ${esc(u.name)} · ${esc(u.email)}</label>`
-      )
-      .join('');
-  },
-  async 'preview-audience'(button) {
-    const form = button.closest('form'),
-      data = await api('/api/admin/surveys/recipients-preview', {
-        method: 'POST',
-        body: JSON.stringify({ audience: readAudience(form) })
-      });
-    form.querySelector('[data-audience-preview]').innerHTML =
-      `<p>${data.count} khách phù hợp</p><ul>${data.customers.map((u) => '<li>' + esc(u.name) + ' · ' + esc(u.email) + '</li>').join('')}</ul>`;
+    return toggleAudienceCustomers(button);
   },
   async 'close-survey'(button) {
     if (!confirm('Đóng khảo sát ngay? Khách hàng sẽ không thể gửi câu trả lời mới.')) return;
@@ -311,7 +431,7 @@ Object.assign(staffActions, {
   }
 });
 
-function readSurveyQuestions(form, selector = 'fieldset') {
+function readSurveyQuestions(form, selector = '#questions fieldset') {
   const questions = [...form.querySelectorAll(selector)].map((q) => ({
     text: q.querySelector('[name="questionText"]').value,
     type: q.querySelector('[name="questionType"]').value,
@@ -322,6 +442,16 @@ function readSurveyQuestions(form, selector = 'fieldset') {
   return questions;
 }
 Object.assign(staffForms, {
+  async surveyLifecycleForm(form) {
+    await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id) + '/lifecycle', {
+      method: 'POST',
+      body: JSON.stringify({ ...formValues(form), action: form.dataset.action })
+    });
+    toast(
+      form.dataset.action === 'REOPEN' ? 'Đã mở lại khảo sát.' : 'Đã cập nhật thời điểm kết thúc.'
+    );
+    await loadSurveys();
+  },
   async login(form) {
     const result = await api('/api/auth/login', {
       method: 'POST',
@@ -353,7 +483,8 @@ Object.assign(staffForms, {
     toast('Đã tạo tài khoản.');
     await loadAccounts();
   },
-  async surveyAudienceForm(form) {
+  async legacySurveyAudienceForm(form) {
+    if (!readAudience(form).mode) throw Error('Vui lòng chọn phạm vi người nhận.');
     await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id) + '/send', {
       method: 'POST',
       body: JSON.stringify({ audience: readAudience(form) })
@@ -367,25 +498,24 @@ Object.assign(staffForms, {
     toast('Đã thêm khách hàng.');
     await loadCustomers();
   },
-  // LOGIC: Tạo phiếu trước; nếu chọn OPEN thì gọi thêm /send để ghi người nhận.
-  // Đây là HAI request, không phải một transaction chung; lỗi send không tự xóa phiếu vừa tạo.
+  // Tạo phiếu, lưu phạm vi và ghi người nhận trong cùng transaction khi mở.
   async surveyForm(form) {
-    const values = formValues(form),
-      questions = readSurveyQuestions(form);
-    const created = await api('/api/admin/surveys', {
+    const values = formValues(form);
+    if (values.status === 'OPEN' && !readAudience(form).mode)
+      throw Error('Phải chọn phạm vi người nhận trước khi mở khảo sát.');
+    const questions = readSurveyQuestions(form);
+    await api('/api/admin/surveys', {
       method: 'POST',
       body: JSON.stringify({ ...values, questions, audience: readAudience(form) })
     });
-    if (values.status === 'OPEN')
-      await api('/api/admin/surveys/' + encodeURIComponent(created.id) + '/send', {
-        method: 'POST'
-      });
     toast(values.status === 'OPEN' ? 'Đã tạo và gửi khảo sát.' : 'Đã lưu bản nháp khảo sát.');
     await loadSurveys();
   },
   // LOGIC: Gửi toàn bộ câu hỏi/lựa chọn lên PATCH; thành công mới quay về danh sách và tải lại.
   async surveyEditor(form) {
     const questions = readSurveyQuestions(form, '.survey-question');
+    if (formValues(form).status === 'OPEN' && !readAudience(form).mode)
+      throw Error('Phải chọn phạm vi người nhận trước khi mở khảo sát.');
     await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id), {
       method: 'PATCH',
       body: JSON.stringify({ ...formValues(form), questions, audience: readAudience(form) })

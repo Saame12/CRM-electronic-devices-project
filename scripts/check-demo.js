@@ -35,7 +35,7 @@ async function main() {
   assert.equal(admin.user.role, 'ADMIN');
   assert.equal(admin.user.name, 'Quản trị viên Demo');
   const accounts = await request('/api/admin/accounts', { session: admin });
-  assert.equal(accounts.accounts.length, 15);
+  assert.equal(accounts.accounts.length, 21);
   const manager = await request('/api/auth/login', {
     body: { email: 'manager@demo.vn', password: 'Manager@123', staffPortal: 'MANAGER' }
   });
@@ -46,7 +46,10 @@ async function main() {
   assert.ok(customer.user.birthDate);
   assert.notEqual(customer.user.need, 'Chưa xác định');
   const surveys = await request('/api/surveys', { session: customer });
-  assert.equal(surveys.surveys.length, 3);
+  const isV3 = surveys.surveys.some(
+    (s) => s.title === '[Đóng thủ công] Góp ý dịch vụ thường xuyên'
+  );
+  assert.equal(surveys.surveys.length, isV3 ? 10 : 6);
   assert.ok(surveys.surveys.some((s) => s.isExpired));
   assert.ok(surveys.surveys.some((s) => !s.isExpired && s.title === 'Mức độ hài lòng về dịch vụ'));
   const status = await request('/api/survey-status', { session: customer });
@@ -55,12 +58,59 @@ async function main() {
   const feedback = await request('/api/feedback', { session: customer });
   assert.equal(feedback.feedback.length, 3);
   const customers = await request('/api/admin/customers', { session: manager });
-  assert.equal(customers.customers.length, 12);
+  assert.equal(customers.customers.length, 18);
   const overview = await request('/api/admin/reports/overview', { session: manager });
-  assert.equal(overview.customers.total, 12);
-  assert.equal(overview.feedback.total, 36);
-  assert.equal(overview.surveys.total, 6);
-  assert.equal(overview.surveys.responses, 17);
+  assert.equal(overview.customers.total, 18);
+  assert.equal(overview.feedback.total, 54);
+  assert.equal(overview.surveys.total, isV3 ? 16 : 12);
+  assert.equal(overview.surveys.responses, isV3 ? 21 : 18);
+  const managerSurveys = (await request('/api/admin/surveys', { session: manager })).surveys;
+  const filtered = managerSurveys.find((s) => s.title === 'Khảo sát Gaming/Đồ họa 15–20 tuổi');
+  assert.equal(filtered.audience_config.mode, 'FILTER');
+  const candidates = await request('/api/admin/surveys/recipients-preview', {
+    session: manager,
+    body: { audience: filtered.audience_config }
+  });
+  assert.equal(candidates.count, 7);
+  assert.ok(
+    candidates.customers.every(
+      (u) =>
+        u.age >= 15 && u.age <= 20 && u.interests.some((id) => ['gaming', 'design'].includes(id))
+    )
+  );
+  const privateSurvey = managerSurveys.find((s) => s.title === 'Khảo sát khách được chọn riêng');
+  assert.equal(privateSurvey.audience_config.customerIds.length, 3);
+  for (const mode of ['ALL', 'FILTER', 'SELECTED'])
+    assert.ok(managerSurveys.some((s) => s.status === 'DRAFT' && s.audience_config?.mode === mode));
+  assert.ok(managerSurveys.some((s) => s.status === 'DRAFT' && !s.audience_config));
+  assert.equal(managerSurveys.filter((s) => s.status === 'OPEN' && !s.audience_config).length, 0);
+  const lateCustomer = await request('/api/auth/login', {
+    body: { email: 'khach18@demo.vn', password: '123456', customerSession: true }
+  });
+  const lateSurveys = (await request('/api/surveys', { session: lateCustomer })).surveys;
+  assert.equal(lateSurveys.length, isV3 ? 4 : 2);
+  assert.ok(lateSurveys.every((s) => s.status === 'OPEN' && !s.isExpired));
+  assert.ok(!lateSurveys.some((s) => [filtered.id, privateSurvey.id].includes(s.id)));
+  if (isV3) {
+    const manual = managerSurveys.find(
+      (s) => s.title === '[Đóng thủ công] Góp ý dịch vụ thường xuyên'
+    );
+    assert.equal(manual.due_date, null);
+    assert.equal(manual.status, 'OPEN');
+    assert.ok(managerSurveys.some((s) => s.status === 'CLOSED' && s.auto_closed_at));
+    const extended = managerSurveys.find(
+      (s) => s.title === '[Đã gia hạn] Góp ý nhóm Gaming và Đồ họa'
+    );
+    const audit = await request('/api/admin/surveys/' + extended.id + '/lifecycle', {
+      session: manager
+    });
+    assert.ok(audit.history.some((h) => h.action === 'EXTEND'));
+    const reopened = managerSurveys.find((s) => s.title === '[Đã mở lại] Đánh giá hỗ trợ sau mua');
+    const reopening = await request('/api/admin/surveys/' + reopened.id + '/lifecycle', {
+      session: manager
+    });
+    assert.ok(reopening.history.some((h) => h.action === 'REOPEN'));
+  }
   assert.ok(overview.feedback.hidden > 0);
   assert.ok(
     overview.surveys.items.every((s) => s.completionRate === null || s.completionRate <= 100)
@@ -70,6 +120,9 @@ async function main() {
     session: manager
   });
   assert.equal(detail.responses.length, 8);
+  const own = await request('/api/surveys/' + closed.id + '/my-response', { session: customer });
+  assert.equal(own.survey.status, 'CLOSED');
+  assert.equal(own.questions.length, 2);
   assert.ok(detail.questions.length);
   const history = await request('/api/admin/password-recovery', { session: admin });
   assert.equal(history.requests.length, 2);

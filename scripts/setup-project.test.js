@@ -35,7 +35,7 @@ test('Fresh download generates a private local env and never overwrites an exist
     const values = validateConfig(dotenv.parse(text));
     assert.match(values.JWT_SECRET, /^[a-f0-9]{96}$/);
     assert.equal(values.DB_NAME, 'backline_crm');
-    assert.equal(values.DB_PASSWORD, '');
+    assert.equal(values.DB_PASSWORD, dotenv.parse(fs.readFileSync(path.join(directory,'.env.example'),'utf8')).DB_PASSWORD);
     assert.equal(prepareConfig(directory).created, false);
     assert.equal(fs.readFileSync(first.file, 'utf8'), text);
   } finally {

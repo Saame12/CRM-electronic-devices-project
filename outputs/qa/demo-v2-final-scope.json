@@ -1,0 +1,21 @@
+{
+  "database": "backline_crm_demo_v2_20261104124703_4e1565",
+  "counts": {
+    "customer_interests": 32,
+    "customer_recovery_codes": 0,
+    "demo_datasets": 1,
+    "feedback": 54,
+    "interests": 6,
+    "password_recovery_requests": 2,
+    "products": 14,
+    "question_options": 32,
+    "response_details": 44,
+    "survey_questions": 24,
+    "survey_recipients": 83,
+    "survey_responses": 18,
+    "surveys": 12,
+    "users": 21
+  },
+  "sqlFile": "C:\\Users\\sangl\\source\\repos\\CRM-electronic-devices-project\\outputs\\Du_lieu_demo_CRM_v2_20261104.sql",
+  "allOpenHaveScope": true
+}

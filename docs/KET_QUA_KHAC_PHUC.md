@@ -1,5 +1,11 @@
 # Kết quả khắc phục theo điều kiện xác nhận đạt
 
+> **Quy trình hiện tại 03/11/2026:** [bắt buộc lưu phạm vi trước khi mở khảo sát](PHAM_VI_BAT_BUOC_KHAO_SAT.md). Phiếu mới không gửi/bổ sung lại sau khi OPEN; chỉ phiếu cũ thiếu phạm vi có ngoại lệ thiết lập một lần. Quy trình này thay các mô tả gửi bổ sung nhiều lần trong các đợt trước.
+
+> **Điều chỉnh bộ chọn người nhận 03/11/2026:** sở thích chọn nhiều, tuổi tròn trong khoảng bao gồm hai đầu mút, nút tải danh sách mở/đóng theo bộ lọc và đã bỏ nút xem trước riêng. Xem [lọc người nhận khảo sát](LOC_NGUOI_NHAN_KHAO_SAT.md). Bộ kiểm thử hiện tại đạt 129/129 và HTTP/MySQL đạt 176/176.
+
+> **Cập nhật 03/11/2026:** người dùng xác nhận phiếu gửi Tất cả cần tự nhận khách đăng ký sau nếu còn OPEN và chưa hết hạn. Quy tắc này thay phần snapshot cố định cho phiếu công khai; phiếu nhóm riêng vẫn giữ snapshot. Xem [đồng bộ cho khách mới](DONG_BO_KHAO_SAT_CHO_KHACH_MOI.md). Bộ kiểm thử mới đạt 125/125 và HTTP/MySQL đạt 172/172.
+
 Ngày nghiệm thu: **01/11/2026**. Dự án: Backline CRM. Tài liệu này cập nhật kết quả thực hiện các mã trong `DANH_GIA_CAC_MUC_CHUA_HOAN_THIEN.md`; không dùng số ca kiểm thử làm tỷ lệ hoàn thiện toàn bộ đồ án.
 
 **Bổ sung cùng ngày:** đã có [Khách hàng xem lại bài khảo sát đã gửi](XEM_LAI_BAI_KHAO_SAT.md), kể cả khi khảo sát đã đóng. Bộ kiểm thử sau bổ sung đạt 121/121 và HTTP/MySQL đạt 167/167; các số 115/115, 163/163 phía dưới lưu kết quả đợt khắc phục ban đầu.
@@ -35,8 +41,8 @@ Chín mục kỹ thuật ở trên đã có triển khai và kiểm chứng tron
 
 1. Tạo khảo sát hoặc vào Gửi khách hàng. Với phiếu OPEN, dùng Bổ sung người nhận.
 2. Chọn phạm vi Tất cả / Theo bộ lọc / Chọn từng khách. Theo bộ lọc có nhu cầu, sở thích và khoảng tuổi; tuổi thiếu ngày sinh không khớp bộ lọc tuổi.
-3. Nếu chọn từng khách, bấm Tải danh sách rồi tích người nhận. Danh sách chỉ có khách đang hoạt động.
-4. Bấm Xem trước người nhận để kiểm tra số lượng/tên/email. Bấm Gửi khảo sát khi đúng đối tượng.
+3. Chọn bộ lọc rồi bấm Tải danh sách để mở danh sách khách đang hoạt động khớp nhu cầu, ít nhất một sở thích đã chọn và khoảng tuổi. Bấm lần nữa để đóng. Tích người nhận để chọn từng khách.
+4. Kiểm tra số lượng, tên, tuổi và sở thích ngay trong danh sách đã lọc. Không còn nút xem trước riêng. Bấm Gửi khảo sát khi đúng đối tượng.
 5. Danh sách được chốt lúc gửi. Gửi lại chỉ thêm khách, không loại người cũ hoặc làm mất câu trả lời. Khách đổi hồ sơ về sau không tự mất quyền hoặc được thêm vào một đợt đã gửi.
 
 Tạo hoặc sửa bản nháp thành OPEN cũng dùng bộ chọn này và cùng một transaction ở backend. Phiếu OPEN cũ chưa có người nhận cần Quản lý gửi rõ ràng; không tự mở công khai cho tất cả khách.

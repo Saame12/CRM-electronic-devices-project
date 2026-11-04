@@ -6,8 +6,29 @@ async function browser(portal,role,restore=false){
  const c=vm.createContext({URLSearchParams,MutationObserver:class{observe(){}},location:{pathname:'/nested/'+portal+'.html',replace:url=>redirects.push(url)},document:{querySelector:node,querySelectorAll:()=>[],addEventListener:(type,fn)=>events.push({type,fn})},sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},FormData:class{*[Symbol.iterator](){yield ['email','test@example.invalid'];yield ['password','secret']}},setTimeout:()=>0,clearTimeout(){},fetch:async(url,o)=>{calls.push({url,body:o?.body&&JSON.parse(o.body)});return {ok:true,json:async()=>url==='/api/me'?{user:{id:'u',role}}:url==='/api/auth/login'?{token:'new-token',user:{id:'u',role}}:url==='/api/admin/accounts'?{accounts:[]}:{customers:0,openFeedback:0,openSurveys:0}}}});
  for(const f of ['crm-domain.js','customer-fields.js','admin.js','role-ui.js','staff-surveys.js','staff-controller.js','reports.js','staff-bootstrap.js'])vm.runInContext(source(f),c);await new Promise(r=>setImmediate(r));
  if(!restore){await events.find(x=>x.type==='submit').fn({target:{id:'login'},preventDefault(){}})}
- return {c,redirects,calls,storage,node};
+ return {c,redirects,calls,storage,node,events};
 }
+
+for(const portal of ['admin','manager']) test(`${portal} login eye shows and hides the entered password without submitting`,async()=>{
+ const env=await browser(portal,'CUSTOMER');
+ const html=vm.runInContext('login()',env.c);
+ assert.match(html, /id="staffLoginPassword" type="password" name="password" autocomplete="current-password" required/);
+ assert.match(html, /type="button"[^>]*data-password-toggle="staffLoginPassword"[^>]*aria-controls="staffLoginPassword"[^>]*aria-label="Hiện mật khẩu"[^>]*aria-pressed="false"/);
+ const input={type:'password',value:'typed-demo-password',focus(){}},attrs={};
+ const button={dataset:{passwordToggle:'staffLoginPassword'},setAttribute:(k,v)=>attrs[k]=v};
+ env.c.document.getElementById=id=>id==='staffLoginPassword'?input:null;
+ const click=env.events.find(e=>e.type==='click').fn,requests=env.calls.length;
+ let prevented=0;
+ const event={target:{closest:selector=>selector==='[data-password-toggle]'?button:null},preventDefault(){prevented++}};
+ await click(event);
+ assert.equal(input.type,'text');assert.equal(input.value,'typed-demo-password');
+ assert.equal(attrs['aria-pressed'],'true');assert.equal(attrs['aria-label'],'Ẩn mật khẩu');assert.equal(button.title,'Ẩn mật khẩu');
+ await click(event);
+ assert.equal(input.type,'password');assert.equal(input.value,'typed-demo-password');
+ assert.equal(attrs['aria-pressed'],'false');assert.equal(attrs['aria-label'],'Hiện mật khẩu');
+ assert.equal(prevented,2);assert.equal(env.calls.length,requests);
+ assert.ok(source(portal+'.html').includes('account-password.css'));
+});
 test('Admin stays on admin.html; manager login there redirects without loading admin data',async()=>{
  const admin=await browser('admin','ADMIN');assert.equal(vm.runInContext('me.role',admin.c),'ADMIN');assert.equal(admin.redirects.length,0);
  const manager=await browser('admin','MANAGER');assert.deepEqual(manager.redirects,['manager.html']);assert.equal(manager.storage.get('backline_crm_admin_token'),'new-token');assert.equal(vm.runInContext('me',manager.c),null);assert.ok(!manager.calls.some(x=>x.url==='/api/admin/dashboard'));assert.equal(manager.calls[0].body.staffPortal,'ADMIN');

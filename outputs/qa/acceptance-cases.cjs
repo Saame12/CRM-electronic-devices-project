@@ -31,11 +31,11 @@ module.exports=async function({check,req,GET,POST,PATCH,SQL,manager,admin,fresh,
   const [[n]]=await SQL('SELECT COUNT(*) total FROM survey_responses WHERE survey_id=?',[selected]);assert.equal(n.total,0);
   await POST('/api/surveys/'+selected+'/responses',{answers:{q0:'A'}},fresh,201);
  });
- await check('Nghiệm thu','BB02','Gửi lại cộng dồn không trùng; báo cáo mẫu số đúng snapshot',async()=>{
+ await check('Nghiệm thu','BB02','Phiếu đã có phạm vi chặn gửi lại; báo cáo giữ nguyên snapshot',async()=>{
   const audience={mode:'SELECTED',customerIds:[fresh.user.id,customer.user.id]};
-  for(let i=0;i<2;i++)await POST('/api/admin/surveys/'+selected+'/send',{audience},manager);
-  const [[n]]=await SQL('SELECT COUNT(*) total FROM survey_recipients WHERE survey_id=?',[selected]);assert.equal(n.total,2);
-  const r=(await GET('/api/admin/reports/overview',manager)).data.surveys.items.find(x=>x.id===selected);assert.equal(r.recipients,2);assert.equal(r.completionRate,50);
+  for(let i=0;i<2;i++)await POST('/api/admin/surveys/'+selected+'/send',{audience},manager,409);
+  const [[n]]=await SQL('SELECT COUNT(*) total FROM survey_recipients WHERE survey_id=?',[selected]);assert.equal(n.total,1);
+  const r=(await GET('/api/admin/reports/overview',manager)).data.surveys.items.find(x=>x.id===selected);assert.equal(r.recipients,1);assert.equal(r.completionRate,100);
  });
  await check('Nghiệm thu','BB02','Từ chối khách sai vai trò, khóa, trùng hoặc không tồn tại; rollback phiếu',async()=>{
   await PATCH('/api/admin/customers/'+createdId+'/status',{status:'LOCKED'},manager);

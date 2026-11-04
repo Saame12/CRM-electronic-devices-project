@@ -62,6 +62,9 @@ CREATE TABLE IF NOT EXISTS surveys (
   description TEXT NOT NULL,
   due_date DATE NULL,
   status ENUM('DRAFT', 'OPEN', 'CLOSED') NOT NULL DEFAULT 'DRAFT',
+  accept_new_customers BOOLEAN NOT NULL DEFAULT FALSE,
+  audience_config JSON NULL,
+  auto_closed_at DATETIME NULL,
   is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
   hidden_at DATETIME NULL,
   created_by CHAR(36) NOT NULL,
@@ -69,6 +72,21 @@ CREATE TABLE IF NOT EXISTS surveys (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_survey_creator FOREIGN KEY (created_by) REFERENCES users(id),
   INDEX idx_survey_status (status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS survey_lifecycle_history (
+  id CHAR(36) PRIMARY KEY,
+  survey_id CHAR(36) NOT NULL,
+  actor_id CHAR(36) NOT NULL,
+  action VARCHAR(20) NOT NULL,
+  old_due_date DATE NULL,
+  new_due_date DATE NULL,
+  old_status VARCHAR(10) NOT NULL,
+  new_status VARCHAR(10) NOT NULL,
+  created_at DATETIME NOT NULL,
+  FOREIGN KEY (survey_id) REFERENCES surveys(id),
+  FOREIGN KEY (actor_id) REFERENCES users(id),
+  INDEX idx_survey_history(survey_id,created_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS survey_questions (

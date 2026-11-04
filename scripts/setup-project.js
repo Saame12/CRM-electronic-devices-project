@@ -104,12 +104,13 @@ async function main(args = process.argv.slice(2)) {
   const values = validateConfig(dotenv.parse(fs.readFileSync(config.file)));
   Object.assign(process.env, values);
   const { setupDatabase } = require('./setup-database');
-  const { seedDemo, businessTables } = require('./seed-demo');
+  const { businessTables } = require('./seed-demo');
+  const { seedCurrentDemo } = require('./current-demo');
   const connection = await setupDatabase(values.DB_NAME);
   try {
     const result = await initializeDatabase(
       connection,
-      seedDemo,
+      seedCurrentDemo,
       businessTables,
       !args.includes('--empty')
     );

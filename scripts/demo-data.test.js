@@ -7,15 +7,93 @@ const { databaseName, schemaSQL } = require('./setup-database');
 const { quote } = require('./demo-env');
 const now = new Date('2026-10-22T05:00:00Z');
 
+test('Demo v2 recipient scopes, interests, age boundaries and signup chronology agree with current rules', () => {
+  const D = require('../crm-domain'),
+    A = require('../survey-audience'),
+    V = require('../crm-validation'),
+    d = buildDemo(now),
+    asOf = dateAtDay(now);
+  function dateAtDay(value) {
+    return require('../database/demo-data').dateAt(value, 0).slice(0, 10);
+  }
+  const customers = d.users.filter((u) => u.role === 'CUSTOMER'),
+    active = customers.filter((u) => u.account_status === 'ACTIVE');
+  assert.equal(d.customerInterests.length, 32);
+  assert.ok(customers.some((u) => u.interests.length >= 2));
+  const filtered = d.surveys.find((s) => s.title === 'Khảo sát Gaming/Đồ họa 15–20 tuổi');
+  const config = A.parse(filtered.audience_config),
+    matched = active
+      .filter((u) => D.matches(u, config.filters, asOf))
+      .map((u) => u.id)
+      .sort();
+  assert.equal(matched.length, 7);
+  assert.deepEqual(
+    d.recipients
+      .filter((r) => r.survey_id === filtered.id)
+      .map((r) => r.customer_id)
+      .sort(),
+    matched
+  );
+  for (const s of d.surveys) {
+    const scope = A.parse(s.audience_config),
+      recipients = d.recipients.filter((r) => r.survey_id === s.id);
+    if (s.status === 'DRAFT') {
+      assert.equal(recipients.length, 0);
+      continue;
+    }
+    assert.ok(scope, 'Every non-draft demo survey must have its recipient scope');
+    A.normalize(scope, { required: true });
+    assert.equal(s.accept_new_customers, s.status === 'OPEN' && scope.mode === 'ALL');
+    if (scope.mode === 'SELECTED')
+      assert.deepEqual(
+        recipients.map((r) => r.customer_id).sort(),
+        scope.customerIds.slice().sort()
+      );
+  }
+  assert.equal(d.surveys.filter((s) => s.status === 'OPEN' && !s.audience_config).length, 0);
+  const late = customers.at(-1),
+    lateRecipients = d.recipients.filter((r) => r.customer_id === late.id);
+  assert.equal(lateRecipients.length, 2);
+  assert.ok(lateRecipients.every((r) => r.sent_at >= late.created_at));
+  for (const r of lateRecipients) {
+    const s = d.surveys.find((s) => s.id === r.survey_id);
+    assert.ok(s.created_at < late.created_at);
+    assert.equal(A.parse(s.audience_config).mode, 'ALL');
+    assert.equal(s.status, 'OPEN');
+  }
+  for (const response of d.responses) {
+    const qs = d.questions.filter((q) => q.survey_id === response.survey_id),
+      answers = {};
+    for (const q of qs) {
+      const details = d.details.filter(
+        (a) => a.response_id === response.id && a.question_id === q.id
+      );
+      if (!details.length) continue;
+      answers['q' + (q.display_order - 1)] =
+        q.question_type === 'TEXT'
+          ? details[0].text_answer
+          : q.question_type === 'RATING'
+            ? details[0].rating_value
+            : q.question_type === 'ONE'
+              ? d.options.find((o) => o.id === details[0].option_id).option_text
+              : details.map((a) => d.options.find((o) => o.id === a.option_id).option_text);
+    }
+    assert.doesNotThrow(() => V.answers(qs, d.options, answers));
+  }
+  assert.ok(
+    d.feedback.every((f) => f.created_at <= require('../database/demo-data').dateAt(now, 0))
+  );
+});
+
 test('Demo contains persistent, varied business scenarios and a ready-to-use primary customer', () => {
   const d = buildDemo(now),
     customer = d.users.find((u) => u.email === 'khach@demo.vn');
-  assert.equal(d.users.length, 15);
+  assert.equal(d.users.length, 21);
   assert.equal(d.products.length, 14);
-  assert.equal(d.feedback.length, 36);
-  assert.equal(d.surveys.length, 6);
-  assert.equal(d.responses.length, 17);
-  assert.equal(d.questions.length, 15);
+  assert.equal(d.feedback.length, 54);
+  assert.equal(d.surveys.length, 12);
+  assert.equal(d.responses.length, 18);
+  assert.equal(d.questions.length, 24);
   assert.equal(customer.role, 'CUSTOMER');
   assert.equal(customer.account_status, 'ACTIVE');
   assert.ok(customer.address);
@@ -119,10 +197,10 @@ function database({ existing = false, installed = false, fail = false } = {}) {
 test('Seeding uses hashes, saves a marker atomically and never exports an active recovery token', async () => {
   const db = database(),
     result = await seedDemo(db, { now, hash: async (p) => 'HASH:' + p });
-  assert.equal(result.summary.accounts, 15);
+  assert.equal(result.summary.accounts, 21);
   assert.equal(result.alreadyInstalled, false);
   const inserts = db.calls.filter((c) => Array.isArray(c) && c[0].startsWith('INSERT INTO users'));
-  assert.equal(inserts.length, 15);
+  assert.equal(inserts.length, 21);
   assert.ok(inserts.every((c) => c[1][2].startsWith('HASH:')));
   assert.ok(inserts.every((c) => !c[0].includes(',password,')));
   assert.ok(
@@ -161,7 +239,8 @@ test('DB setup honors the selected database safely and is non-destructive', () =
   const sql = schemaSQL('backline_crm_demo_test');
   assert.ok(sql.includes('USE `backline_crm_demo_test`;'));
   assert.ok(!sql.includes('USE backline_crm;'));
-  assert.equal((sql.match(/CREATE TABLE IF NOT EXISTS/g) || []).length, 11);
+  assert.equal((sql.match(/CREATE TABLE IF NOT EXISTS/g) || []).length, 12);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS survey_lifecycle_history/);
   assert.ok(!/DROP|TRUNCATE/.test(sql));
 });
 test('Generated dotenv values round trip without leaking or corrupting special characters', () => {

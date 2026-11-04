@@ -101,7 +101,7 @@ test('BB02 malformed or reversed audience filters are rejected', () => {
     assert.throws(() => V.filters(f), V.InputError);
 });
 
-test('BB02 create and edit forms both expose recipient controls; OPEN has additive resend', () => {
+test('BB02 create/edit expose scope; only legacy OPEN surveys offer scope setup', () => {
   const vm = require('node:vm'),
     fs = require('node:fs'),
     path = require('node:path'),
@@ -120,7 +120,10 @@ test('BB02 create and edit forms both expose recipient controls; OPEN has additi
     c
   );
   assert.ok(host.innerHTML.includes('name="audienceMode"'));
-  assert.ok(vm.runInContext('surveyPage()', c).includes('Bổ sung người nhận'));
+  assert.ok(vm.runInContext('surveyPage()', c).includes('Thiết lập phạm vi (dữ liệu cũ)'));
+  vm.runInContext("surveys[0].audience_config={mode:'ALL',filters:{},customerIds:[]}",c);
+  assert.ok(!vm.runInContext('surveyPage()', c).includes('setup-legacy-audience'));
+  assert.ok(!vm.runInContext('surveyPage()', c).includes('Bổ sung người nhận'));
 });
 
 test('CL01 different representations of the same MULTI option cannot be submitted twice', () => {

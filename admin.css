@@ -17,6 +17,13 @@
 * {
   box-sizing: border-box;
 }
+[data-deadline-date][hidden] {
+  display: none;
+}
+.toolbar > [data-deadline-fields] {
+  flex: 1 1 100%;
+  min-width: 0;
+}
 body {
   margin: 0;
   background: var(--bg);

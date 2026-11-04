@@ -4,14 +4,24 @@
 const { randomUUID } = require('node:crypto');
 const catalog = require('./catalog');
 const definitions = require('./real-surveys');
-const DATASET = 'backline-demo-v1';
+const DATASET = 'backline-demo-v2';
+const Domain = require('../crm-domain');
 const credentials = [
   { role: 'ADMIN', email: 'admin@backline.vn', password: 'Admin@123' },
   { role: 'MANAGER', email: 'manager@demo.vn', password: 'Manager@123' },
   { role: 'CUSTOMER', email: 'khach@demo.vn', password: '123456' }
 ];
 const dateAt = (now, offset) =>
-  new Date(now.getTime() + offset * 86400000).toISOString().slice(0, 19).replace('T', ' ');
+  new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23'
+  }).format(new Date(now.getTime() + offset * 86400000));
 function buildDemo(now = new Date(), uuid = randomUUID) {
   const users = [];
   const staff = [
@@ -47,13 +57,48 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     'Hồ Bảo Ngọc',
     'Ngô Tuấn Kiệt',
     'Dương Thảo Vy',
-    'Đinh Văn An'
+    'Đinh Văn An',
+    'Phan Nhật Huy',
+    'Trịnh Ngọc Ánh',
+    'Nguyễn Hải Đăng',
+    'Trần Minh Châu',
+    'Vũ Thảo Nguyên',
+    'Lâm Gia Bảo'
   ];
-  const ages = [25, 19, 31, 44, 52, 17, 28, 36, 23, 41, 34, 27],
-    needs = ['Gaming', 'Đồ họa', 'Văn phòng', 'Chưa xác định'];
+  const asOf = dateAt(now, 0).slice(0, 10);
+  const birthAt = (age, delta = 0) => {
+    const d = new Date(asOf + 'T12:00:00Z'),
+      month = d.getUTCMonth();
+    d.setUTCFullYear(d.getUTCFullYear() - age);
+    if (d.getUTCMonth() !== month) d.setUTCDate(0);
+    d.setUTCDate(d.getUTCDate() + delta);
+    return d.toISOString().slice(0, 10);
+  };
+  const customerSpecs = [
+      { birth: birthAt(18), interests: ['gaming', 'programming'] },
+      { birth: birthAt(15, 1), interests: ['gaming', 'design'] },
+      { birth: birthAt(15), interests: ['design', 'learning'] },
+      { birth: birthAt(16), interests: ['design', 'office'] },
+      { birth: birthAt(17), interests: ['gaming', 'design'] },
+      { birth: birthAt(20), interests: ['gaming', 'learning'] },
+      { birth: birthAt(21, 1), interests: ['design', 'office'] },
+      { birth: birthAt(21), interests: ['gaming', 'programming'] },
+      { birth: birthAt(25), interests: ['design', 'office'] },
+      { birth: birthAt(35), interests: ['office', 'learning'] },
+      { birth: birthAt(19), interests: ['gaming', 'design'] },
+      { birth: birthAt(27), interests: ['learning', 'other'] },
+      { birth: birthAt(16), interests: ['learning', 'office'] },
+      { birth: birthAt(19), interests: ['gaming', 'office'] },
+      { birth: birthAt(45), interests: ['other'] },
+      { birth: birthAt(52), interests: ['office'] },
+      { birth: null, interests: [] },
+      { birth: birthAt(24), interests: ['design', 'programming'] }
+    ],
+    needs = Domain.needs;
   for (let i = 0; i < names.length; i++) {
-    const year = now.getUTCFullYear() - ages[i],
-      birth = year + '-02-15';
+    const spec = customerSpecs[i],
+      birth = spec.birth,
+      year = birth ? Number(birth.slice(0, 4)) : null;
     users.push({
       id: uuid(),
       role: 'CUSTOMER',
@@ -65,9 +110,10 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
       address: i === 11 ? '' : 'Địa chỉ giả lập ' + (i + 1) + ', khu dân cư Demo, TP.HCM',
       birth_year: year,
       birth_date: birth,
+      interests: spec.interests,
       gender: ['Nữ', 'Nam', 'Khác'][i % 3],
       need: i === 11 ? 'Chưa xác định' : needs[i % 4],
-      created_at: dateAt(now, -170 + i * 6)
+      created_at: dateAt(now, i === 17 ? -1 : -170 + i * 6)
     });
   }
   // The primary demo customer can immediately use surveys without the profile-completion gate.
@@ -75,6 +121,9 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
   users[3].need = 'Gaming';
   const customers = users.filter((u) => u.role === 'CUSTOMER'),
     active = customers.filter((u) => u.account_status === 'ACTIVE');
+  const customerInterests = customers.flatMap((u) =>
+    u.interests.map((interest_id) => ({ customer_id: u.id, interest_id }))
+  );
   const products = catalog.map((name) => ({
     id: uuid(),
     name,
@@ -88,9 +137,16 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     'Máy có hiện tượng nóng khi chạy tác vụ nặng, mong cửa hàng kiểm tra và hướng dẫn xử lý.',
     'Tôi muốn được tư vấn nâng cấp RAM và thời hạn bảo hành của sản phẩm này.'
   ];
-  for (let i = 0; i < 36; i++) {
+  for (let i = 0; i < 54; i++) {
     const status = ['NEW', 'IN_PROGRESS', 'RESOLVED'][i % 3],
       resolved = status === 'RESOLVED';
+    const createdAt = [dateAt(now, -85 + i), customers[i % customers.length].created_at]
+      .sort()
+      .at(-1);
+    const repliedAt = [
+      dateAt(new Date(createdAt.replace(' ', 'T') + '+07:00'), 2),
+      dateAt(now, 0)
+    ].sort()[0];
     feedback.push({
       id: uuid(),
       customer_id: customers[i % customers.length].id,
@@ -109,17 +165,33 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
         ? 'Cửa hàng đã tiếp nhận và hỗ trợ khách hàng hoàn tất. [Demo]'
         : null,
       replied_by: resolved ? users[1].id : null,
-      replied_at: resolved ? dateAt(now, -83 + i * 2) : null,
+      replied_at: resolved ? repliedAt : null,
       is_hidden: resolved && i % 4 === 2,
-      hidden_at: resolved && i % 4 === 2 ? dateAt(now, -82 + i * 2) : null,
-      created_at: dateAt(now, -85 + i * 2)
+      hidden_at: resolved && i % 4 === 2 ? repliedAt : null,
+      created_at: createdAt
     });
   }
   const specs = [
-    { ...definitions[0], status: 'OPEN', created: -15, due: 30, respondents: [] },
-    { ...definitions[1], status: 'OPEN', created: -40, due: 45, respondents: [0, 1, 2, 3, 4, 5] },
+    {
+      ...definitions[0],
+      status: 'OPEN',
+      created: -15,
+      due: 30,
+      respondents: [],
+      scope: { mode: 'ALL' }
+    },
+    {
+      ...definitions[1],
+      status: 'OPEN',
+      created: -40,
+      due: 45,
+      respondents: [0, 2, 3, 4],
+      scope: { mode: 'ALL' }
+    },
     {
       ...definitions[2],
+      scope: { mode: 'ALL' },
+      hidden: true,
       status: 'CLOSED',
       created: -70,
       due: -7,
@@ -127,6 +199,10 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     },
     {
       title: 'Khảo sát ý tưởng ưu đãi thành viên',
+      scope: {
+        mode: 'FILTER',
+        filters: { interests: ['gaming', 'design'], minAge: 15, maxAge: 20 }
+      },
       description: 'Bản nháp để thử chỉnh sửa toàn bộ câu hỏi trước khi gửi.',
       status: 'DRAFT',
       created: -2,
@@ -144,6 +220,7 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     },
     {
       title: 'Đánh giá trải nghiệm mua hàng tháng trước',
+      scope: { mode: 'ALL' },
       description: 'Khảo sát đã hết hạn, dùng để xem mục quá hạn chưa trả lời.',
       status: 'OPEN',
       created: -35,
@@ -160,6 +237,7 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     },
     {
       title: 'Khảo sát chương trình chăm sóc khách hàng',
+      scope: { mode: 'SELECTED', customerIds: [customers[0].id, customers[2].id, customers[4].id] },
       description: 'Khảo sát đã đóng và chưa có câu trả lời để thử trạng thái dữ liệu rỗng.',
       status: 'CLOSED',
       created: -10,
@@ -173,6 +251,93 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
           options: ['Điện thoại', 'Email', 'Tại cửa hàng']
         }
       ]
+    },
+    {
+      title: 'Khảo sát Gaming/Đồ họa 15–20 tuổi',
+      description: 'Chỉ người đủ 15 đến hết 20 tuổi và có Gaming hoặc Đồ họa được nhận.',
+      status: 'OPEN',
+      created: -1,
+      due: 20,
+      respondents: [2, 4],
+      scope: {
+        mode: 'FILTER',
+        filters: { interests: ['gaming', 'design'], minAge: 15, maxAge: 20 }
+      },
+      questions: [
+        {
+          type: 'MULTI',
+          text: 'Bạn quan tâm trải nghiệm nào?',
+          required: true,
+          options: ['Chơi game', 'Thiết kế', 'Dựng video']
+        },
+        { type: 'TEXT', text: 'Góp ý thêm?', required: false }
+      ]
+    },
+    {
+      title: 'Khảo sát khách được chọn riêng',
+      description: 'Chỉ ba khách đã chọn, không tự gửi khách mới hoặc khách khác.',
+      status: 'OPEN',
+      created: -6,
+      due: 21,
+      respondents: [5],
+      scope: {
+        mode: 'SELECTED',
+        customerIds: [customers[0].id, customers[5].id, customers[13].id]
+      },
+      questions: [
+        { type: 'RATING', text: 'Bạn đánh giá buổi tư vấn thế nào?', required: true },
+        { type: 'TEXT', text: 'Cửa hàng nên cải thiện điều gì?', required: false }
+      ]
+    },
+    {
+      title: '[Bản nháp] Chưa thiết lập phạm vi',
+      description: 'Thử nút mở bị chặn cho đến khi chọn phạm vi.',
+      status: 'DRAFT',
+      created: -1,
+      due: null,
+      respondents: [],
+      questions: [{ type: 'TEXT', text: 'Bạn muốn chia sẻ điều gì?', required: false }]
+    },
+    {
+      title: '[Bản nháp] Đã chọn Tất cả',
+      description: 'Đã lưu phạm vi, có thể mở ngay từ danh sách.',
+      status: 'DRAFT',
+      created: -2,
+      due: 30,
+      respondents: [],
+      scope: { mode: 'ALL' },
+      questions: [{ type: 'RATING', text: 'Mức độ quan tâm của bạn?', required: true }]
+    },
+    {
+      title: '[Bản nháp] Đã chọn từng khách',
+      description: 'Mở lại form sẽ giữ đúng ba người đã chọn.',
+      status: 'DRAFT',
+      created: -2,
+      due: 14,
+      respondents: [],
+      scope: {
+        mode: 'SELECTED',
+        customerIds: [customers[2].id, customers[4].id, customers[13].id]
+      },
+      questions: [
+        {
+          type: 'ONE',
+          text: 'Bạn muốn nhận hỗ trợ qua kênh nào?',
+          required: true,
+          options: ['Email', 'Điện thoại']
+        },
+        { type: 'TEXT', text: 'Góp ý khác?', required: false }
+      ]
+    },
+    {
+      title: 'Khảo sát khách hàng 25–45 tuổi',
+      description: 'Phiếu mới có phạm vi từ lúc tạo, chỉ gửi người đủ 25 đến hết 45 tuổi.',
+      status: 'OPEN',
+      created: -1,
+      due: 15,
+      respondents: [],
+      scope: { mode: 'FILTER', filters: { minAge: 25, maxAge: 45 } },
+      questions: [{ type: 'TEXT', text: 'Góp ý dịch vụ?', required: false }]
     }
   ];
   const surveys = [],
@@ -183,11 +348,16 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     details = [];
   for (let si = 0; si < specs.length; si++) {
     const spec = specs[si],
+      scope = spec.scope ? require('../survey-audience').normalize(spec.scope) : null,
       s = {
         id: uuid(),
         title: spec.title,
         description: spec.description,
         status: spec.status,
+        audience_config: scope ? JSON.stringify(scope) : null,
+        accept_new_customers: spec.status === 'OPEN' && scope?.mode === 'ALL',
+        is_hidden: Boolean(spec.hidden),
+        hidden_at: spec.hidden ? dateAt(now, -1) : null,
         created_by: users[1].id,
         created_at: dateAt(now, spec.created),
         due_date: spec.due === null ? null : dateAt(now, spec.due).slice(0, 10)
@@ -212,22 +382,39 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
       options.push(...opts);
       return { ...q, options: opts };
     });
-    if (s.status !== 'DRAFT')
-      for (const user of active)
+    const published = dateAt(now, spec.created + 1);
+    let targets = [];
+    if (s.status !== 'DRAFT') {
+      targets =
+        scope.mode === 'ALL'
+          ? active
+          : scope.mode === 'SELECTED'
+            ? active.filter((u) => scope.customerIds.includes(u.id))
+            : active.filter((u) => Domain.matches(u, scope.filters, published.slice(0, 10)));
+      if (!(scope?.mode === 'ALL' && s.status === 'OPEN' && (!s.due_date || s.due_date >= asOf)))
+        targets = targets.filter((u) => u.created_at <= published);
+      for (const user of targets)
         recipients.push({
           survey_id: s.id,
           customer_id: user.id,
-          sent_at: dateAt(now, spec.created + 1)
+          sent_at: [published, user.created_at].sort().at(-1)
         });
-    for (const index of spec.respondents) {
+    }
+    for (const [position, index] of spec.respondents.entries()) {
+      if (!targets.some((u) => u.id === customers[index].id))
+        throw Error('Demo respondent outside recipient scope');
       const response = {
         id: uuid(),
         survey_id: s.id,
         customer_id: customers[index].id,
-        submitted_at: dateAt(now, spec.created + 10 + index)
+        submitted_at: [dateAt(now, Math.min(-1, spec.created + 3 + position)), published]
+          .sort()
+          .at(-1)
       };
       responses.push(response);
       for (const q of qs) {
+        if (q.question_type === 'TEXT' && !q.is_required && (index + q.display_order) % 3 === 0)
+          continue;
         const base = {
           response_id: response.id,
           question_id: q.id,
@@ -275,6 +462,7 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
   }));
   return {
     users,
+    customerInterests,
     products,
     feedback,
     surveys,

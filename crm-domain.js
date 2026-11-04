@@ -48,6 +48,11 @@
   function matches(customer, filters, asOf = today()) {
     if (filters.need && customer.need !== filters.need) return false;
     if (filters.interest && !(customer.interests || []).includes(filters.interest)) return false;
+    if (
+      filters.interests?.length &&
+      !filters.interests.some((id) => (customer.interests || []).includes(id))
+    )
+      return false;
     const years = age(customer.birth_date || customer.birthDate, asOf);
     if (
       filters.minAge !== undefined &&

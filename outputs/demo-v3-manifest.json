@@ -1,0 +1,170 @@
+{
+  "createdAt": "2026-11-04T14:22:02.790Z",
+  "previousDatabase": "backline_crm_demo_v2_20261104124703_4e1565",
+  "database": "backline_crm_demo_v3_20261104142202_a80363",
+  "previousBackup": "C:\\Users\\sangl\\source\\repos\\CRM-electronic-devices-project\\data\\backups\\before-demo-v3-20261104142202_a80363.sql",
+  "summary": {
+    "accounts": 21,
+    "customers": 18,
+    "products": 14,
+    "feedback": 54,
+    "surveys": 16,
+    "questions": 28,
+    "responses": 21,
+    "answerDetails": 47,
+    "recipients": 127,
+    "recoveryHistory": 2,
+    "interestLinks": 32,
+    "lifecycleHistory": 5,
+    "scenarios": [
+      {
+        "id": "02383079-ef25-4204-ba4e-3c7ecbb5c6f4",
+        "title": "Mức độ hài lòng về dịch vụ",
+        "status": "OPEN",
+        "scope": "ALL",
+        "endMode": "DATE",
+        "dueDate": "2026-12-04"
+      },
+      {
+        "id": "ad02ffee-a009-4c56-8ed2-361b1df83722",
+        "title": "Nhu cầu mua sắm PC và laptop",
+        "status": "OPEN",
+        "scope": "ALL",
+        "endMode": "DATE",
+        "dueDate": "2026-12-19"
+      },
+      {
+        "id": "c8c54e88-f3d6-4f70-96d0-f195369d49d6",
+        "title": "Trải nghiệm bảo hành và hỗ trợ",
+        "status": "CLOSED",
+        "scope": "ALL",
+        "endMode": "DATE",
+        "dueDate": "2026-10-28"
+      },
+      {
+        "id": "eaeb8159-0055-4454-a8a4-9774de7c1180",
+        "title": "Khảo sát ý tưởng ưu đãi thành viên",
+        "status": "DRAFT",
+        "scope": "FILTER",
+        "endMode": "MANUAL",
+        "dueDate": null
+      },
+      {
+        "id": "49d7c824-2deb-482c-8780-1a6b0c6c0b04",
+        "title": "Đánh giá trải nghiệm mua hàng tháng trước",
+        "status": "CLOSED",
+        "scope": "ALL",
+        "endMode": "DATE",
+        "dueDate": "2026-11-03"
+      },
+      {
+        "id": "20efce9b-a835-44cb-a9fb-a8d918104114",
+        "title": "Khảo sát chương trình chăm sóc khách hàng",
+        "status": "CLOSED",
+        "scope": "SELECTED",
+        "endMode": "DATE",
+        "dueDate": "2026-11-02"
+      },
+      {
+        "id": "bf3c841b-5f14-4252-b049-b613df891d6e",
+        "title": "Khảo sát Gaming/Đồ họa 15–20 tuổi",
+        "status": "OPEN",
+        "scope": "FILTER",
+        "endMode": "DATE",
+        "dueDate": "2026-11-24"
+      },
+      {
+        "id": "4db92246-b537-4b26-b1c5-bd213c62cdbd",
+        "title": "Khảo sát khách được chọn riêng",
+        "status": "OPEN",
+        "scope": "SELECTED",
+        "endMode": "DATE",
+        "dueDate": "2026-11-25"
+      },
+      {
+        "id": "dde4395a-8295-46b6-b14c-341ab4dcc16d",
+        "title": "[Bản nháp] Chưa thiết lập phạm vi",
+        "status": "DRAFT",
+        "scope": null,
+        "endMode": "MANUAL",
+        "dueDate": null
+      },
+      {
+        "id": "17a2e5a5-5d7d-4753-8855-e79e75b5b6e2",
+        "title": "[Bản nháp] Đã chọn Tất cả",
+        "status": "DRAFT",
+        "scope": "ALL",
+        "endMode": "DATE",
+        "dueDate": "2026-12-04"
+      },
+      {
+        "id": "2058b251-cbce-4e8c-86ac-fa9099ed6d3b",
+        "title": "[Bản nháp] Đã chọn từng khách",
+        "status": "DRAFT",
+        "scope": "SELECTED",
+        "endMode": "DATE",
+        "dueDate": "2026-11-18"
+      },
+      {
+        "id": "1483cb1f-da71-4f33-afde-b5d8f169d170",
+        "title": "Khảo sát khách hàng 25–45 tuổi",
+        "status": "OPEN",
+        "scope": "FILTER",
+        "endMode": "DATE",
+        "dueDate": "2026-11-19"
+      },
+      {
+        "id": "2c030ff4-691a-4dfb-8261-1529b252287f",
+        "title": "[Đóng thủ công] Góp ý dịch vụ thường xuyên",
+        "status": "OPEN",
+        "scope": "ALL",
+        "endMode": "MANUAL",
+        "dueDate": null
+      },
+      {
+        "id": "003d44dc-3fc7-40db-8a7f-eff03a925060",
+        "title": "[Hết hạn hôm nay] Xác nhận nhu cầu hỗ trợ",
+        "status": "OPEN",
+        "scope": "SELECTED",
+        "endMode": "DATE",
+        "dueDate": "2026-11-04"
+      },
+      {
+        "id": "3bf7ab60-75b8-4bcc-b5a0-a6168e1b965a",
+        "title": "[Đã gia hạn] Góp ý nhóm Gaming và Đồ họa",
+        "status": "OPEN",
+        "scope": "FILTER",
+        "endMode": "DATE",
+        "dueDate": "2026-11-18"
+      },
+      {
+        "id": "cec70382-5b3d-4ca8-96f1-6ef71aca0d5a",
+        "title": "[Đã mở lại] Đánh giá hỗ trợ sau mua",
+        "status": "OPEN",
+        "scope": "ALL",
+        "endMode": "DATE",
+        "dueDate": "2026-11-14"
+      }
+    ]
+  },
+  "counts": {
+    "customer_interests": 32,
+    "customer_recovery_codes": 0,
+    "demo_datasets": 1,
+    "feedback": 54,
+    "interests": 6,
+    "password_recovery_requests": 2,
+    "products": 14,
+    "question_options": 32,
+    "response_details": 47,
+    "survey_lifecycle_history": 5,
+    "survey_questions": 28,
+    "survey_recipients": 127,
+    "survey_responses": 21,
+    "surveys": 16,
+    "users": 21
+  },
+  "sqlFile": "C:\\Users\\sangl\\source\\repos\\CRM-electronic-devices-project\\outputs\\Du_lieu_demo_CRM_v3_20261104142202_a80363.sql",
+  "activated": true,
+  "restoreVerifiedAt": "2026-11-04T14:22:50.443Z"
+}

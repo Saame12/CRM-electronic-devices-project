@@ -81,6 +81,8 @@ async function api(url, options = {}) {
 // LOGIC ĐỌC: Nạp lại feedback, trạng thái hoàn thành và khảo sát từ API; không ghi MySQL.
 // FB/DONE/SV chỉ là bản dữ liệu trong RAM của trang, mất khi tải lại rồi được lấy lại từ server.
 async function refreshData() {
+  // Explicit write before read: catch customers created after a public survey was published.
+  await api('/api/surveys/sync', { method: 'POST' });
   const [feedbackResult, surveyResult, surveysResult] = await Promise.all([
     api('/api/feedback'),
     api('/api/survey-status'),
@@ -127,13 +129,13 @@ const ro = (n) =>
 // Lọc các khảo sát chưa hoàn thành
 const dateFromVN = (value) => {
   const m = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  return m ? new Date(+m[3], +m[2] - 1, +m[1], 23, 59, 59) : null;
+  return m ? new Date(`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}T23:59:59.999+07:00`) : null;
 };
 const isExpired = (s) =>
   s.isExpired ||
   Boolean(
     s.dueDate
-      ? new Date(`${s.dueDate}T23:59:59`) < new Date()
+      ? new Date(`${s.dueDate}T23:59:59.999+07:00`) < new Date()
       : dateFromVN(s.due) && dateFromVN(s.due) < new Date()
   );
 const pending = () => SV.filter((s) => !(DONE[me.email] || {})[s.id] && !isExpired(s));

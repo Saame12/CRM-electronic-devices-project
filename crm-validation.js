@@ -45,6 +45,14 @@ function profile(body, { complete = true } = {}) {
 }
 function filters(value = {}) {
   const out = {};
+  if (value.interests !== undefined) {
+    try {
+      const ids = Domain.interestIds(value.interests);
+      if (ids.length) out.interests = ids;
+    } catch (error) {
+      fail(error.message);
+    }
+  }
   if (value.need) {
     if (!Domain.needs.includes(value.need)) fail('Bộ lọc nhu cầu không hợp lệ.');
     out.need = value.need;
@@ -73,6 +81,13 @@ function survey(body, creating = false) {
   if (!['DRAFT', 'OPEN', ...(creating ? [] : ['CLOSED'])].includes(body.status || 'DRAFT'))
     fail('Trạng thái khảo sát không hợp lệ.');
   const dueDate = body.dueDate || '';
+  {
+    if (!body.endMode)
+      fail('Bắt buộc chọn phương thức hạn khảo sát: Có ngày kết thúc hoặc Đóng thủ công.');
+    if (!['DATE', 'MANUAL'].includes(body.endMode)) fail('Cách kết thúc khảo sát không hợp lệ.');
+    if (body.endMode === 'DATE' && !dueDate) fail('Hãy chọn ngày kết thúc khảo sát.');
+    if (body.endMode === 'MANUAL' && dueDate) fail('Đóng thủ công không có ngày kết thúc.');
+  }
   if (dueDate && !BirthDate.validISO(dueDate, '9999-12-31')) fail('Hạn khảo sát không hợp lệ.');
   if (!Array.isArray(body.questions) || !body.questions.length || body.questions.length > 100)
     fail('Khảo sát cần từ 1 đến 100 câu hỏi.');

@@ -33,7 +33,12 @@ async function insertRows(connection, table, rows, columns) {
 }
 async function seedDemo(
   connection,
-  { now = new Date(), hash = (password) => bcrypt.hash(password, 12) } = {}
+  {
+    now = new Date(),
+    hash = (password) => bcrypt.hash(password, 12),
+    build = buildDemo,
+    dataset = DATASET
+  } = {}
 ) {
   const [[database]] = await connection.query('SELECT DATABASE() name');
   const lockName =
@@ -46,7 +51,7 @@ async function seedDemo(
     await connection.query(markerSQL);
     const [[installed]] = await connection.execute(
       'SELECT summary_json FROM demo_datasets WHERE name=?',
-      [DATASET]
+      [dataset]
     );
     if (installed)
       return {
@@ -65,8 +70,13 @@ async function seedDemo(
     }
     await ensureSchema(connection);
     await require('../customer-interests').ensureSchema(connection);
-    const data = buildDemo(now),
+    await require('../survey-enrollment').ensureSchema(connection);
+    await require('../survey-audience').ensureSchema(connection);
+    await require('../survey-expiry').ensureSchema(connection);
+    const data = build(now),
       hashes = new Map();
+    if (data.lifecycleHistory?.length)
+      await require('../survey-lifecycle').ensureSchema(connection);
     for (const user of data.users) {
       if (!hashes.has(user.password)) hashes.set(user.password, await hash(user.password));
       user.password_hash = hashes.get(user.password);
@@ -89,11 +99,10 @@ async function seedDemo(
       'need',
       'created_at'
     ]);
-    // Explicit synthetic fixtures only; existing customers are never backfilled from need.
-    const interestFixtures=[['gaming','programming'],['design','learning'],['office'],['learning','other'],[]];
-    const demoCustomers=data.users.filter(u=>u.role==='CUSTOMER');
-    for(const [i,user] of demoCustomers.entries())for(const interest of interestFixtures[i%interestFixtures.length])
-      await connection.execute('INSERT INTO customer_interests(customer_id,interest_id) VALUES (?,?)',[user.id,interest]);
+    await insertRows(connection, 'customer_interests', data.customerInterests, [
+      'customer_id',
+      'interest_id'
+    ]);
     await insertRows(connection, 'products', data.products, ['id', 'name', 'category']);
     await insertRows(connection, 'feedback', data.feedback, [
       'id',
@@ -117,6 +126,11 @@ async function seedDemo(
       'description',
       'due_date',
       'status',
+      'accept_new_customers',
+      'audience_config',
+      'auto_closed_at',
+      'is_hidden',
+      'hidden_at',
       'created_by',
       'created_at'
     ]);
@@ -169,6 +183,18 @@ async function seedDemo(
       'completed_at',
       'completion_seen'
     ]);
+    if (data.lifecycleHistory?.length)
+      await insertRows(connection, 'survey_lifecycle_history', data.lifecycleHistory, [
+        'id',
+        'survey_id',
+        'actor_id',
+        'action',
+        'old_due_date',
+        'new_due_date',
+        'old_status',
+        'new_status',
+        'created_at'
+      ]);
     const summary = {
       accounts: data.users.length,
       customers: data.users.filter((u) => u.role === 'CUSTOMER').length,
@@ -179,10 +205,20 @@ async function seedDemo(
       responses: data.responses.length,
       answerDetails: data.details.length,
       recipients: data.recipients.length,
-      recoveryHistory: data.recovery.length
+      recoveryHistory: data.recovery.length,
+      interestLinks: data.customerInterests.length,
+      lifecycleHistory: data.lifecycleHistory?.length || 0,
+      scenarios: data.surveys.map((s) => ({
+        id: s.id,
+        title: s.title,
+        status: s.status,
+        scope: s.audience_config ? JSON.parse(s.audience_config).mode : null,
+        endMode: s.due_date ? 'DATE' : 'MANUAL',
+        dueDate: s.due_date
+      }))
     };
     await connection.execute('INSERT INTO demo_datasets (name,summary_json) VALUES (?,?)', [
-      DATASET,
+      dataset,
       JSON.stringify(summary)
     ]);
     await connection.commit();

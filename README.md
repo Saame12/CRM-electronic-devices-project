@@ -1,5 +1,21 @@
 # Hướng dẫn setup database và chạy Backline CRM
 
+## Bộ dữ liệu mới ngày 04/11/2026
+
+Đã có [bộ dữ liệu demo v2 và tài khoản thử](docs/DU_LIEU_DEMO_V2.md): 18 khách, 12 khảo sát có phạm vi phù hợp quy trình mới, 54 phản hồi và các mốc tuổi để kiểm tra bộ lọc. [Tệp SQL](outputs/Du_lieu_demo_CRM_v2_20261104.sql) kèm metadata checksum ở cùng thư mục. Bộ hiện tại đã được nạp và chạy trên cổng 3000.
+
+## Phạm vi khảo sát bắt buộc trước khi mở
+
+[Quy trình mới](docs/PHAM_VI_BAT_BUOC_KHAO_SAT.md): lưu phạm vi cùng bản nháp, chỉ mở khi đã cấu hình; phiếu mới đã OPEN không cần gửi/bổ sung lại. Chỉ phiếu OPEN cũ thiếu phạm vi được thiết lập một lần.
+
+## Bộ chọn người nhận khảo sát
+
+[Lọc nhiều sở thích, khoảng tuổi và mở/đóng danh sách người nhận](docs/LOC_NGUOI_NHAN_KHAO_SAT.md). Bộ lọc 15–20 chỉ khớp khách đủ 15 tuổi đến hết 20 tuổi; danh sách hiển thị và thao tác gửi được kiểm tra cùng quy tắc.
+
+## Cập nhật 03/11/2026 — Khách mới nhận khảo sát đang mở
+
+Phiếu gửi **Tất cả** tự nhận tài khoản đăng ký sau khi phiếu còn OPEN và chưa quá hạn. DRAFT/CLOSED không được cấp cho khách mới; phiếu nhóm riêng tiếp tục giữ giới hạn. Xem [quy tắc, xử lý phiếu cũ và kết quả kiểm thử](docs/DONG_BO_KHAO_SAT_CHO_KHACH_MOI.md).
+
 ## Bản cập nhật nghiệm thu 01/11/2026
 
 Đã bổ sung nhiều sở thích, chọn nhóm/từng người nhận khảo sát, kiểm tra dữ liệu backend, tính tuổi theo ngày sinh và lịch sử tương tác theo khách. Xem [kết quả khắc phục và hướng dẫn thao tác](docs/KET_QUA_KHAC_PHUC.md), [bản tự đánh giá hiệu chỉnh](docs/BAO_CAO_TU_DANH_GIA_DA_HIEU_CHINH.md) và [sao lưu/phục hồi](docs/SAO_LUU_VA_PHUC_HOI.md).

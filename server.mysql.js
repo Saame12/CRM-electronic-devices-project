@@ -15,6 +15,9 @@ const Domain = require('./crm-domain');
 const V = require('./crm-validation');
 const Interests = require('./customer-interests');
 const Surveys = require('./survey-service');
+const SurveyEnrollment = require('./survey-enrollment');
+const SurveyExpiry = require('./survey-expiry');
+const SurveyLifecycle = require('./survey-lifecycle');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -42,6 +45,11 @@ const dateVN = (value) => new Intl.DateTimeFormat('vi-VN').format(new Date(value
 const emailOk = (x) => /^\S+@\S+\.\S+$/.test(x);
 const phoneOk = (x) => /^0\d{9,10}$/.test(x);
 const wrap = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+// Reconcile before APIs as well as at midnight, including after sleep/restart.
+app.use('/api', wrap(async (_req, _res, next) => {
+  await SurveyExpiry.closeExpired(db);
+  next();
+}));
 const publicUser = (u) => ({
   id: u.id,
   email: u.email,
@@ -196,6 +204,7 @@ app.post(
         ]
       );
       recoveryCode = await RecoveryCodes.issue(connection, id);
+      await SurveyEnrollment.enroll(connection, id);
       const [rows] = await connection.execute('SELECT * FROM users WHERE id=?', [id]);
       user = rows[0];
       await connection.commit();
@@ -476,7 +485,7 @@ app.get(
     res.set('Cache-Control', 'no-store');
     if (req.user.role !== 'CUSTOMER') V.fail('Chỉ dành cho khách hàng.', 403);
     const [list] = await db.execute(
-      "SELECT s.id,s.title,s.description,s.due_date,s.status FROM surveys s WHERE (s.status='OPEN' AND EXISTS (SELECT 1 FROM survey_recipients r WHERE r.survey_id=s.id AND r.customer_id=?)) OR EXISTS (SELECT 1 FROM survey_responses a WHERE a.survey_id=s.id AND a.customer_id=?) ORDER BY s.created_at DESC",
+      "SELECT s.id,s.title,s.description,DATE_FORMAT(s.due_date,'%Y-%m-%d') due_iso,s.status FROM surveys s WHERE ((s.status='OPEN' OR (s.status='CLOSED' AND s.auto_closed_at IS NOT NULL)) AND EXISTS (SELECT 1 FROM survey_recipients r WHERE r.survey_id=s.id AND r.customer_id=?)) OR EXISTS (SELECT 1 FROM survey_responses a WHERE a.survey_id=s.id AND a.customer_id=?) ORDER BY s.created_at DESC",
       [req.user.id, req.user.id]
     );
     const surveys = [];
@@ -504,12 +513,9 @@ app.get(
           title: s.title,
           status: s.status,
           desc: s.description,
-          due: s.due_date ? dateVN(s.due_date) : 'Không đặt hạn',
-          dueDate: s.due_date ? new Date(s.due_date).toISOString().slice(0, 10) : null,
-          isExpired: Boolean(
-            s.due_date &&
-            new Date(`${new Date(s.due_date).toISOString().slice(0, 10)}T23:59:59`) < new Date()
-          ),
+          due: s.due_iso ? BirthDate.display(s.due_iso) : 'Không đặt hạn',
+          dueDate: s.due_iso || null,
+          isExpired: Boolean(s.due_iso && s.due_iso < Domain.today()),
           min: Math.max(1, Math.ceil(qs.length / 3)),
           qs
         });
@@ -729,7 +735,7 @@ app.get(
   admin,
   wrap(async (req, res) => {
     const [[survey]] = await db.execute(
-      'SELECT s.*, (SELECT COUNT(*) FROM survey_responses r WHERE r.survey_id=s.id) response_count FROM surveys s WHERE s.id=?',
+      "SELECT s.*, DATE_FORMAT(s.due_date,'%Y-%m-%d') due_date, (SELECT COUNT(*) FROM survey_responses r WHERE r.survey_id=s.id) response_count FROM surveys s WHERE s.id=?",
       [req.params.id]
     );
     if (!survey) return res.status(404).json({ error: 'Không tìm thấy khảo sát.' });
@@ -792,7 +798,7 @@ app.post(
   auth,
   staff,
   wrap(async (req, res) => {
-    await Surveys.close(db, req.params.id);
+    await Surveys.close(db, req.params.id, req.user.id);
     res.json({ message: 'Đã đóng khảo sát.' });
   })
 );
@@ -804,11 +810,11 @@ app.post(
   staff,
   wrap(async (req, res) => {
     const selected = await Surveys.transaction(db, (c) =>
-      Surveys.publish(c, req.params.id, req.body.audience)
+      Surveys.publish(c, req.params.id, req.body?.audience)
     );
     res.json({
       selected,
-      message: 'Đã ghi nhận danh sách người nhận; gửi lại chỉ bổ sung, không xóa người đã nhận.'
+      message: 'Đã xác nhận phạm vi và người nhận khảo sát.'
     });
   })
 );
@@ -817,15 +823,24 @@ app.post(
   auth,
   staff,
   wrap(async (req, res) => {
-    const users = await Surveys.recipients(db, req.body.audience);
+    const asOf = await Surveys.today(db);
+    const users = await Surveys.recipients(db, req.body.audience, asOf);
     res.set('Cache-Control', 'no-store');
     res.json({
       count: users.length,
-      customers: users.map((u) => ({ id: u.id, name: u.full_name, email: u.email }))
+      asOf,
+      customers: users.map((u) => ({
+        id: u.id,
+        name: u.full_name,
+        email: u.email,
+        age: Domain.age(u.birth_date, asOf),
+        interests: u.interests
+      }))
     });
   })
 );
 require('./customer-history').register(app, db, auth, staff, wrap);
+SurveyEnrollment.register(app, db, auth, wrap, Surveys.transaction);
 require('./customer-survey-review').register(app, db, auth, wrap);
 require('./reports-service').registerReports(app, db, auth, staff, wrap);
 require('./survey-copy').register(app, db, auth, staff, wrap);
@@ -836,6 +851,7 @@ app.use(['/api/password-recovery', '/api/admin/password-recovery'], (_req, res, 
 PasswordRecovery.register(app, db, auth, admin, wrap);
 RecoveryCodes.register(app, db, auth, wrap);
 SurveyVisibility.register(app, db, auth, staff, wrap);
+SurveyLifecycle.register(app, db, auth, staff, wrap);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Không tìm thấy API.' }));
 app.use((err, _req, res, _next) => {
   if (err instanceof V.InputError) return res.status(err.status).json({ error: err.message });
@@ -869,7 +885,13 @@ async function start() {
   await PasswordRecovery.ensureSchema(db);
   await SurveyVisibility.ensureSchema(db);
   await Interests.ensureSchema(db);
+  await SurveyEnrollment.ensureSchema(db);
+  await require('./survey-audience').ensureSchema(db);
+  await SurveyExpiry.ensureSchema(db);
+  await SurveyLifecycle.ensureSchema(db);
   await seed();
+  await SurveyExpiry.closeExpired(db);
+  SurveyExpiry.schedule(db);
   app.listen(PORT, () => console.log(`CRM đang chạy tại http://localhost:${PORT}`));
 }
 start().catch((e) => {

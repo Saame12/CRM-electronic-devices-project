@@ -1,11 +1,11 @@
 {
-  "startedAt": "2026-11-01T06:08:18.673Z",
-  "finishedAt": "2026-11-01T06:08:28.836Z",
+  "startedAt": "2026-11-04T12:52:51.518Z",
+  "finishedAt": "2026-11-04T12:53:03.662Z",
   "environment": "Isolated MySQL database and isolated Node HTTP server using current source",
   "databaseCleaned": true,
   "summary": {
-    "total": 167,
-    "passed": 167,
+    "total": 182,
+    "passed": 182,
     "failed": 0
   },
   "results": [
@@ -25,7 +25,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 20
+      "ms": 19
     },
     {
       "group": "Hạ tầng",
@@ -43,7 +43,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 3
+      "ms": 8
     },
     {
       "group": "Hạ tầng",
@@ -52,7 +52,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 8
     },
     {
       "group": "Hạ tầng",
@@ -61,7 +61,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 3
+      "ms": 14
     },
     {
       "group": "Bảo vệ dữ liệu",
@@ -70,7 +70,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 10
+      "ms": 15
     },
     {
       "group": "Bảo vệ dữ liệu",
@@ -88,7 +88,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 1
+      "ms": 16
     },
     {
       "group": "Bảo vệ dữ liệu",
@@ -97,7 +97,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 0
+      "ms": 15
     },
     {
       "group": "Bảo vệ dữ liệu",
@@ -106,7 +106,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 16
     },
     {
       "group": "Xác thực",
@@ -115,7 +115,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 17
     },
     {
       "group": "Xác thực",
@@ -124,7 +124,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 15
     },
     {
       "group": "Xác thực",
@@ -133,7 +133,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 17
     },
     {
       "group": "Xác thực",
@@ -142,7 +142,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 25
+      "ms": 13
     },
     {
       "group": "Xác thực",
@@ -151,7 +151,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 8
+      "ms": 19
     },
     {
       "group": "Xác thực",
@@ -160,7 +160,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Xác thực",
@@ -169,7 +169,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 14
     },
     {
       "group": "Phân quyền",
@@ -178,7 +178,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Phân quyền",
@@ -187,7 +187,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 15
     },
     {
       "group": "Phân quyền",
@@ -196,7 +196,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Phân quyền",
@@ -205,7 +205,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 18
+      "ms": 17
     },
     {
       "group": "Phân quyền",
@@ -214,7 +214,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 2
+      "ms": 15
     },
     {
       "group": "Phân quyền",
@@ -223,7 +223,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 15
     },
     {
       "group": "Phân quyền",
@@ -232,7 +232,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 19
+      "ms": 18
     },
     {
       "group": "Phân quyền",
@@ -241,7 +241,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 15
     },
     {
       "group": "Phân quyền",
@@ -250,7 +250,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 14
     },
     {
       "group": "Phân quyền",
@@ -259,7 +259,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 2
     },
     {
       "group": "Phân quyền",
@@ -268,7 +268,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 18
+      "ms": 16
     },
     {
       "group": "Phân quyền",
@@ -277,7 +277,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 14
     },
     {
       "group": "Phân quyền",
@@ -286,7 +286,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 17
     },
     {
       "group": "Phân quyền",
@@ -295,7 +295,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 20
+      "ms": 18
     },
     {
       "group": "Phân quyền",
@@ -304,7 +304,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 11
+      "ms": 13
     },
     {
       "group": "Phân quyền",
@@ -313,7 +313,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 17
     },
     {
       "group": "Phân quyền",
@@ -340,7 +340,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 2
+      "ms": 15
     },
     {
       "group": "Phân quyền",
@@ -349,7 +349,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 19
     },
     {
       "group": "Phân quyền",
@@ -358,7 +358,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 14
     },
     {
       "group": "Phân quyền",
@@ -367,7 +367,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 17
+      "ms": 15
     },
     {
       "group": "Phân quyền",
@@ -376,7 +376,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 40
+      "ms": 42
     },
     {
       "group": "Phân quyền",
@@ -385,7 +385,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 2
+      "ms": 5
     },
     {
       "group": "Tài khoản",
@@ -394,7 +394,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 253
+      "ms": 265
     },
     {
       "group": "Tài khoản",
@@ -412,7 +412,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Tài khoản",
@@ -421,7 +421,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 1
     },
     {
       "group": "Tài khoản",
@@ -430,7 +430,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 14
     },
     {
       "group": "Tài khoản",
@@ -439,7 +439,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 17
+      "ms": 16
     },
     {
       "group": "Tài khoản",
@@ -448,7 +448,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 1
+      "ms": 16
     },
     {
       "group": "Tài khoản",
@@ -457,7 +457,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 16
     },
     {
       "group": "Tài khoản",
@@ -466,7 +466,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 274
+      "ms": 262
     },
     {
       "group": "Tài khoản",
@@ -475,7 +475,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 254
+      "ms": 243
     },
     {
       "group": "Phiên đăng nhập",
@@ -484,7 +484,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 249
+      "ms": 245
     },
     {
       "group": "Phiên đăng nhập",
@@ -502,7 +502,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 11
+      "ms": 18
     },
     {
       "group": "Hồ sơ",
@@ -520,7 +520,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Hồ sơ",
@@ -529,7 +529,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 18
+      "ms": 17
     },
     {
       "group": "Gia cố API",
@@ -538,7 +538,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 14
     },
     {
       "group": "Khách hàng",
@@ -547,7 +547,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 276
+      "ms": 243
     },
     {
       "group": "Khách hàng",
@@ -556,7 +556,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 47
+      "ms": 32
     },
     {
       "group": "Khách hàng",
@@ -565,7 +565,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 17
     },
     {
       "group": "Khách hàng",
@@ -583,7 +583,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 273
+      "ms": 254
     },
     {
       "group": "Khách hàng",
@@ -592,7 +592,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 6
+      "ms": 12
     },
     {
       "group": "Khách hàng",
@@ -601,7 +601,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 271
+      "ms": 281
     },
     {
       "group": "Khách hàng",
@@ -610,7 +610,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 6
+      "ms": 16
     },
     {
       "group": "Khách hàng",
@@ -619,7 +619,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 32
+      "ms": 30
     },
     {
       "group": "Admin",
@@ -628,7 +628,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 261
+      "ms": 292
     },
     {
       "group": "Admin",
@@ -637,7 +637,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 252
+      "ms": 278
     },
     {
       "group": "Admin",
@@ -646,7 +646,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 9
     },
     {
       "group": "Admin",
@@ -655,7 +655,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 14
     },
     {
       "group": "Admin",
@@ -664,7 +664,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 17
     },
     {
       "group": "Admin",
@@ -673,7 +673,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 31
+      "ms": 32
     },
     {
       "group": "Khảo sát",
@@ -682,7 +682,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 34
+      "ms": 33
     },
     {
       "group": "Khảo sát",
@@ -691,7 +691,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 14
     },
     {
       "group": "Khảo sát",
@@ -700,7 +700,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 4
     },
     {
       "group": "Khảo sát",
@@ -709,7 +709,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 11
     },
     {
       "group": "Khảo sát",
@@ -718,7 +718,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Khảo sát",
@@ -736,16 +736,16 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 29
+      "ms": 25
     },
     {
       "group": "Khảo sát",
       "cn": "CN32",
-      "name": "Gửi phiếu tới khách ACTIVE và không nhân đôi người nhận",
+      "name": "Mở theo phạm vi đã lưu; gửi lần hai bị chặn và không nhân đôi người nhận",
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 33
+      "ms": 22
     },
     {
       "group": "Khảo sát",
@@ -754,7 +754,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 21
+      "ms": 23
     },
     {
       "group": "Khảo sát",
@@ -763,7 +763,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 43
+      "ms": 32
     },
     {
       "group": "Khảo sát",
@@ -772,7 +772,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 46
+      "ms": 60
     },
     {
       "group": "Khảo sát",
@@ -781,7 +781,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 29
+      "ms": 26
     },
     {
       "group": "Khảo sát",
@@ -799,7 +799,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 4
+      "ms": 19
     },
     {
       "group": "Khảo sát",
@@ -808,7 +808,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 17
+      "ms": 24
     },
     {
       "group": "Khảo sát",
@@ -826,7 +826,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 5
     },
     {
       "group": "Khảo sát",
@@ -835,7 +835,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 21
     },
     {
       "group": "Khảo sát",
@@ -853,7 +853,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 45
+      "ms": 64
     },
     {
       "group": "Khảo sát",
@@ -862,7 +862,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 17
+      "ms": 29
     },
     {
       "group": "Khảo sát",
@@ -871,7 +871,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 4
+      "ms": 17
     },
     {
       "group": "Khảo sát",
@@ -880,7 +880,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 26
+      "ms": 16
     },
     {
       "group": "Khảo sát",
@@ -889,7 +889,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 36
+      "ms": 38
     },
     {
       "group": "Khảo sát",
@@ -898,7 +898,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 27
+      "ms": 23
     },
     {
       "group": "Khảo sát",
@@ -907,7 +907,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 10
     },
     {
       "group": "Khảo sát",
@@ -916,7 +916,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 31
+      "ms": 50
     },
     {
       "group": "Gia cố API",
@@ -925,7 +925,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 11
     },
     {
       "group": "Gia cố API",
@@ -934,7 +934,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 10
     },
     {
       "group": "Gia cố API",
@@ -943,7 +943,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 10
     },
     {
       "group": "Gia cố API",
@@ -952,7 +952,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 9
     },
     {
       "group": "Gia cố API",
@@ -961,7 +961,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 12
+      "ms": 9
     },
     {
       "group": "Gia cố API",
@@ -970,7 +970,7 @@
       "kind": "boundary",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 8
+      "ms": 7
     },
     {
       "group": "Phản hồi",
@@ -988,7 +988,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 2
     },
     {
       "group": "Phản hồi",
@@ -997,7 +997,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 12
     },
     {
       "group": "Phản hồi",
@@ -1015,7 +1015,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 16
     },
     {
       "group": "Phản hồi",
@@ -1033,7 +1033,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 17
     },
     {
       "group": "Phản hồi",
@@ -1042,7 +1042,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 32
+      "ms": 33
     },
     {
       "group": "Phản hồi",
@@ -1060,7 +1060,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 2
+      "ms": 14
     },
     {
       "group": "Phản hồi",
@@ -1069,7 +1069,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 15
     },
     {
       "group": "Phản hồi",
@@ -1078,7 +1078,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 31
+      "ms": 32
     },
     {
       "group": "Phản hồi",
@@ -1087,7 +1087,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Phản hồi",
@@ -1096,7 +1096,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 17
+      "ms": 19
     },
     {
       "group": "Phản hồi",
@@ -1105,7 +1105,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 83
+      "ms": 94
     },
     {
       "group": "Phản hồi",
@@ -1114,7 +1114,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 26
+      "ms": 29
     },
     {
       "group": "Khách hàng",
@@ -1150,7 +1150,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 18
+      "ms": 19
     },
     {
       "group": "Báo cáo",
@@ -1168,7 +1168,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 11
+      "ms": 27
     },
     {
       "group": "Báo cáo",
@@ -1177,7 +1177,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 19
+      "ms": 20
     },
     {
       "group": "Báo cáo",
@@ -1186,7 +1186,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 11
+      "ms": 10
     },
     {
       "group": "Báo cáo",
@@ -1195,7 +1195,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 12
     },
     {
       "group": "Báo cáo",
@@ -1204,7 +1204,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 13
     },
     {
       "group": "Báo cáo",
@@ -1213,7 +1213,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 15
+      "ms": 16
     },
     {
       "group": "Báo cáo",
@@ -1231,7 +1231,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 500
+      "ms": 557
     },
     {
       "group": "Khôi phục",
@@ -1240,7 +1240,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 7
+      "ms": 12
     },
     {
       "group": "Khôi phục",
@@ -1249,7 +1249,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 15
     },
     {
       "group": "Khôi phục",
@@ -1258,7 +1258,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 17
+      "ms": 18
     },
     {
       "group": "Khôi phục",
@@ -1267,7 +1267,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 2
+      "ms": 12
     },
     {
       "group": "Khôi phục",
@@ -1276,7 +1276,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 773
+      "ms": 905
     },
     {
       "group": "Khôi phục",
@@ -1285,7 +1285,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 14
+      "ms": 7
     },
     {
       "group": "Admin",
@@ -1303,7 +1303,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 31
+      "ms": 32
     },
     {
       "group": "Khôi phục",
@@ -1312,7 +1312,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 32
+      "ms": 31
     },
     {
       "group": "Khôi phục",
@@ -1321,7 +1321,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 16
+      "ms": 31
     },
     {
       "group": "Admin",
@@ -1330,7 +1330,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 15
     },
     {
       "group": "Admin",
@@ -1348,7 +1348,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 254
+      "ms": 310
     },
     {
       "group": "Admin",
@@ -1357,7 +1357,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 67
+      "ms": 51
     },
     {
       "group": "Khôi phục",
@@ -1366,7 +1366,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 32
+      "ms": 35
     },
     {
       "group": "Phiên đăng nhập",
@@ -1375,7 +1375,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 13
+      "ms": 1
     },
     {
       "group": "Khách hàng",
@@ -1384,7 +1384,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 296
+      "ms": 346
     },
     {
       "group": "Nghiệm thu",
@@ -1393,7 +1393,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 45
+      "ms": 63
     },
     {
       "group": "Nghiệm thu",
@@ -1402,7 +1402,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 40
+      "ms": 53
     },
     {
       "group": "Nghiệm thu",
@@ -1411,7 +1411,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 536
+      "ms": 624
     },
     {
       "group": "Nghiệm thu",
@@ -1420,7 +1420,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 64
+      "ms": 109
     },
     {
       "group": "Nghiệm thu",
@@ -1434,11 +1434,11 @@
     {
       "group": "Nghiệm thu",
       "cn": "BB02",
-      "name": "Gửi lại cộng dồn không trùng; báo cáo mẫu số đúng snapshot",
+      "name": "Phiếu đã có phạm vi chặn gửi lại; báo cáo giữ nguyên snapshot",
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 52
+      "ms": 42
     },
     {
       "group": "Nghiệm thu",
@@ -1447,7 +1447,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 86
+      "ms": 96
     },
     {
       "group": "Nghiệm thu",
@@ -1456,7 +1456,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 86
+      "ms": 91
     },
     {
       "group": "Nghiệm thu",
@@ -1465,7 +1465,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 209
+      "ms": 238
     },
     {
       "group": "Nghiệm thu",
@@ -1474,7 +1474,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 123
+      "ms": 108
     },
     {
       "group": "Xem bài đã gửi",
@@ -1483,7 +1483,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 39
+      "ms": 31
     },
     {
       "group": "Xem bài đã gửi",
@@ -1492,7 +1492,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 67
+      "ms": 109
     },
     {
       "group": "Xem bài đã gửi",
@@ -1501,7 +1501,7 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 84
+      "ms": 96
     },
     {
       "group": "Xem bài đã gửi",
@@ -1510,7 +1510,142 @@
       "kind": "functional",
       "status": "PASS",
       "evidence": "Đúng kết quả mong đợi",
-      "ms": 55
+      "ms": 60
+    },
+    {
+      "group": "Đồng bộ khách mới",
+      "cn": "SYNC01",
+      "name": "Lưu phân biệt gửi tất cả và phiếu chọn nhóm/từng khách",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 84
+    },
+    {
+      "group": "Đồng bộ khách mới",
+      "cn": "SYNC02",
+      "name": "Đăng ký sau thời điểm gửi tự thấy phiếu tất cả; không lọt vào nhóm riêng, phiếu đóng/hết hạn",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 335
+    },
+    {
+      "group": "Đồng bộ khách mới",
+      "cn": "SYNC03",
+      "name": "Hoàn thiện hồ sơ và đồng bộ lặp không tạo trùng; có thể nộp phiếu đã nhận",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 93
+    },
+    {
+      "group": "Đồng bộ khách mới",
+      "cn": "SYNC04",
+      "name": "Khách bị bỏ sót được đồng bộ khi tải trang; từ chối tài khoản sai vai trò",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 45
+    },
+    {
+      "group": "Đồng bộ khách mới",
+      "cn": "SYNC05",
+      "name": "Phiếu mới đã mở không được thay phạm vi hoặc tắt nhận khách mới bằng gửi lại",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 19
+    },
+    {
+      "group": "Lọc người nhận",
+      "cn": "FILTER01",
+      "name": "Tạo dữ liệu mốc sinh nhật và sở thích nhiều giá trị độc lập",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 35
+    },
+    {
+      "group": "Lọc người nhận",
+      "cn": "FILTER02",
+      "name": "Danh sách tuổi 15–20 khớp các mốc 15/20/21 và khách có ít nhất một sở thích",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 7
+    },
+    {
+      "group": "Lọc người nhận",
+      "cn": "FILTER03",
+      "name": "Phiếu gửi theo bộ lọc ghi đúng tập người nhận đã xem",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 36
+    },
+    {
+      "group": "Lọc người nhận",
+      "cn": "FILTER04",
+      "name": "Chọn từng khách vẫn chặn người ngoài tuổi/sở thích; ALL không âm thầm bỏ bộ lọc",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 72
+    },
+    {
+      "group": "Phạm vi bắt buộc",
+      "cn": "SCOPE01",
+      "name": "Tạo OPEN thiếu/sai phạm vi bị chặn trước khi lưu phiếu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 76
+    },
+    {
+      "group": "Phạm vi bắt buộc",
+      "cn": "SCOPE02",
+      "name": "Bản nháp lưu và đọc lại phạm vi; chỉ mở bằng cấu hình đã lưu",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 95
+    },
+    {
+      "group": "Phạm vi bắt buộc",
+      "cn": "SCOPE03",
+      "name": "Nháp chưa chọn phạm vi không mở được qua send hoặc PATCH; sửa nháp rồi mới mở",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 84
+    },
+    {
+      "group": "Phạm vi bắt buộc",
+      "cn": "SCOPE04",
+      "name": "OPEN cũ thiếu phạm vi được thiết lập một lần; giữ người nhận trước đây",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 72
+    },
+    {
+      "group": "Phạm vi bắt buộc",
+      "cn": "SCOPE05",
+      "name": "Về DRAFT sửa phạm vi rồi mở lại thay đúng snapshot khi chưa có câu trả lời",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 75
+    },
+    {
+      "group": "Phạm vi bắt buộc",
+      "cn": "SCOPE06",
+      "name": "Sao chép không giữ phạm vi và không tự mở; hai lần mở đồng thời chỉ một lần thành công",
+      "kind": "functional",
+      "status": "PASS",
+      "evidence": "Đúng kết quả mong đợi",
+      "ms": 88
     }
   ]
 }

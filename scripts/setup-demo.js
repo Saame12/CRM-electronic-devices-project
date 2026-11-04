@@ -7,7 +7,12 @@ async function main() {
   const name = databaseName(),
     connection = await setupDatabase(name);
   try {
-    const result = await seedDemo(connection);
+    const legacy = name.startsWith('backline_crm_demo_v2_')
+      ? require('../database/demo-data')
+      : null;
+    const result = legacy
+      ? await seedDemo(connection, { build: legacy.buildDemo, dataset: legacy.DATASET })
+      : await require('./current-demo').seedCurrentDemo(connection);
     console.log(
       result.alreadyInstalled
         ? 'Demo đã được cài: không nhập trùng, không ghi đè chỉnh sửa.'

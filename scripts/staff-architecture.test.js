@@ -61,6 +61,36 @@ test('Logout clears both report data and admin recovery state, not only the toke
  vm.runInContext("me={id:'a',role:'ADMIN'};reportData={private:'old'};reportDetail={data:'old'};recoveryAdminData={requests:[{email:'old'}],pending:1,unread:1};resetStaffSession()",c);
  assert.equal(vm.runInContext('me',c),null);assert.equal(vm.runInContext('reportData',c),null);assert.equal(vm.runInContext('reportDetail',c),null);assert.equal(vm.runInContext('recoveryAdminData.requests.length',c),0);
 });
+
+test('Survey ending controls hide and disable manual dates, restore required dates and show exact confirmation',()=>{
+ const {c}=environment();
+ const html=vm.runInContext('createForm()',c);assert.match(html,/name="endMode" required/);assert.match(html,/<option value="" disabled selected>/);assert.match(html,/type="date"[^>]*disabled/);
+ const edit=vm.runInContext("deadlineFields({due_date:'2026-11-10'},true)",c);assert.match(edit,/<option value="" disabled selected>/);
+ const mode={value:'MANUAL'},input={value:'2026-11-10'},label={},summary={};
+ const group={querySelector:s=>({'[name="endMode"]':mode,'[name="dueDate"]':input,'[data-deadline-date]':label,'[data-deadline-summary]':summary})[s]};
+ c.evt={target:{name:'endMode',closest:()=>group}};
+ vm.runInContext('updateDeadlineFields(evt)',c);assert.equal(input.disabled,true);assert.equal(input.required,false);assert.equal(label.hidden,true);
+ mode.value='DATE';vm.runInContext('updateDeadlineFields(evt)',c);
+ assert.equal(input.disabled,false);assert.equal(input.required,true);assert.equal(label.hidden,false);assert.ok(summary.textContent.includes('10/11/2026'));
+ vm.runInContext("surveys=[{id:'s',title:'Test',status:'CLOSED',response_count:2,audience_config:{mode:'ALL'},due_date:'2026-11-03'}]",c);
+ assert.ok(vm.runInContext('surveyPage()',c).includes('data-action="survey-lifecycle"'));
+ assert.ok(vm.runInContext('surveyPage()',c).includes('Mở lại'));
+ vm.runInContext("surveys=[{id:'m',title:'Manual',status:'OPEN',response_count:0,audience_config:{mode:'ALL'},due_date:null}]",c);
+ assert.ok(!vm.runInContext('surveyPage()',c).includes('Đặt ngày kết thúc'));
+ assert.ok(!vm.runInContext('surveyPage()',c).includes('data-action="survey-lifecycle"'));
+});
+
+test('Create survey button opens, closes and reopens the form; results do not count as an open form',()=>{
+ const {c}=environment();
+ const host={innerHTML:'',querySelector(selector){return selector==='#surveyForm'&&this.innerHTML.includes('id="surveyForm"')?{}:null}};
+ c.document.querySelector=selector=>selector==='#createSurvey'?host:null;
+ const toggle=()=>vm.runInContext("staffActions['show-create']()",c);
+ toggle();assert.match(host.innerHTML, /id="surveyForm"/);
+ toggle();assert.equal(host.innerHTML,'');
+ toggle();assert.match(host.innerHTML, /id="surveyForm"/);
+ host.innerHTML='<section class="survey-results">Kết quả khảo sát</section>';
+ toggle();assert.match(host.innerHTML, /id="surveyForm"/);
+});
 test('Late collection response does not overwrite a different logged-in user',async()=>{
  const {c}=environment();let release;c.getData=()=>new Promise(resolve=>{release=resolve});
  vm.runInContext("me={id:'old',role:'ADMIN'};api=getData",c);const loading=vm.runInContext('loadAccounts()',c);

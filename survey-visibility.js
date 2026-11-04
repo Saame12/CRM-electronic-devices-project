@@ -22,7 +22,7 @@ function register(app, db, auth, manager, wrap) {
       if (!['true', 'false'].includes(hidden))
         return res.status(400).json({ error: 'Bộ lọc ẩn không hợp lệ.' });
       let sql =
-          'SELECT s.*,COUNT(DISTINCT r.id) response_count FROM surveys s LEFT JOIN survey_responses r ON r.survey_id=s.id WHERE s.is_hidden=? AND (s.title LIKE ? OR s.description LIKE ?)',
+          "SELECT s.*,DATE_FORMAT(s.due_date,'%Y-%m-%d') due_date,COUNT(DISTINCT r.id) response_count FROM surveys s LEFT JOIN survey_responses r ON r.survey_id=s.id WHERE s.is_hidden=? AND (s.title LIKE ? OR s.description LIKE ?)",
         values = [hidden === 'true', q, q];
       if (['DRAFT', 'OPEN', 'CLOSED'].includes(status)) {
         sql += ' AND s.status=?';
