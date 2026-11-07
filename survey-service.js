@@ -65,7 +65,8 @@ async function publish(c, id, audience) {
   );
   if (!survey) V.fail('Không tìm thấy khảo sát.', 404);
   if (survey.status === 'CLOSED') V.fail('Khảo sát đã đóng.', 409);
-  if (survey.due && survey.due < (await today(c))) V.fail('Không thể mở khảo sát đã quá hạn. Hãy sửa hạn trong bản nháp.', 410);
+  if (survey.due && survey.due < (await today(c)))
+    V.fail('Không thể mở khảo sát đã quá hạn. Hãy sửa hạn trong bản nháp.', 410);
   let config = Audience.parse(survey.audience_config);
   const legacySetup = survey.status === 'OPEN';
   if (survey.status === 'OPEN') {
@@ -145,16 +146,15 @@ async function update(db, id, body) {
     );
     if (!survey) V.fail('Không tìm thấy khảo sát.', 404);
     if (survey.status === 'CLOSED') V.fail('Khảo sát đã đóng và không thể chỉnh sửa.', 409);
+    if (survey.status === 'OPEN')
+      V.fail(
+        'Khảo sát đang mở chỉ được xem. Hãy khóa khẩn cấp trước khi sửa nếu chưa có khách trả lời.',
+        409
+      );
     const [[count]] = await c.execute(
       'SELECT COUNT(*) total FROM survey_responses WHERE survey_id=?',
       [id]
     );
-    if (survey.status === 'OPEN') {
-      if (Number(count.total) || body.status !== 'DRAFT')
-        V.fail('Chỉ chuyển OPEN chưa có câu trả lời về DRAFT để chỉnh sửa.', 409);
-      await c.execute("UPDATE surveys SET status='DRAFT' WHERE id=?", [id]);
-      return;
-    }
     const value = V.survey(body);
     if (Number(count.total)) V.fail('Không thể sửa bản nháp đã có lịch sử trả lời.', 409);
     const config = Audience.normalize(
@@ -214,10 +214,63 @@ async function submit(db, id, customer, body) {
 }
 async function close(db, id, actor) {
   return transaction(db, async (c) => {
-    const [[s]] = await c.execute("SELECT status,DATE_FORMAT(due_date,'%Y-%m-%d') due FROM surveys WHERE id=? FOR UPDATE", [id]);
+    const [[s]] = await c.execute(
+      "SELECT status,DATE_FORMAT(due_date,'%Y-%m-%d') due FROM surveys WHERE id=? FOR UPDATE",
+      [id]
+    );
     if (!s || s.status === 'CLOSED') V.fail('Khảo sát đã đóng hoặc không tồn tại.', 409);
     await c.execute("UPDATE surveys SET status='CLOSED' WHERE id=?", [id]);
-    if (actor) await c.execute("INSERT INTO survey_lifecycle_history(id,survey_id,actor_id,action,old_due_date,new_due_date,old_status,new_status,created_at) VALUES (?,?,?,'CLOSE',?,?,?,'CLOSED',UTC_TIMESTAMP())",[uid(),id,actor,s.due,s.due,s.status]);
+    if (actor)
+      await c.execute(
+        "INSERT INTO survey_lifecycle_history(id,survey_id,actor_id,action,old_due_date,new_due_date,old_status,new_status,created_at) VALUES (?,?,?,'CLOSE',?,?,?,'CLOSED',UTC_TIMESTAMP())",
+        [uid(), id, actor, s.due, s.due, s.status]
+      );
   });
 }
-module.exports = { transaction, today, recipients, publish, create, update, submit, close };
+async function emergencyLock(db, id, actor) {
+  return transaction(db, async (c) => {
+    const [[s]] = await c.execute('SELECT status FROM surveys WHERE id=? FOR UPDATE', [id]);
+    if (!s || s.status !== 'OPEN') V.fail('Chỉ khóa khẩn cấp khảo sát đang mở.', 409);
+    const [[n]] = await c.execute('SELECT COUNT(*) total FROM survey_responses WHERE survey_id=?', [
+      id
+    ]);
+    if (Number(n.total)) V.fail('Đã có khách trả lời. Hãy dùng Đóng ngay.', 409);
+    await c.execute("UPDATE surveys SET status='DRAFT',accept_new_customers=FALSE WHERE id=?", [
+      id
+    ]);
+    await c.execute(
+      "INSERT INTO survey_lifecycle_history(id,survey_id,actor_id,action,old_status,new_status,created_at) VALUES (?,?,?,'EMERGENCY_LOCK','OPEN','DRAFT',UTC_TIMESTAMP())",
+      [uid(), id, actor]
+    );
+  });
+}
+async function removeDraft(db, id) {
+  return transaction(db, async (c) => {
+    const [[s]] = await c.execute('SELECT status FROM surveys WHERE id=? FOR UPDATE', [id]);
+    if (!s || s.status !== 'DRAFT') V.fail('Chỉ được xóa khảo sát bản nháp.', 409);
+    const [[n]] = await c.execute('SELECT COUNT(*) total FROM survey_responses WHERE survey_id=?', [
+      id
+    ]);
+    if (Number(n.total)) V.fail('Không xóa khảo sát có bài trả lời.', 409);
+    await c.execute('DELETE FROM survey_lifecycle_history WHERE survey_id=?', [id]);
+    await c.execute('DELETE FROM survey_recipients WHERE survey_id=?', [id]);
+    await c.execute(
+      'DELETE o FROM question_options o JOIN survey_questions q ON q.id=o.question_id WHERE q.survey_id=?',
+      [id]
+    );
+    await c.execute('DELETE FROM survey_questions WHERE survey_id=?', [id]);
+    await c.execute('DELETE FROM surveys WHERE id=?', [id]);
+  });
+}
+module.exports = {
+  transaction,
+  today,
+  recipients,
+  publish,
+  create,
+  update,
+  submit,
+  close,
+  emergencyLock,
+  removeDraft
+};

@@ -1,3 +1,7 @@
+let feedbackEditing = null;
+function feedbackEditForm(f) {
+  return `<form id="fbEdit" class="card"><h3>Chỉnh sửa phản hồi</h3><p class="mu">Lưu thay đổi sẽ xóa câu trả lời cũ của Quản lý và chuyển về Tiếp nhận.</p><input type="hidden" name="feedbackId" value="${esc(f.id)}"><input type="hidden" name="revision" value="${Number(f.revision) || 0}"><label>Sản phẩm<select name="prod">${PRODS.map((p) => `<option${p === f.prod ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select></label><label>Loại phản hồi<select name="type">${FTYPE.map((t) => `<option${t === f.type ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label><label>Đánh giá<select name="rate">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}"${n === Number(f.rate) ? ' selected' : ''}>${n} sao</option>`).join('')}</select></label><label>Tiêu đề<input name="title" maxlength="80" value="${esc(f.title)}"></label><label>Nội dung<textarea name="body" maxlength="5000" required>${esc(f.body)}</textarea></label><div class="err" role="alert" data-form-error></div><button type="submit" class="btn pri">Lưu thay đổi</button> <button type="button" class="btn sm" data-act="feedback-cancel">Hủy</button></form>`;
+}
 /* ==========================================
    1. CÁC HÀM TIỆN ÍCH CƠ BẢN & DỮ LIỆU MẪU
    ========================================== */
@@ -129,7 +133,9 @@ const ro = (n) =>
 // Lọc các khảo sát chưa hoàn thành
 const dateFromVN = (value) => {
   const m = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  return m ? new Date(`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}T23:59:59.999+07:00`) : null;
+  return m
+    ? new Date(`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}T23:59:59.999+07:00`)
+    : null;
 };
 const isExpired = (s) =>
   s.isExpired ||
@@ -264,7 +270,7 @@ function svList() {
       isDone = Boolean(date),
       expired = !isDone && isExpired(s),
       minutes = Number(s.min) || Math.max(1, Math.ceil(s.qs.length / 3));
-    return `<article class="card survey-card ${type === 'active' ? 'survey-active' : 'survey-completed'}"><div class="survey-card-top"><span class="survey-icon">${customerIcon(isDone ? 'check' : expired ? 'clock' : 'survey')}</span><span class="b ${isDone ? 'ok' : expired ? 'warn' : 'in'}">${isDone ? 'Đã hoàn thành' : expired ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><h2>${esc(s.title)}</h2><p class="survey-description">${esc(s.desc)}</p><div class="survey-meta"><span>${customerIcon('survey')} ${s.qs.length} câu hỏi</span><span>${customerIcon('clock')} Khoảng ${minutes} phút</span></div><div class="survey-card-bottom"><span class="survey-date">${isDone ? 'Đã gửi: ' + esc(date) : 'Hạn: ' + esc(s.due || 'Không đặt hạn')}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${esc(s.id)}">Thực hiện khảo sát ${customerIcon('arrow')}</button>` : ` ${isDone ? `<button class="btn pri" data-act="review-survey" data-v="${esc(s.id)}">Xem bài đã gửi</button>` : ''}<button class="btn sm" data-act="${showHiddenSurveys ? 'restore-survey' : 'hide-survey'}" data-v="${esc(s.id)}">${showHiddenSurveys ? 'Bỏ ẩn' : 'Ẩn khảo sát'}</button>`}</div></article>`;
+    return `<article class="card survey-card ${type === 'active' ? 'survey-active' : 'survey-completed'}"><div class="survey-card-top"><span class="survey-icon">${customerIcon(isDone ? 'check' : expired ? 'clock' : 'survey')}</span><span class="b ${isDone ? 'ok' : expired ? 'warn' : 'in'}">${isDone ? 'Đã hoàn thành' : expired ? 'Quá hạn chưa trả lời' : 'Khảo sát mới'}</span></div><h2>${esc(s.title)}</h2><p class="survey-description">${esc(s.desc)}</p><div class="survey-meta"><span>${customerIcon('survey')} ${s.qs.length} câu hỏi</span><span>${customerIcon('clock')} Khoảng ${minutes} phút</span></div><div class="survey-card-bottom"><span class="survey-date">${isDone ? 'Đã gửi: ' + esc(date) : 'Hạn: ' + esc(s.due || 'Không đặt hạn')}</span>${type === 'active' ? `<button class="btn pri" data-act="start" data-v="${esc(s.id)}">Thực hiện khảo sát ${customerIcon('arrow')}</button>` : ` ${isDone ? `<button class="btn pri" data-act="review-survey" data-v="${esc(s.id)}">Xem câu trả lời đã gửi</button>` : ''}<button class="btn sm" data-act="${showHiddenSurveys ? 'restore-survey' : 'hide-survey'}" data-v="${esc(s.id)}">${showHiddenSurveys ? 'Bỏ ẩn' : 'Ẩn khảo sát'}</button>`}</div></article>`;
   };
   return `<div class="page-heading"><span class="eyebrow">CHIA SẺ ĐỂ CÙNG TỐT HƠN</span><h1>Khảo sát dành cho bạn</h1><p class="mu">Khảo sát đang mở có thể thực hiện. Các khảo sát quá hạn chưa trả lời được chuyển vào mục đã hoàn thành.</p></div><div class="section-heading"><h2>Khảo sát mới đang mở <span class="section-count">${active.length}</span></h2><span class="section-hint">Sẵn sàng lắng nghe bạn</span></div><div class="survey-grid">${active.length ? active.map((s) => card(s, 'active')).join('') : customerEmpty('Hiện không có khảo sát mới cần thực hiện.', 'Các khảo sát đang mở sẽ xuất hiện tại đây.')}</div><div class="section-heading survey-history-heading"><div><h2>${showHiddenSurveys ? 'Khảo sát đã ẩn' : 'Đã hoàn thành'} <span class="section-count">${completed.length}</span></h2><p class="mu">Gồm khảo sát đã trả lời và quá hạn chưa trả lời.</p></div><button class="btn sm" data-act="toggle-hidden-surveys" aria-pressed="${showHiddenSurveys}">${showHiddenSurveys ? 'Quay lại đã hoàn thành' : 'Xem khảo sát đã ẩn (' + hiddenCount + ')'}</button></div><div class="survey-grid history-grid">${completed.length ? completed.map((s) => card(s, 'completed')).join('') : customerEmpty(showHiddenSurveys ? 'Không có khảo sát đã ẩn.' : 'Chưa có khảo sát hoàn tất hoặc quá hạn.', 'Lịch sử và trạng thái khảo sát của bạn được hiển thị tại đây.', 'check')}</div>`;
 }
@@ -338,7 +344,7 @@ function fbView() {
     (L.length
       ? L.map(
           (f) =>
-            `<article class="card feedback-item"><div class="row"><div><b>${esc(f.title || f.type)}</b><div class="mu">${esc(f.prod)} · ${esc(f.type)} · ${f.date}</div></div><span class="b ${f.reply ? 'ok' : 'in'}">${f.reply ? 'Đã phản hồi' : 'Đã tiếp nhận'}</span></div><div style="margin:6px 0">${ro(f.rate)}</div><div>${esc(f.body)}</div>${f.reply ? `<div class="reply"><b>Cửa hàng trả lời:</b> ${esc(f.reply)}</div>` : ''}</article>`
+            `<article class="card feedback-item"><div class="row"><div><b>${esc(f.title || f.type)}</b><div class="mu">${esc(f.prod)} · ${esc(f.type)} · ${f.date}</div></div><span class="b ${f.reply ? 'ok' : 'in'}">${f.reply ? 'Đã giải quyết' : 'Tiếp nhận'}</span></div><div style="margin:6px 0">${ro(f.rate)}</div><div>${esc(f.body)}</div>${f.reply ? `<div class="reply"><b>Cửa hàng trả lời:</b> ${esc(f.reply)}</div>` : ''}<div class="row"><button class="btn sm" data-act="feedback-edit" data-v="${esc(f.id)}">Chỉnh sửa</button><button class="btn sm" data-act="feedback-delete" data-v="${esc(f.id)}">Xóa phản hồi</button></div>${feedbackEditing === f.id ? feedbackEditForm(f) : ''}</article>`
         ).join('')
       : customerEmpty(
           'Bạn chưa gửi phản hồi nào.',
@@ -481,6 +487,21 @@ const H = {
   },
   // LOGIC: POST trước, sau thành công mới thêm feedback trả về vào đầu FB để hiển thị ngay.
   // Không thêm dữ liệu giả vào danh sách nếu API báo lỗi.
+  async fbEdit(v) {
+    if (!String(v.body || '').trim())
+      throw Error('Nội dung phản hồi cần ít nhất 1 ký tự không phải khoảng trắng.');
+    const owner = me?.id;
+    await api('/api/feedback/' + encodeURIComponent(v.feedbackId), {
+      method: 'PATCH',
+      body: JSON.stringify({ ...v, rate: Number(v.rate), revision: Number(v.revision) })
+    });
+    const data = await api('/api/feedback');
+    if (me?.id !== owner) return;
+    FB[me.email] = data.feedback;
+    feedbackEditing = null;
+    render();
+    toast('Đã cập nhật; câu trả lời cũ được xóa.');
+  },
   async fb(v) {
     const r = +$('#fbRate').dataset.val;
     if (!v.prod) return setErr('Vui lòng chọn sản phẩm.');
@@ -538,17 +559,36 @@ const H = {
 // Lắng nghe sự kiện Submit form
 document.addEventListener('submit', (e) => {
   e.preventDefault();
-  const f = e.target;
-  if (H[f.id])
-    Promise.resolve(
-      H[f.id](
+  const f = e.target,
+    formId = f.getAttribute('id');
+  if (!H[formId] || f.dataset.submitting === 'true') return;
+  const errorBox = f.querySelector('[data-form-error]');
+  if (errorBox) errorBox.textContent = '';
+  const button = formId === 'fbEdit' ? f.querySelector('[type="submit"]') : null;
+  if (button) {
+    button.disabled = true;
+    f.dataset.submitting = 'true';
+  }
+  return Promise.resolve()
+    .then(() =>
+      H[formId](
         {
           ...Object.fromEntries(new FormData(f)),
-          ...(f.id === 'prof' ? { interests: new FormData(f).getAll('interests') } : {})
+          ...(formId === 'prof' ? { interests: new FormData(f).getAll('interests') } : {})
         },
         f
       )
-    ).catch((err) => setErr(err.message));
+    )
+    .catch((err) => {
+      if (errorBox) errorBox.textContent = err.message;
+      else setErr(err.message);
+    })
+    .finally(() => {
+      if (button) {
+        button.disabled = false;
+        delete f.dataset.submitting;
+      }
+    });
 });
 
 // Lắng nghe sự kiện Click chuột tương tác trên giao diện
@@ -591,6 +631,25 @@ document.addEventListener('click', (e) => {
         .then(render)
         .catch((err) => toast(err.message));
     else render();
+  } else if (a === 'feedback-edit') {
+    feedbackEditing = v;
+    render();
+  } else if (a === 'feedback-cancel') {
+    feedbackEditing = null;
+    render();
+  } else if (a === 'feedback-delete') {
+    if (!confirm('Xóa phản hồi và cả câu trả lời của Quản lý?')) return;
+    const owner = me?.id;
+    api('/api/feedback/' + encodeURIComponent(v), { method: 'DELETE' })
+      .then(() => api('/api/feedback'))
+      .then((data) => {
+        if (me?.id !== owner) return;
+        FB[me.email] = data.feedback;
+        feedbackEditing = null;
+        render();
+        toast('Đã xóa phản hồi và câu trả lời.');
+      })
+      .catch((err) => toast(err.message));
   } else if (a === 'review-survey') {
     loadSurveyReview(v);
   } else if (a === 'start') {

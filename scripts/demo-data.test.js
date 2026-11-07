@@ -106,7 +106,7 @@ test('Demo contains persistent, varied business scenarios and a ready-to-use pri
   );
   assert.deepEqual(
     new Set(d.feedback.map((f) => f.status)),
-    new Set(['NEW', 'IN_PROGRESS', 'RESOLVED'])
+    new Set(['NEW', 'RESOLVED'])
   );
   assert.ok(d.feedback.some((f) => f.is_hidden));
   assert.ok(d.users.some((u) => u.account_status === 'LOCKED'));

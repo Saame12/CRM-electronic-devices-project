@@ -8,8 +8,8 @@ const response=()=>({code:200,status(n){this.code=n;return this},json(data){this
 test('Feedback API accepts one trimmed character and rejects empty or whitespace-only input',async()=>{
  for(const [body,expected]of [['a',201],['  ớ  ',201],['',400],[' \n\t ',400]]){
   const calls=[],db={execute:async(sql,values)=>{calls.push({sql,values});return sql.startsWith('SELECT')?[[{id:'product'}]]:[{affectedRows:1}]}};
-  const handler=route("app.post('/api/feedback'","app.get('/api/surveys'",{db,products:['PC'],feedbackTypes:['Góp ý']});
-  const res=response();await handler({user:{id:'customer'},body:{prod:'PC',type:'Góp ý',rate:5,body}},res);
+  const handler=route("app.post('/api/feedback'","app.get('/api/surveys'",{db,products:['PC'],feedbackTypes:['Góp ý'],V:require('../crm-validation'),FeedbackService:require('../feedback-service')});
+  const res=response();try{await handler({user:{id:'customer',role:'CUSTOMER'},body:{prod:'PC',type:'Góp ý',rate:5,body}},res)}catch(e){if(e instanceof require('../crm-validation').InputError)res.status(e.status).json({error:e.message});else throw e;}
   assert.equal(res.code,expected);const inserted=calls.find(c=>c.sql.startsWith('INSERT'));
   if(expected===201)assert.equal(inserted.values.at(-1),body.trim());else assert.equal(inserted,undefined);
  }

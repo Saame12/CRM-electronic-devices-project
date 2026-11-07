@@ -155,7 +155,7 @@ test('Completed cards expose review in normal and hidden lists; skipped expired 
   assert.ok(!html.includes('data-act="start"'));
   vm.runInContext('showHiddenSurveys=true;localStorage.getItem=()=>JSON.stringify(["done"])', c);
   html = vm.runInContext('svList()', c);
-  assert.ok(html.includes('Xem bài đã gửi'));
+  assert.ok(html.includes('Xem câu trả lời đã gửi'));
   assert.ok(html.includes('Bỏ ẩn'));
 });
 test('Review safely renders answers without editable fields or submit controls', async () => {

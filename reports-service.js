@@ -104,7 +104,7 @@ function buildOverview(customers, feedback, surveys, now = new Date()) {
   f.resolutionRate = percent(f.resolved, f.total);
   f.satisfactionRate = percent(ratings.filter((x) => x >= 4).length, ratings.length);
   f.complaintRate = percent(f.complaints, f.total);
-  f.byStatus = distribution(feedback, (x) => x.status, ['NEW', 'IN_PROGRESS', 'RESOLVED']);
+  f.byStatus = distribution(feedback, (x) => x.status, ['NEW', 'RESOLVED']);
   f.byType = distribution(feedback, (x) => x.feedback_type);
   f.byRating = distribution(ratings, (x) => String(x), ['5', '4', '3', '2', '1']);
   const productGroups = new Map();
@@ -268,7 +268,7 @@ function registerReports(app, db, auth, staff, wrap) {
         await connection.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
         await connection.beginTransaction();
         const [[survey]] = await connection.execute(
-          'SELECT id,title,status FROM surveys WHERE id=?',
+          "SELECT s.id,s.title,s.description,s.status,DATE_FORMAT(s.due_date,'%Y-%m-%d') due_date,(SELECT COUNT(*) FROM survey_recipients r WHERE r.survey_id=s.id) recipient_count FROM surveys s WHERE s.id=?",
           [req.params.id]
         );
         if (!survey) {

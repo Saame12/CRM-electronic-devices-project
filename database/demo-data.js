@@ -138,7 +138,7 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     'Tôi muốn được tư vấn nâng cấp RAM và thời hạn bảo hành của sản phẩm này.'
   ];
   for (let i = 0; i < 54; i++) {
-    const status = ['NEW', 'IN_PROGRESS', 'RESOLVED'][i % 3],
+    const status = ['NEW', 'NEW', 'RESOLVED'][i % 3],
       resolved = status === 'RESOLVED';
     const createdAt = [dateAt(now, -85 + i), customers[i % customers.length].created_at]
       .sort()

@@ -10,9 +10,9 @@ const reportNumber = (value) => (value == null ? '—' : Number(value).toLocaleS
 const reportPct = (value) =>
   value == null ? 'Chưa đủ dữ liệu' : `${reportNumber(Math.round(value * 10) / 10)}%`;
 const reportStatus = {
-  NEW: 'Mới tiếp nhận',
-  IN_PROGRESS: 'Đang xử lý',
-  RESOLVED: 'Đã xử lý',
+  NEW: 'Tiếp nhận',
+  IN_PROGRESS: 'Tiếp nhận',
+  RESOLVED: 'Đã giải quyết',
   DRAFT: 'Bản nháp',
   OPEN: 'Đang mở',
   EXPIRED: 'Đã quá hạn',
@@ -70,7 +70,7 @@ function reportTrend(d) {
 function feedbackReportContent(d) {
   const f = d.feedback;
   return `<div class="rpt-section-title"><div><h2>Chất lượng phản hồi & xử lý</h2><p>Phản hồi tiếp nhận trong kỳ; tình trạng xử lý tính đến thời điểm cập nhật.</p></div><span class="rpt-pill">Bao gồm phản hồi đã ẩn</span></div>
- <div class="rpt-metrics">${reportMetric('Phản hồi tiếp nhận', reportNumber(f.total), `${reportNumber(f.respondents)} khách hàng đã gửi`)}${reportMetric('Điểm đánh giá TB', f.averageRating == null ? '—' : `${reportNumber(f.averageRating)} / 5`, `${reportNumber(f.rated)} phản hồi có điểm hợp lệ`)}${reportMetric('Đánh giá tích cực', reportPct(f.satisfactionRate), 'Số đánh giá 4–5 sao / số đánh giá hợp lệ', 'positive')}${reportMetric('Tỷ lệ đã xử lý', reportPct(f.resolutionRate), `${reportNumber(f.resolved)} / ${reportNumber(f.total)} phản hồi`)}${reportMetric('Cần xử lý', reportNumber(f.pending), 'Mới tiếp nhận + đang xử lý', 'warning')}${reportMetric('Khiếu nại / báo lỗi', reportNumber(f.complaints), reportPct(f.complaintRate) + ' tổng phản hồi', 'warning')}</div>
+ <div class="rpt-metrics">${reportMetric('Phản hồi tiếp nhận', reportNumber(f.total), `${reportNumber(f.respondents)} khách hàng đã gửi`)}${reportMetric('Điểm đánh giá TB', f.averageRating == null ? '—' : `${reportNumber(f.averageRating)} / 5`, `${reportNumber(f.rated)} phản hồi có điểm hợp lệ`)}${reportMetric('Đánh giá tích cực', reportPct(f.satisfactionRate), 'Số đánh giá 4–5 sao / số đánh giá hợp lệ', 'positive')}${reportMetric('Tỷ lệ đã giải quyết', reportPct(f.resolutionRate), `${reportNumber(f.resolved)} / ${reportNumber(f.total)} phản hồi`)}${reportMetric('Cần xử lý', reportNumber(f.pending), 'Chưa có câu trả lời của Quản lý', 'warning')}${reportMetric('Khiếu nại / báo lỗi', reportNumber(f.complaints), reportPct(f.complaintRate) + ' tổng phản hồi', 'warning')}</div>
  <div class="rpt-insight"><b>Ưu tiên vận hành</b><p>${f.total ? `Có ${reportNumber(f.pending)} phản hồi chưa xử lý xong. ${reportNumber(f.hidden)} phản hồi đã ẩn vẫn được giữ trong thống kê để lịch sử báo cáo không thay đổi khi ẩn hoặc khôi phục.` : 'Chưa có phản hồi trong phạm vi này. Không thể kết luận mức hài lòng khi chưa có đánh giá.'}</p></div>
  <div class="rpt-grid">${reportBars('Tiến độ xử lý', f.byStatus, 'Mẫu số: tổng phản hồi tiếp nhận trong kỳ, theo trạng thái hiện tại.')}${reportBars(
    'Phân bố đánh giá sao',
@@ -270,7 +270,7 @@ function exportReports() {
       ['Khách gửi', f.respondents],
       ['Điểm trung bình', f.averageRating ?? 'Không đủ dữ liệu'],
       ['Tỷ lệ tích cực (%)', f.satisfactionRate ?? 'Không đủ dữ liệu'],
-      ['Đã xử lý', f.resolved],
+      ['Đã giải quyết', f.resolved],
       ['Cần xử lý', f.pending],
       ['Khiếu nại', f.complaints],
       ['Đã ẩn', f.hidden]

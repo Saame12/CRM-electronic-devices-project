@@ -107,10 +107,10 @@ test('New OPEN creation sends exactly one request; no implicit scope is submitte
   await assert.rejects(vm.runInContext('staffForms.surveyForm(form)', c), /chọn phạm vi/);
   assert.equal(calls.length, 1);
 });
-test('UI offers open only for configured drafts and legacy setup only for unconfigured OPEN', () => {
+test('UI disables open for unconfigured drafts and keeps OPEN read-only', () => {
   const { c } = environment();
   vm.runInContext("surveyFilters={};surveys=[{id:'s',status:'DRAFT',response_count:0}]", c);
-  assert.ok(!vm.runInContext('surveyPage()', c).includes('data-action="open-survey"'));
+  assert.match(vm.runInContext('surveyPage()', c), /data-action="open-survey"[^>]*disabled/);
   vm.runInContext("surveys[0].audience_config={mode:'ALL'}", c);
   assert.ok(vm.runInContext('surveyPage()', c).includes('data-action="open-survey"'));
   vm.runInContext("surveys[0].status='OPEN'", c);
@@ -118,7 +118,8 @@ test('UI offers open only for configured drafts and legacy setup only for unconf
   assert.ok(!html.includes('setup-legacy-audience'));
   assert.ok(!html.includes('Bổ sung người nhận'));
   vm.runInContext('surveys[0].audience_config=null', c);
-  assert.ok(vm.runInContext('surveyPage()', c).includes('setup-legacy-audience'));
+  assert.ok(!vm.runInContext('surveyPage()', c).includes('setup-legacy-audience'));
+  assert.ok(vm.runInContext('surveyPage()', c).includes('Khóa khẩn cấp'));
 });
 
 test('Question reader excludes audience fieldsets from create forms', () => {

@@ -17,9 +17,10 @@ function register(app, db, auth, staff, wrap) {
         return res
           .status(400)
           .json({ error: 'Trang phải là số nguyên dương; kích thước trang từ 1 đến 50.' });
-      const [[user]] = await db.execute("SELECT id FROM users WHERE id=? AND role='CUSTOMER'", [
-        req.params.id
-      ]);
+      const [[user]] = await db.execute(
+        "SELECT id FROM users WHERE id=? AND role='CUSTOMER' AND erased_at IS NULL",
+        [req.params.id]
+      );
       if (!user) return res.status(404).json({ error: 'Không tìm thấy khách hàng.' });
       const union = `SELECT id,'PROFILE_CREATED' kind,created_at occurred_at,'Tạo hồ sơ khách hàng' title FROM users WHERE id=?
       UNION ALL SELECT id,'FEEDBACK_SENT',created_at,title FROM feedback WHERE customer_id=?

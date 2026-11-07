@@ -30,10 +30,24 @@ test('Account list filters combine name/email/phone, role and status without rol
  const c=vm.createContext({document:{querySelector:()=>node,querySelectorAll:()=>[],addEventListener(){}},MutationObserver:class{observe(){}},sessionStorage:{getItem:()=>null},setTimeout:()=>0,clearTimeout(){}});
  for(const f of ['crm-domain.js','customer-fields.js','admin.js','role-ui.js'])vm.runInContext(source(f),c);
  vm.runInContext("me={id:'admin',role:'ADMIN'};accounts=[{id:'admin',name:'Admin',role:'ADMIN',status:'ACTIVE'},{id:'a',name:'An',email:'an@test.invalid',phone:'0901234567',role:'CUSTOMER',status:'ACTIVE'},{id:'b',name:'Binh',role:'MANAGER',status:'LOCKED'}]",c);
- const html=vm.runInContext('accountPage()',c);assert.ok(!html.includes('data-action="change-role"'));assert.ok(!html.includes('id="role-'));assert.ok(html.includes('id="accountFilters"'));assert.ok(html.includes('name="role"><option value="CUSTOMER"'));
+ const html=vm.runInContext('accountPage()',c);assert.ok(!html.includes('data-action="change-role"'));assert.ok(!html.includes('id="role-'));assert.ok(html.includes('id="accountFilters"'));assert.equal((html.match(/data-action="toggle-account-create"/g)||[]).length,2); assert.ok(!html.includes('id="adminAccountForm"'));
+ const customerForm=vm.runInContext("accountCreateKind='CUSTOMER';accountPage()",c);
+ for(const field of ['name','email','phone','password','addr','birthDateText','gender']) assert.ok(customerForm.includes('name="'+field+'"'));
+ for(const field of ['need','interests']) assert.ok(!customerForm.includes('name="'+field+'"'));
+ const managerCustomer=vm.runInContext("showCustomerCreate=true;customerPage()",c); for(const field of ['need','interests']) assert.ok(!managerCustomer.includes('name="'+field+'"'));
+ assert.ok(customerForm.includes('name="role" value="CUSTOMER"')); assert.ok(!customerForm.includes('disabled title="Quản lý'));
+ const managerForm=vm.runInContext("accountCreateKind='MANAGER';accountPage()",c); assert.ok(managerForm.includes('name="role" value="MANAGER"')); for(const field of ['addr','birthDateText','gender','need','interests']) assert.ok(!managerForm.includes('name="'+field+'"'));
  assert.equal(vm.runInContext("accountFilters={q:'AN@TEST',role:'CUSTOMER',status:'ACTIVE'};filteredAccounts().length",c),1);
  assert.equal(vm.runInContext("accountFilters.status='LOCKED';filteredAccounts().length",c),0);
  assert.equal(vm.runInContext("accountFilters={q:'090123',role:'',status:''};filteredAccounts().length",c),1);
  assert.equal(vm.runInContext("accountFilters={q:'',role:'ADMIN',status:''};filteredAccounts().length",c),1);
  assert.match(source('server.mysql.js'),/accounts\/:id\/role'[\s\S]*?status\(405\)/);
+});
+
+test('Manager reply editor prefills safely and offers save/cancel while retaining resolved status',()=>{
+ const c=vm.createContext({document:{querySelector:()=>({}),addEventListener(){}},sessionStorage:{getItem:()=>null}});
+ for(const f of ['crm-domain.js','customer-fields.js','admin.js','role-ui.js'])vm.runInContext(source(f),c);
+ vm.runInContext("feedback=[{id:'f',status:'RESOLVED',reply_content:'<script>nội dung</script>',created_at:'2026-11-07',revision:2}]",c);
+ let html=vm.runInContext('feedbackPage()',c);assert.ok(html.includes('data-action="edit-feedback-reply"'));assert.ok(!html.includes('Lưu chỉnh sửa'));
+ html=vm.runInContext("editingFeedbackId='f';feedbackPage()",c);assert.ok(html.includes('Lưu chỉnh sửa'));assert.ok(html.includes('data-action="cancel-edit-feedback"'));assert.ok(html.includes('&lt;script&gt;nội dung&lt;/script&gt;</textarea>'));assert.ok(html.includes('Đã giải quyết'));
 });

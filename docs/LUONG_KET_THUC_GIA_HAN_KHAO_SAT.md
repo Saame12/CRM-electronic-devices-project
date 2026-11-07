@@ -7,21 +7,21 @@
 | Có ngày kết thúc | Bắt buộc chọn ngày | Nhận câu trả lời đến hết ngày đó; tự đóng lúc 00:00 ngày tiếp theo theo giờ Việt Nam |
 | Đóng thủ công | Không nhập ngày | Nhận câu trả lời cho đến khi Quản lý bấm Đóng ngay |
 
-Khi tạo hoặc chỉnh sửa, biểu mẫu để trống phương thức để Quản lý chủ động chọn **Có ngày kết thúc** hoặc **Đóng thủ công** trước khi lưu. Chọn **Có ngày kết thúc** bắt buộc nhập ngày; chọn **Đóng thủ công** sẽ ẩn và vô hiệu hóa ô ngày. Máy chủ cũng từ chối lưu nếu thiếu phương thức. Cả hai cách đều cho phép đóng sớm bằng nút **Đóng ngay**. Phải lưu phạm vi người nhận trước khi mở khảo sát.
+Khi tạo mới, biểu mẫu để trống phương thức để Quản lý chọn **Có ngày kết thúc** hoặc **Đóng thủ công** trước khi lưu. Khi chỉnh sửa bản nháp, kể cả sau khóa khẩn cấp, biểu mẫu điền sẵn phương thức, ngày kết thúc và phạm vi người nhận đã lưu; không phải thiết lập lại. Thay đổi trong biểu mẫu chỉ được ghi khi nhấn Lưu. Chọn **Có ngày kết thúc** bắt buộc nhập ngày; chọn **Đóng thủ công** sẽ ẩn và vô hiệu hóa ô ngày. Máy chủ từ chối lưu nếu thiếu phương thức. Cả hai cách đều cho phép đóng sớm bằng nút **Đóng ngay**. Phải lưu phạm vi người nhận trước khi mở khảo sát.
 
 ## Gia hạn khảo sát đang mở
 
 1. Trong danh sách, chọn **Gia hạn** tại khảo sát đang mở có ngày kết thúc. Khảo sát đóng thủ công không có nút **Đặt ngày kết thúc**; phương thức được chọn ngay khi tạo hoặc chỉnh sửa bản nháp.
-2. Chọn ngày mới muộn hơn hạn hiện tại, hoặc chuyển sang đóng thủ công để bỏ hạn.
-3. Đọc thông báo ngày nhận câu trả lời và nhấn **Xác nhận thay đổi**.
+2. Chỉ cần chọn ngày kết thúc mới. Biểu mẫu không yêu cầu thiết lập lại phương thức hạn; ngày mới phải muộn hơn hạn hiện tại và không nằm trong quá khứ.
+3. Đọc thông báo ngày nhận câu trả lời và nhấn **Xác nhận gia hạn**.
 
 Ngày mới không được nằm trong quá khứ. Gia hạn không cho rút ngắn hạn đang có. Không sửa câu hỏi hoặc thay phạm vi người nhận trong thao tác này.
 
 ## Mở lại khảo sát đã đóng
 
 1. Chọn **Mở lại** tại khảo sát CLOSED.
-2. Chọn ngày kết thúc từ hôm nay trở đi, hoặc chọn **Đóng thủ công**.
-3. Kiểm tra hạn hiện tại và thông báo tác động, rồi chọn **Xác nhận mở lại**. Nhấn **Hủy** sẽ không lưu.
+2. Phương thức cũ được điền sẵn. Nếu hạn cũ đã qua, ngày mới mặc định là hôm nay; có thể chọn ngày muộn hơn hoặc chọn **Đóng thủ công**.
+3. Kiểm tra hạn hiện tại và thời gian nhận câu trả lời sau khi mở lại, rồi chọn **Mở lại khảo sát**. Nhấn **Hủy** sẽ không lưu. Nếu máy chủ từ chối, lỗi xuất hiện ngay trong khung để sửa lại.
 
 Ví dụ: hạn cũ 03/11/2026, hôm nay 04/11/2026. Đặt hạn mới 10/11/2026 thì khảo sát mở ngay, nhận bài đến hết 10/11 và tự đóng từ 00:00 ngày 11/11.
 
@@ -36,14 +36,15 @@ Khảo sát phải có phạm vi đã lưu và danh sách người nhận từ t
 - Phạm vi **Theo bộ lọc** và **Chọn từng khách** giữ danh sách người nhận ban đầu; không chạy lại bộ lọc hoặc bổ sung người khác.
 - Trạng thái ẩn của khảo sát không bị thay đổi bởi gia hạn hoặc mở lại.
 
-## Xem lịch sử
+## Kết quả khảo sát
 
-Chọn **Lịch sử thay đổi** để xem người thực hiện, thời điểm theo giờ Việt Nam, thao tác, hạn cũ và hạn mới. Các thao tác gia hạn, mở lại và đóng thủ công từ phiên bản này được lưu cùng giao dịch thay đổi dữ liệu. Lần tự đóng hiện tại được hiển thị qua mốc tự đóng của khảo sát; lịch sử cũ trước khi có chức năng không được tạo giả.
+Kết quả khảo sát chỉ trình bày thông tin khảo sát, số người nhận, người đã làm, tỷ lệ hoàn thành và thống kê từng câu hỏi; không còn nút hoặc luồng **Lịch sử thay đổi** trong giao diện kết quả.
 
 Việc mở lại chỉ điều chỉnh thời gian và trạng thái, không đổi nội dung. Nếu cần câu hỏi hoặc phạm vi khác, dùng **Lập khảo sát** để tạo bản nháp mới.
 
 ## Kiểm chứng
 
-- `npm test`: 154 kiểm thử đạt.
-- `node scripts/check-survey-lifecycle-db.js`: 52 kiểm tra HTTP/MySQL trên database cách ly, được dọn sau khi chạy.
-- Đã kiểm tra giao diện thật: chọn cách kết thúc, ẩn ngày khi đóng thủ công, biểu mẫu mở lại, thông báo hạn mới và lịch sử tự đóng.
+- `npm test`: 171 kiểm thử đạt.
+- `node scripts/check-survey-lifecycle-db.js`: 144 kiểm tra HTTP/MySQL trên database cách ly, được dọn sau khi chạy.
+- `node scripts/check-survey-workspace-db.js`: 36 kiểm tra phân trang, khoảng thời gian và biên đầu/cuối ngày.
+- Đã thực hiện gia hạn và mở lại thành công trên giao diện thật trong môi trường cách ly.

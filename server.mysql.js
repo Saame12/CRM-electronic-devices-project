@@ -18,6 +18,8 @@ const Surveys = require('./survey-service');
 const SurveyEnrollment = require('./survey-enrollment');
 const SurveyExpiry = require('./survey-expiry');
 const SurveyLifecycle = require('./survey-lifecycle');
+const FeedbackService = require('./feedback-service');
+const Retention = require('./customer-retention');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -46,10 +48,13 @@ const emailOk = (x) => /^\S+@\S+\.\S+$/.test(x);
 const phoneOk = (x) => /^0\d{9,10}$/.test(x);
 const wrap = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 // Reconcile before APIs as well as at midnight, including after sleep/restart.
-app.use('/api', wrap(async (_req, _res, next) => {
-  await SurveyExpiry.closeExpired(db);
-  next();
-}));
+app.use(
+  '/api',
+  wrap(async (_req, _res, next) => {
+    await SurveyExpiry.closeExpired(db);
+    next();
+  })
+);
 const publicUser = (u) => ({
   id: u.id,
   email: u.email,
@@ -62,6 +67,7 @@ const publicUser = (u) => ({
   need: u.need,
   interests: u.interests || [],
   role: u.role,
+  erased: Boolean(u.erased_at),
   status: u.account_status
 });
 const tokenFor = (u, expiresIn = '8h') =>
@@ -281,6 +287,12 @@ app.put(
           : req.body.birthDate
     });
     await Surveys.transaction(db, async (c) => {
+      const [[active]] = await c.execute(
+        'SELECT account_status,erased_at FROM users WHERE id=? FOR UPDATE',
+        [req.user.id]
+      );
+      if (!active || active.account_status !== 'ACTIVE' || active.erased_at)
+        V.fail('Tài khoản không còn hoạt động.', 403);
       await c.execute(
         'UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,birth_date=?,gender=?,need=? WHERE id=?',
         [
@@ -306,7 +318,9 @@ app.get(
   auth,
   admin,
   wrap(async (_req, res) => {
-    const [rows] = await db.query('SELECT * FROM users ORDER BY created_at DESC');
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE erased_at IS NULL ORDER BY created_at DESC'
+    );
     res.json({ accounts: rows.map(publicUser) });
   })
 );
@@ -322,16 +336,48 @@ app.post(
         .toLowerCase(),
       phone = String(req.body.phone || '').trim(),
       password = String(req.body.password || ''),
-      role = ['MANAGER', 'CUSTOMER'].includes(req.body.role) ? req.body.role : 'CUSTOMER';
+      role = req.body.role;
+    if (!['MANAGER', 'CUSTOMER'].includes(role)) V.fail('Loại tài khoản không hợp lệ.');
+    let value;
+    if (role === 'CUSTOMER') {
+      const birthDate = BirthDate.parse(req.body.birthDateText);
+      if (!birthDate)
+        V.fail('Ngày sinh phải đúng dd/mm/yyyy, là ngày có thật và không ở tương lai.');
+      value = V.profile({ ...req.body, birthDate, need: 'Chưa xác định', interests: [] });
+    }
     if (!name || !emailOk(email) || !phoneOk(phone) || password.length < 6)
       return res.status(400).json({
         error: 'Vui lòng nhập họ tên, email, số điện thoại hợp lệ và mật khẩu từ 6 ký tự.'
       });
     try {
-      await db.execute(
-        'INSERT INTO users (id,email,password_hash,role,full_name,phone) VALUES (?,?,?,?,?,?)',
-        [uid(), email, await bcrypt.hash(password, 12), role, name, phone]
-      );
+      const id = uid(),
+        hash = await bcrypt.hash(password, 12);
+      await Surveys.transaction(db, async (c) => {
+        if (role === 'MANAGER') {
+          await c.execute(
+            'INSERT INTO users (id,email,password_hash,role,full_name,phone) VALUES (?,?,?,?,?,?)',
+            [id, email, hash, role, name, phone]
+          );
+        } else {
+          await c.execute(
+            "INSERT INTO users(id,email,password_hash,role,full_name,phone,address,birth_year,birth_date,gender,need) VALUES (?,?,?,'CUSTOMER',?,?,?,?,?,?,?)",
+            [
+              id,
+              email,
+              hash,
+              value.name,
+              value.phone,
+              value.addr,
+              value.year,
+              value.birthDate,
+              value.gender,
+              value.need
+            ]
+          );
+          await Interests.save(c, id, value.interests || []);
+          await SurveyEnrollment.enroll(c, id);
+        }
+      });
     } catch (e) {
       if (e.code === 'ER_DUP_ENTRY')
         return res.status(409).json({ error: 'Email hoặc số điện thoại đã tồn tại.' });
@@ -363,15 +409,10 @@ app.delete(
         return res.status(409).json({ error: 'Hệ thống cần còn ít nhất một Admin.' });
     }
     if (target.role === 'CUSTOMER') {
-      const [[usage]] = await db.execute(
-        'SELECT (SELECT COUNT(*) FROM feedback WHERE customer_id=?) + (SELECT COUNT(*) FROM survey_responses WHERE customer_id=?) total',
-        [req.params.id, req.params.id]
-      );
-      if (usage.total)
-        return res.status(409).json({
-          error:
-            'Không thể xóa khách hàng đã có phản hồi hoặc trả lời khảo sát; hãy khóa tài khoản.'
-        });
+      await Retention.erase(db, req.params.id, { requireLocked: false });
+      return res.json({
+        message: 'Đã xóa thông tin liên hệ và đăng nhập của khách; giữ hồ sơ và dữ liệu nghiệp vụ.'
+      });
     }
     const [[owned]] = await db.execute(
       'SELECT (SELECT COUNT(*) FROM surveys WHERE created_by=?) + (SELECT COUNT(*) FROM feedback WHERE replied_by=?) total',
@@ -392,7 +433,17 @@ app.post(
   auth,
   staff,
   wrap(async (req, res) => {
-    const value = V.profile(req.body, { complete: false }),
+    let birthDate = req.body.birthDate;
+    if (req.body.birthDateText !== undefined) {
+      const text = String(req.body.birthDateText || '').trim();
+      birthDate = text ? BirthDate.parse(text) : '';
+      if (text && !birthDate)
+        V.fail('Ngày sinh phải đúng dd/mm/yyyy, là ngày có thật và không ở tương lai.');
+    }
+    const value = V.profile(
+        { ...req.body, birthDate, need: 'Chưa xác định', interests: [] },
+        { complete: false }
+      ),
       email = String(req.body.email || '')
         .trim()
         .toLowerCase(),
@@ -428,6 +479,8 @@ app.get(
   '/api/feedback',
   auth,
   wrap(async (req, res) => {
+    if (req.user.role !== 'CUSTOMER') V.fail('Chỉ dành cho khách hàng.', 403);
+    res.set('Cache-Control', 'no-store');
     const [rows] = await db.execute(
       'SELECT f.*,p.name product_name FROM feedback f JOIN products p ON p.id=f.product_id WHERE f.customer_id=? ORDER BY f.created_at DESC',
       [req.user.id]
@@ -441,6 +494,8 @@ app.get(
         title: f.title,
         body: f.body,
         date: dateVN(f.created_at),
+        revision: f.revision,
+        status: f.status,
         reply: f.reply_content || ''
       }))
     });
@@ -452,6 +507,8 @@ app.post(
   '/api/feedback',
   auth,
   wrap(async (req, res) => {
+    if (req.user.role !== 'CUSTOMER') V.fail('Chỉ dành cho khách hàng.', 403);
+    FeedbackService.value(req.body);
     const { prod, type, rate } = req.body,
       title = String(req.body.title || '')
         .trim()
@@ -474,7 +531,18 @@ app.post(
       [id, req.user.id, product.id, type, rate, title, body]
     );
     res.status(201).json({
-      feedback: { id, prod, type, rate, title, body, date: dateVN(new Date()), reply: '' }
+      feedback: {
+        id,
+        prod,
+        type,
+        rate,
+        title,
+        body,
+        date: dateVN(new Date()),
+        reply: '',
+        revision: 0,
+        status: 'NEW'
+      }
     });
   })
 );
@@ -554,8 +622,12 @@ app.get(
   auth,
   staff,
   wrap(async (_req, res) => {
-    const [[customers]] = await db.query("SELECT COUNT(*) total FROM users WHERE role='CUSTOMER'"),
-      [[feedback]] = await db.query("SELECT COUNT(*) total FROM feedback WHERE status!='RESOLVED'"),
+    const [[customers]] = await db.query(
+        "SELECT COUNT(*) total FROM users WHERE role='CUSTOMER' AND erased_at IS NULL"
+      ),
+      [[feedback]] = await db.query(
+        "SELECT COUNT(*) total FROM feedback f JOIN users u ON u.id=f.customer_id WHERE f.status!='RESOLVED' AND u.erased_at IS NULL"
+      ),
       [[surveys]] = await db.query("SELECT COUNT(*) total FROM surveys WHERE status='OPEN'");
     res.json({
       customers: customers.total,
@@ -573,7 +645,7 @@ app.get(
       need = String(req.query.need || ''),
       status = String(req.query.status || '');
     let sql =
-        "SELECT * FROM users WHERE role='CUSTOMER' AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)",
+        "SELECT * FROM users WHERE role='CUSTOMER' AND erased_at IS NULL AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)",
       values = [q, q, q];
     if (needs.includes(need)) {
       sql += ' AND need=?';
@@ -596,9 +668,10 @@ app.get(
   auth,
   staff,
   wrap(async (req, res) => {
-    const [[user]] = await db.execute("SELECT * FROM users WHERE id=? AND role='CUSTOMER'", [
-      req.params.id
-    ]);
+    const [[user]] = await db.execute(
+      "SELECT * FROM users WHERE id=? AND role='CUSTOMER' AND erased_at IS NULL",
+      [req.params.id]
+    );
     if (!user) return res.status(404).json({ error: 'Không tìm thấy khách hàng.' });
     await Interests.attach(db, [user]);
     res.set('Cache-Control', 'no-store');
@@ -607,25 +680,17 @@ app.get(
     });
   })
 );
-// LOGIC: Chỉ xóa thật CUSTOMER chưa có feedback/survey_responses; có lịch sử thì yêu cầu khóa thay vì xóa.
+// Khách phải được khóa trước; xóa tài khoản/liên hệ, giữ hồ sơ phân tích và lịch sử nghiệp vụ.
 app.delete(
   '/api/admin/customers/:id',
   auth,
   admin,
   wrap(async (req, res) => {
-    const [[usage]] = await db.execute(
-      'SELECT (SELECT COUNT(*) FROM feedback WHERE customer_id=?) + (SELECT COUNT(*) FROM survey_responses WHERE customer_id=?) total',
-      [req.params.id, req.params.id]
-    );
-    if (usage.total)
-      return res.status(409).json({
-        error: 'Không thể xóa khách hàng đã có phản hồi hoặc trả lời khảo sát; hãy khóa tài khoản.'
-      });
-    const [r] = await db.execute("DELETE FROM users WHERE id=? AND role='CUSTOMER'", [
-      req.params.id
-    ]);
-    if (!r.affectedRows) return res.status(404).json({ error: 'Không tìm thấy khách hàng.' });
-    res.json({ message: 'Đã xóa khách hàng.' });
+    await Retention.erase(db, req.params.id);
+    res.json({
+      message:
+        'Đã xóa thông tin liên hệ và đăng nhập; giữ phản hồi, khảo sát và thông tin phân tích.'
+    });
   })
 );
 // LOGIC KHÓA/MỞ: Chỉ UPDATE account_status ACTIVE/LOCKED, giữ toàn bộ dữ liệu và lịch sử.
@@ -638,7 +703,7 @@ app.patch(
     if (!['ACTIVE', 'LOCKED'].includes(req.body.status))
       return res.status(400).json({ error: 'Trạng thái không hợp lệ.' });
     const [r] = await db.execute(
-      "UPDATE users SET account_status=? WHERE id=? AND role='CUSTOMER'",
+      "UPDATE users SET account_status=? WHERE id=? AND role='CUSTOMER' AND erased_at IS NULL",
       [req.body.status, req.params.id]
     );
     if (!r.affectedRows) return res.status(404).json({ error: 'Không tìm thấy khách hàng.' });
@@ -655,9 +720,9 @@ app.get(
       to = String(req.query.to || ''),
       hidden = String(req.query.hidden || 'false') === 'true';
     let sql =
-        'SELECT f.*, p.name product_name, u.full_name customer_name, u.email customer_email FROM feedback f JOIN products p ON p.id=f.product_id JOIN users u ON u.id=f.customer_id WHERE f.is_hidden=?',
+        'SELECT f.*, p.name product_name, u.full_name customer_name, u.email customer_email FROM feedback f JOIN products p ON p.id=f.product_id JOIN users u ON u.id=f.customer_id WHERE f.is_hidden=? AND u.erased_at IS NULL',
       values = [hidden];
-    if (['NEW', 'IN_PROGRESS', 'RESOLVED'].includes(status)) {
+    if (['NEW', 'RESOLVED'].includes(status)) {
       sql += ' AND f.status=?';
       values.push(status);
     }
@@ -674,30 +739,14 @@ app.get(
     res.json({ feedback: rows });
   })
 );
-// LOGIC XỬ LÝ: NEW(0) -> IN_PROGRESS(1) -> RESOLVED(2), cho phép đi tới/bằng, không lùi.
-// RESOLVED phải có câu trả lời. Có reply thì lưu người xử lý và NOW(); đây là ngày trả lời gần nhất.
+// Chưa trả lời: Tiếp nhận. Trả lời một lần: tự chuyển Đã giải quyết.
 app.patch(
   '/api/admin/feedback/:id',
   auth,
   staff,
   wrap(async (req, res) => {
-    const status = req.body.status,
-      reply = String(req.body.reply || '').trim(),
-      order = { NEW: 0, IN_PROGRESS: 1, RESOLVED: 2 };
-    if (!Object.hasOwn(order, status))
-      return res.status(400).json({ error: 'Trạng thái không hợp lệ.' });
-    const [[current]] = await db.execute('SELECT status FROM feedback WHERE id=?', [req.params.id]);
-    if (!current) return res.status(404).json({ error: 'Không tìm thấy phản hồi.' });
-    if (order[status] < order[current.status])
-      return res.status(400).json({ error: 'Không thể chuyển phản hồi về trạng thái cũ.' });
-    if (status === 'RESOLVED' && !reply)
-      return res.status(400).json({ error: 'Cần nhập phản hồi trước khi xác nhận đã xử lý xong.' });
-    const [r] = await db.execute(
-      "UPDATE feedback SET status=?, reply_content=?, replied_by=?, replied_at=CASE WHEN ? = '' THEN replied_at ELSE NOW() END WHERE id=?",
-      [status, reply || null, reply ? req.user.id : null, reply, req.params.id]
-    );
-    if (!r.affectedRows) return res.status(404).json({ error: 'Không tìm thấy phản hồi.' });
-    res.json({ message: 'Đã cập nhật phản hồi.' });
+    await FeedbackService.reply(db, req.params.id, req.user.id, req.body);
+    res.json({ message: 'Đã trả lời và chuyển sang Đã giải quyết.' });
   })
 );
 // LOGIC ẨN PHẢN HỒI: Chỉ RESOLVED mới đổi is_hidden/hidden_at; không DELETE, báo cáo vẫn tính.
@@ -708,7 +757,7 @@ app.patch(
   wrap(async (req, res) => {
     const hidden = Boolean(req.body.hidden);
     const [r] = await db.execute(
-      "UPDATE feedback SET is_hidden=?, hidden_at=CASE WHEN ? THEN NOW() ELSE NULL END WHERE id=? AND status='RESOLVED'",
+      "UPDATE feedback SET is_hidden=?, hidden_at=CASE WHEN ? THEN NOW() ELSE NULL END WHERE id=? AND status='RESOLVED' AND EXISTS (SELECT 1 FROM users u WHERE u.id=feedback.customer_id AND u.erased_at IS NULL)",
       [hidden, hidden, req.params.id]
     );
     if (!r.affectedRows)
@@ -775,7 +824,7 @@ app.get(
     ]);
     if (!survey) return res.status(404).json({ error: 'Không tìm thấy khảo sát.' });
     const [rows] = await db.execute(
-      'SELECT r.id,r.submitted_at,u.full_name,u.email FROM survey_responses r JOIN users u ON u.id=r.customer_id WHERE r.survey_id=? ORDER BY r.submitted_at DESC',
+      'SELECT r.id,r.submitted_at,u.full_name,u.email FROM survey_responses r JOIN users u ON u.id=r.customer_id WHERE r.survey_id=? AND u.erased_at IS NULL ORDER BY r.submitted_at DESC',
       [req.params.id]
     );
     for (const row of rows) {
@@ -852,6 +901,25 @@ PasswordRecovery.register(app, db, auth, admin, wrap);
 RecoveryCodes.register(app, db, auth, wrap);
 SurveyVisibility.register(app, db, auth, staff, wrap);
 SurveyLifecycle.register(app, db, auth, staff, wrap);
+app.delete(
+  '/api/admin/surveys/:id',
+  auth,
+  staff,
+  wrap(async (req, res) => {
+    await Surveys.removeDraft(db, req.params.id);
+    res.json({ message: 'Đã xóa bản nháp khảo sát.' });
+  })
+);
+app.post(
+  '/api/admin/surveys/:id/emergency-lock',
+  auth,
+  staff,
+  wrap(async (req, res) => {
+    await Surveys.emergencyLock(db, req.params.id, req.user.id);
+    res.json({ message: 'Đã khóa khẩn cấp và chuyển khảo sát về bản nháp.' });
+  })
+);
+FeedbackService.register(app, db, auth, wrap);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Không tìm thấy API.' }));
 app.use((err, _req, res, _next) => {
   if (err instanceof V.InputError) return res.status(err.status).json({ error: err.message });
@@ -889,6 +957,8 @@ async function start() {
   await require('./survey-audience').ensureSchema(db);
   await SurveyExpiry.ensureSchema(db);
   await SurveyLifecycle.ensureSchema(db);
+  await FeedbackService.ensureSchema(db);
+  await Retention.ensureSchema(db);
   await seed();
   await SurveyExpiry.closeExpired(db);
   SurveyExpiry.schedule(db);

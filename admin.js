@@ -13,13 +13,15 @@ let me = null,
   customers = [],
   feedback = [],
   surveys = [];
+let accountCreateKind = null,
+  editingFeedbackId = null;
 let accounts = [],
   showCustomerCreate = false,
   showHiddenFeedback = false;
 let accountFilters = { q: '', role: '', status: '' };
 let customerFilters = { q: '', need: '', status: '' };
 let feedbackFilters = { status: '', from: '', to: '' };
-let surveyFilters = { q: '', status: '', hidden: false };
+let surveyFilters = { q: '', status: '', hidden: false, from: '', to: '', dateField: 'created' };
 let staffSessionVersion = 0;
 const staffActions = Object.create(null);
 const staffForms = Object.create(null);
@@ -97,6 +99,7 @@ function login() {
 }
 
 function resetStaffSession() {
+  if (typeof resetSurveyWorkspace === 'function') resetSurveyWorkspace();
   staffSessionVersion++;
   sessionStorage.removeItem(TOKEN);
   me = null;
@@ -106,6 +109,8 @@ function resetStaffSession() {
   surveys = [];
   accounts = [];
   showCustomerCreate = false;
+  accountCreateKind = null;
+  editingFeedbackId = null;
   showHiddenFeedback = false;
   accountFilters = { q: '', role: '', status: '' };
   customerFilters = { q: '', need: '', status: '' };

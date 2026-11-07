@@ -65,7 +65,7 @@ test('Logout clears both report data and admin recovery state, not only the toke
 test('Survey ending controls hide and disable manual dates, restore required dates and show exact confirmation',()=>{
  const {c}=environment();
  const html=vm.runInContext('createForm()',c);assert.match(html,/name="endMode" required/);assert.match(html,/<option value="" disabled selected>/);assert.match(html,/type="date"[^>]*disabled/);
- const edit=vm.runInContext("deadlineFields({due_date:'2026-11-10'},true)",c);assert.match(edit,/<option value="" disabled selected>/);
+ const edit=vm.runInContext("surveyEditorForm({survey:{id:'saved',due_date:'2099-11-10',audience_config:{mode:'ALL'}},questions:[]})",c);assert.match(edit,/<option value="DATE" selected>/);assert.match(edit,/value="2099-11-10"/);assert.ok(!edit.includes('<option value="" disabled selected>'));
  const mode={value:'MANUAL'},input={value:'2026-11-10'},label={},summary={};
  const group={querySelector:s=>({'[name="endMode"]':mode,'[name="dueDate"]':input,'[data-deadline-date]':label,'[data-deadline-summary]':summary})[s]};
  c.evt={target:{name:'endMode',closest:()=>group}};
@@ -77,19 +77,23 @@ test('Survey ending controls hide and disable manual dates, restore required dat
  assert.ok(vm.runInContext('surveyPage()',c).includes('Mở lại'));
  vm.runInContext("surveys=[{id:'m',title:'Manual',status:'OPEN',response_count:0,audience_config:{mode:'ALL'},due_date:null}]",c);
  assert.ok(!vm.runInContext('surveyPage()',c).includes('Đặt ngày kết thúc'));
- assert.ok(!vm.runInContext('surveyPage()',c).includes('data-action="survey-lifecycle"'));
+ assert.match(vm.runInContext('surveyPage()',c), /data-action="survey-lifecycle"[^>]*disabled/);
 });
 
-test('Create survey button opens, closes and reopens the form; results do not count as an open form',()=>{
+
+test('Survey states expose exactly approved actions and preview/results contain no editor',()=>{
  const {c}=environment();
- const host={innerHTML:'',querySelector(selector){return selector==='#surveyForm'&&this.innerHTML.includes('id="surveyForm"')?{}:null}};
- c.document.querySelector=selector=>selector==='#createSurvey'?host:null;
- const toggle=()=>vm.runInContext("staffActions['show-create']()",c);
- toggle();assert.match(host.innerHTML, /id="surveyForm"/);
- toggle();assert.equal(host.innerHTML,'');
- toggle();assert.match(host.innerHTML, /id="surveyForm"/);
- host.innerHTML='<section class="survey-results">Kết quả khảo sát</section>';
- toggle();assert.match(host.innerHTML, /id="surveyForm"/);
+ for(const [status,expected] of [['DRAFT',['edit-survey','delete-survey','open-survey']],['OPEN',['view-survey','survey-lifecycle','close-survey','emergency-lock-survey']],['CLOSED',['view-responses','copy-survey','survey-lifecycle','hide-survey']]]){
+  c.fixture={id:'s',title:'Survey',status,response_count:1,due_date:'2099-01-01',audience_config:{mode:'ALL'}};
+  vm.runInContext('surveys=[fixture];surveyFilters.hidden=false',c);
+  const html=vm.runInContext('surveyPage()',c),actions=[...html.matchAll(/data-action="([^"]+)" data-id="s"/g)].map(x=>x[1]);
+  assert.deepEqual(actions,expected);
+  if(status==='OPEN')assert.match(html,/data-action="emergency-lock-survey"[^>]*disabled/);
+ }
+ c.preview={survey:{id:'s',title:'<script>',status:'OPEN'},questions:[{question_text:'Question',question_type:'ONE',options:['A','B'],is_required:true}]};
+ let html=vm.runInContext('surveyInspection(preview,true)',c);assert.ok(!/<form|<textarea|<input|<select/.test(html));assert.ok(html.includes('&lt;script&gt;'));assert.ok(html.includes('CHỈ ĐỌC'));
+ c.result={survey:{id:'s',title:'Report',status:'CLOSED'},responses:[],questions:[{text:'Question',type:'TEXT',answered:0,skipped:0,textCount:0,texts:[],options:[]}]};
+ html=vm.runInContext('surveyInspection(result)',c);assert.ok(html.includes('0 người trả lời'));assert.ok(html.includes('Số khách đã làm'));assert.ok(html.includes('Question'));
 });
 test('Late collection response does not overwrite a different logged-in user',async()=>{
  const {c}=environment();let release;c.getData=()=>new Promise(resolve=>{release=resolve});

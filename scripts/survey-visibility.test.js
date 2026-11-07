@@ -155,7 +155,7 @@ test('Survey UI exposes hide in main list, restore in hidden list, and preserves
   for (const f of ['admin.js', 'role-ui.js', 'staff-surveys.js', 'staff-controller.js'])
     vm.runInContext(source(f), c);
   vm.runInContext(
-    "me={id:'m',role:'MANAGER'};surveys=[{id:'s',title:'Test',status:'OPEN',response_count:2}]",
+    "me={id:'m',role:'MANAGER'};surveys=[{id:'s',title:'Test',status:'CLOSED',response_count:2}]",
     c
   );
   let html = vm.runInContext('surveyPage()', c);

@@ -101,7 +101,7 @@ test('BB02 malformed or reversed audience filters are rejected', () => {
     assert.throws(() => V.filters(f), V.InputError);
 });
 
-test('BB02 create/edit expose scope; only legacy OPEN surveys offer scope setup', () => {
+test('BB02 create/edit expose scope and OPEN offers only the approved operations', () => {
   const vm = require('node:vm'),
     fs = require('node:fs'),
     path = require('node:path'),
@@ -116,11 +116,12 @@ test('BB02 create/edit expose scope; only legacy OPEN surveys offer scope setup'
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), c);
   assert.ok(vm.runInContext('createForm()', c).includes('name="audienceMode"'));
   vm.runInContext(
-    "showSurveyEditor({survey:{id:'s',title:'Test',description:'Test'},questions:[]})",
+    "result=surveyEditorForm({survey:{id:'s',title:'Test',description:'Test'},questions:[]})",
     c
   );
-  assert.ok(host.innerHTML.includes('name="audienceMode"'));
-  assert.ok(vm.runInContext('surveyPage()', c).includes('Thiết lập phạm vi (dữ liệu cũ)'));
+  assert.ok(vm.runInContext('result',c).includes('name="audienceMode"'));
+  assert.ok(vm.runInContext('surveyPage()', c).includes('Xem khảo sát'));
+  assert.ok(!vm.runInContext('surveyPage()', c).includes('setup-legacy-audience'));
   vm.runInContext("surveys[0].audience_config={mode:'ALL',filters:{},customerIds:[]}",c);
   assert.ok(!vm.runInContext('surveyPage()', c).includes('setup-legacy-audience'));
   assert.ok(!vm.runInContext('surveyPage()', c).includes('Bổ sung người nhận'));

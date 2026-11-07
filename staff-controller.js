@@ -107,10 +107,18 @@ function handleAudienceChange(event) {
   resetAudienceList(form);
 }
 document.addEventListener('change', (event) => {
+  trackSurveyPanelChange(event);
+  if (event.target.id === 'surveyPageSize') {
+    surveyWorkspace.pageSize = Number(event.target.value);
+    surveyWorkspace.page = 1;
+    surveyWorkspace.scrollY = 0;
+    return runStaffTask('survey-page-size', event.target, () => loadSurveys({ preserve: false }));
+  }
   handleAudienceChange(event);
   updateDeadlineFields(event);
 });
 document.addEventListener('input', (event) => {
+  trackSurveyPanelChange(event);
   handleAudienceChange(event);
   updateDeadlineFields(event);
 });
@@ -119,6 +127,7 @@ const canUseStaffAction = (action) =>
   action === 'logout' ||
   (me &&
     ([
+      'toggle-account-create',
       'reload-accounts',
       'clear-account-filters',
       'delete-account',
@@ -166,15 +175,25 @@ async function loadFeedback() {
     }
   );
 }
-async function loadSurveys() {
-  return loadStaffCollection(
-    'surveys',
-    '/api/admin/surveys?' + new URLSearchParams(surveyFilters),
-    'surveys',
-    (value) => {
-      surveys = value;
-    }
+async function loadSurveys({ preserve = true } = {}) {
+  if (preserve && !document.getElementById('surveyWorkspaceDialog')) captureSurveyContext();
+  closeSurveyPanel({ force: true, restore: false });
+  const actor = me?.id,
+    version = (staffLoadVersions.surveys || 0) + 1;
+  staffLoadVersions.surveys = version;
+  const data = await api(
+    '/api/admin/surveys?' +
+      new URLSearchParams({
+        ...surveyFilters,
+        page: surveyWorkspace.page,
+        pageSize: surveyWorkspace.pageSize
+      })
   );
+  if (me?.id !== actor || version !== staffLoadVersions.surveys || page !== 'surveys') return;
+  surveys = data.surveys;
+  if (data.pagination) Object.assign(surveyWorkspace, data.pagination);
+  render();
+  restoreSurveyContext(true);
 }
 async function loadDashboard() {
   if (me?.role === 'ADMIN') return loadAccounts();
@@ -188,6 +207,10 @@ async function loadDashboard() {
 async function selectPage(next) {
   if (me?.role === 'ADMIN') return loadAccounts();
   if (!['dashboard', 'customers', 'feedback', 'surveys', 'reports'].includes(next)) return;
+  if (page === 'surveys') {
+    captureSurveyContext();
+    closeSurveyPanel({ force: true, restore: false });
+  }
   page = next;
   render();
   if (next === 'reports') return fetchReports();
@@ -202,6 +225,14 @@ async function selectPage(next) {
 Object.assign(staffActions, {
   logout() {
     resetStaffSession();
+    render();
+  },
+  'toggle-account-create'(button) {
+    const role = button.dataset.role;
+    if (!['CUSTOMER', 'MANAGER'].includes(role)) return;
+    if ($('#adminAccountForm') && !confirm('Đóng biểu mẫu hiện tại? Nội dung chưa lưu sẽ bị bỏ.'))
+      return;
+    accountCreateKind = accountCreateKind === role ? null : role;
     render();
   },
   'reload-accounts': loadAccounts,
@@ -231,7 +262,12 @@ Object.assign(staffActions, {
     return loadCustomers();
   },
   async 'delete-customer'(button) {
-    if (!confirm('Xóa khách hàng chưa có lịch sử dữ liệu?')) return;
+    if (
+      !confirm(
+        'Xóa thông tin liên hệ/đăng nhập của khách đã khóa? Giữ họ tên, ngày sinh, giới tính, nhu cầu, sở thích, phản hồi và dữ liệu khảo sát. Không thể khôi phục thông tin đã xóa.'
+      )
+    )
+      return;
     await api('/api/admin/customers/' + staffId(button), { method: 'DELETE' });
     toast('Đã xóa khách hàng.');
     await loadCustomers();
@@ -255,13 +291,27 @@ Object.assign(staffActions, {
     return loadFeedback();
   },
   // LOGIC: Gom trạng thái + câu trả lời -> PATCH -> tải lại từ DB, không chỉ đổi nhãn trên màn hình.
+  'edit-feedback-reply'(button) {
+    editingFeedbackId = button.dataset.id;
+    render();
+    $('#reply-' + editingFeedbackId)?.focus();
+  },
+  'cancel-edit-feedback'() {
+    editingFeedbackId = null;
+    render();
+  },
   async 'save-feedback'(button) {
     const id = button.dataset.id;
     await api('/api/admin/feedback/' + staffId(button), {
       method: 'PATCH',
-      body: JSON.stringify({ status: $('#status-' + id).value, reply: $('#reply-' + id).value })
+      body: JSON.stringify({
+        revision: feedback.find((f) => f.id === id)?.revision,
+        editReply: editingFeedbackId === id,
+        reply: $('#reply-' + id).value
+      })
     });
-    toast('Đã lưu phản hồi.');
+    editingFeedbackId = null;
+    toast('Đã lưu câu trả lời.');
     await loadFeedback();
   },
   'toggle-hidden-feedback'() {
@@ -286,8 +336,13 @@ Object.assign(staffActions, {
     await loadFeedback();
   },
   'toggle-hidden-surveys'() {
+    captureSurveyContext();
     surveyFilters.hidden = !surveyFilters.hidden;
-    return loadSurveys();
+    Object.assign(
+      surveyWorkspace,
+      surveyWorkspace.positions[surveyViewKey()] || { page: 1, scrollY: 0 }
+    );
+    return loadSurveys({ preserve: false });
   },
   async 'hide-survey'(button) {
     if (
@@ -312,68 +367,109 @@ Object.assign(staffActions, {
     await loadSurveys();
   },
   'filter-surveys'() {
+    const from = $('#surveyFrom')?.value || '',
+      to = $('#surveyTo')?.value || '';
+    if (from && to && from > to) throw Error('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
     surveyFilters = {
       hidden: surveyFilters.hidden,
       q: $('#surveySearch')?.value.trim() || '',
-      status: $('#surveyStatus')?.value || ''
+      status: surveyFilters.status || '',
+      from,
+      to,
+      dateField: $('#surveyDateField')?.value || 'created'
     };
-    return loadSurveys();
+    surveyWorkspace.page = 1;
+    surveyWorkspace.scrollY = 0;
+    return loadSurveys({ preserve: false });
+  },
+  'clear-survey-search'() {
+    surveyFilters = { ...surveyFilters, q: '', from: '', to: '', dateField: 'created' };
+    surveyWorkspace.page = 1;
+    surveyWorkspace.scrollY = 0;
+    return loadSurveys({ preserve: false });
+  },
+  'survey-tab'(button) {
+    captureSurveyContext();
+    surveyFilters.status = button.dataset.status || '';
+    Object.assign(
+      surveyWorkspace,
+      surveyWorkspace.positions[surveyViewKey()] || { page: 1, scrollY: 0 }
+    );
+    return loadSurveys({ preserve: false });
+  },
+  'survey-page'(button) {
+    surveyWorkspace.page = Number(button.dataset.pageNumber);
+    surveyWorkspace.scrollY = 0;
+    return loadSurveys({ preserve: false });
+  },
+  'close-survey-panel'() {
+    return closeSurveyPanel();
+  },
+  'discard-survey-panel'() {
+    return closeSurveyPanel({ force: true });
+  },
+  'continue-survey-panel'() {
+    document.querySelector('#surveyWorkspaceDialog .survey-unsaved-warning')?.remove();
+  },
+  'expand-survey-panel'(button) {
+    const dialog = button.closest('dialog'),
+      wide = dialog.classList.toggle('survey-panel-expanded');
+    button.setAttribute('aria-label', wide ? 'Thu gọn khung xem' : 'Mở rộng khung xem');
   },
   'show-create'() {
-    const host = $('#createSurvey');
-    host.innerHTML = host.querySelector('#surveyForm') ? '' : createForm();
+    if (document.getElementById('surveyWorkspaceDialog')?.querySelector('#surveyForm'))
+      return closeSurveyPanel();
+    if (!closeSurveyPanel({ restore: false })) return;
+    showSurveyPanel(createForm(), 'Tạo khảo sát', { editing: true });
   },
   'survey-lifecycle'(button) {
     const s = surveys.find((s) => s.id === button.dataset.id);
     if (!s || !['OPEN', 'CLOSED'].includes(s.status))
       throw Error('Hãy tải lại danh sách khảo sát.');
-    $('#createSurvey').innerHTML = lifecycleForm(s);
-    globalThis.scrollTo?.({ top: 0, behavior: 'smooth' });
-  },
-  async 'survey-lifecycle-history'(button) {
-    const actor = me?.id;
-    const data = await api('/api/admin/surveys/' + staffId(button) + '/lifecycle');
-    if (me?.id !== actor || page !== 'surveys') return;
-    const date = (value) =>
-      value ? new Date(value + 'Z').toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '';
-    const due = (value) => (value ? value.split('-').reverse().join('/') : 'Đóng thủ công');
-    $('#createSurvey').innerHTML =
-      `<section class="card"><h2>Lịch sử gia hạn / mở lại: ${esc(data.survey.title)}</h2>${data.survey.auto_closed_at ? `<p>Tự đóng do hết hạn: ${esc(date(data.survey.auto_closed_at))} (giờ Việt Nam)</p>` : ''}<table class="table"><thead><tr><th>Thời điểm (VN)</th><th>Người thực hiện</th><th>Thao tác</th><th>Hạn cũ</th><th>Hạn mới</th></tr></thead><tbody>${data.history.map((h) => `<tr><td>${esc(date(h.created_at))}</td><td>${esc(h.actor)}</td><td>${h.action === 'REOPEN' ? 'Mở lại' : h.action === 'CLOSE' ? 'Đóng thủ công' : 'Gia hạn / điều chỉnh'}</td><td>${esc(due(h.oldDueDate))}</td><td>${esc(due(h.newDueDate))}</td></tr>`).join('') || '<tr><td colspan="5">Chưa có thay đổi.</td></tr>'}</tbody></table><button class="btn" data-action="cancel-survey-edit">Đóng lịch sử</button></section>`;
+    if (!closeSurveyPanel({ restore: false })) return;
+    showSurveyPanel(
+      lifecycleForm(s),
+      s.status === 'CLOSED' ? 'Mở lại khảo sát' : 'Gia hạn khảo sát',
+      { editing: true, id: s.id }
+    );
   },
   'add-question'() {
+    const dialog = document.getElementById('surveyWorkspaceDialog');
+    if (dialog) dialog.dataset.dirty = 'true';
     $('#questions').insertAdjacentHTML('beforeend', questionBlock());
   },
   'remove-question'(button) {
+    const dialog = document.getElementById('surveyWorkspaceDialog');
+    if (dialog) dialog.dataset.dirty = 'true';
     button.closest('fieldset').remove();
   },
   'add-editor-question'() {
+    const dialog = document.getElementById('surveyWorkspaceDialog');
+    if (dialog) dialog.dataset.dirty = 'true';
     $('#questions').insertAdjacentHTML('beforeend', editorQuestion());
   },
   'cancel-survey-edit'() {
-    page = 'surveys';
-    return loadSurveys();
+    return closeSurveyPanel();
   },
-  // LOGIC: Nếu OPEN chưa có câu trả lời, bấm Sửa sẽ gọi API đổi thật về DRAFT trước khi mở editor.
-  // Hủy editor không tự hoàn tác trạng thái OPEN; backend từ chối nếu đã có câu trả lời.
+  // Chỉ sửa bản nháp. Khảo sát đang mở phải khóa khẩn cấp qua thao tác riêng trước.
   async 'edit-survey'(button) {
-    let data = await api('/api/admin/surveys/' + staffId(button));
-    if (data.survey.status === 'OPEN') {
-      await api('/api/admin/surveys/' + staffId(button), {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'DRAFT' })
-      });
-      data = await api('/api/admin/surveys/' + staffId(button));
-    }
-    if (data.survey.status !== 'DRAFT')
-      throw Error('Chỉ chỉnh sửa nội dung khảo sát ở trạng thái DRAFT.');
-    if (me?.role === 'MANAGER' && page === 'surveys') showSurveyEditor(data);
+    return requestSurveyPanel(
+      button,
+      '/api/admin/surveys/' + staffId(button),
+      'Chỉnh sửa khảo sát',
+      (data) => {
+        if (data.survey.status !== 'DRAFT') throw Error('Chỉ sửa khảo sát bản nháp.');
+        return surveyEditorForm(data);
+      },
+      { editing: true }
+    );
   },
   // LOGIC: Nút Lập khảo sát ghi ngay một bản DRAFT mới vào DB rồi mới mở trang chỉnh sửa.
   async 'copy-survey'(button) {
     const data = await api('/api/admin/surveys/' + staffId(button) + '/copy', { method: 'POST' });
     if (me?.role !== 'MANAGER') return;
-    surveys.unshift(data.survey);
-    if (page === 'surveys') showSurveyEditor(data);
+    await loadSurveys();
+    if (page === 'surveys') showSurveyEditor(data, button.dataset.id);
     toast('Đã lập bản nháp mới. Bạn có thể chỉnh sửa trước khi mở.');
   },
   async 'open-survey'(button) {
@@ -400,34 +496,34 @@ Object.assign(staffActions, {
     toast('Đã đóng khảo sát.');
     await loadSurveys();
   },
+  async 'view-survey'(button) {
+    return requestSurveyPanel(
+      button,
+      '/api/admin/surveys/' + staffId(button),
+      'Xem khảo sát',
+      (data) => surveyInspection(data, true)
+    );
+  },
+  async 'delete-survey'(button) {
+    if (!confirm('Xóa vĩnh viễn bản nháp và các câu hỏi?')) return;
+    await api('/api/admin/surveys/' + staffId(button), { method: 'DELETE' });
+    await loadSurveys();
+    toast('Đã xóa bản nháp.');
+  },
+  async 'emergency-lock-survey'(button) {
+    if (!confirm('Dừng nhận bài và chuyển về bản nháp? Chỉ thực hiện khi chưa có bài trả lời.'))
+      return;
+    await api('/api/admin/surveys/' + staffId(button) + '/emergency-lock', { method: 'POST' });
+    await loadSurveys();
+    toast('Đã khóa khẩn cấp về bản nháp.');
+  },
   async 'view-responses'(button) {
-    const data = await api('/api/admin/surveys/' + staffId(button) + '/responses');
-    if (me?.role !== 'MANAGER' || page !== 'surveys') return;
-    const content = data.responses.length
-      ? data.responses
-          .map(
-            (r) =>
-              '<article class="card response-card"><b>' +
-              esc(r.full_name) +
-              '</b> · ' +
-              esc(r.email) +
-              '<p class="muted">Hoàn thành: ' +
-              new Date(r.submitted_at).toLocaleString('vi-VN') +
-              '</p>' +
-              r.answers
-                .map((a) => '<p><b>' + esc(a.question) + '</b><br>' + esc(a.answer) + '</p>')
-                .join('') +
-              '</article>'
-          )
-          .join('')
-      : '<p class="muted">Chưa có khách hàng hoàn thành khảo sát này.</p>';
-    $('#createSurvey').innerHTML =
-      '<section class="survey-results"><h2>Kết quả khảo sát: ' +
-      esc(data.survey.title) +
-      '</h2>' +
-      content +
-      '</section>';
-    globalThis.scrollTo?.({ top: 0, behavior: 'smooth' });
+    return requestSurveyPanel(
+      button,
+      '/api/admin/reports/survey-detail/' + staffId(button),
+      'Kết quả khảo sát',
+      (data) => surveyInspection(data)
+    );
   }
 });
 
@@ -442,14 +538,15 @@ function readSurveyQuestions(form, selector = '#questions fieldset') {
   return questions;
 }
 Object.assign(staffForms, {
+  surveySearchForm() {
+    return staffActions['filter-surveys']();
+  },
   async surveyLifecycleForm(form) {
     await api('/api/admin/surveys/' + encodeURIComponent(form.dataset.id) + '/lifecycle', {
       method: 'POST',
       body: JSON.stringify({ ...formValues(form), action: form.dataset.action })
     });
-    toast(
-      form.dataset.action === 'REOPEN' ? 'Đã mở lại khảo sát.' : 'Đã cập nhật thời điểm kết thúc.'
-    );
+    toast(form.dataset.action === 'REOPEN' ? 'Đã mở lại khảo sát.' : 'Đã gia hạn khảo sát.');
     await loadSurveys();
   },
   async login(form) {
@@ -480,6 +577,7 @@ Object.assign(staffForms, {
   },
   async adminAccountForm(form) {
     await api('/api/admin/accounts', { method: 'POST', body: JSON.stringify(formValues(form)) });
+    accountCreateKind = null;
     toast('Đã tạo tài khoản.');
     await loadAccounts();
   },
@@ -527,6 +625,7 @@ Object.assign(staffForms, {
 });
 
 function resetStaffViewState() {
+  resetSurveyWorkspace();
   staffSessionVersion++;
   page = 'dashboard';
   customers = [];
@@ -534,6 +633,8 @@ function resetStaffViewState() {
   surveys = [];
   accounts = [];
   showCustomerCreate = false;
+  accountCreateKind = null;
+  editingFeedbackId = null;
   showHiddenFeedback = false;
   if (typeof resetReports === 'function') resetReports();
   if (typeof resetRecoveryAdmin === 'function') resetRecoveryAdmin();
@@ -550,6 +651,19 @@ async function runStaffTask(key, element, task) {
     await task();
   } catch (error) {
     if (error.staleSession) return;
+    const dialog = document.getElementById?.('surveyWorkspaceDialog');
+    if (dialog?.open) {
+      let alert = dialog.querySelector('.survey-panel-error');
+      if (!alert) {
+        alert = document.createElement('p');
+        alert.className = 'error survey-panel-error';
+        alert.setAttribute('role', 'alert');
+        dialog.querySelector('.survey-panel-body').prepend(alert);
+      }
+      alert.textContent = error.message;
+      dialog.querySelector('.survey-panel-body').scrollTop = 0;
+      return;
+    }
     const field = $('#error');
     if (field) field.textContent = error.message;
     else toast(error.message);
@@ -582,6 +696,12 @@ document.addEventListener('click', async (event) => {
   }
   const action = button.dataset.action;
   if (!Object.hasOwn(staffActions, action) || !canUseStaffAction(action)) return;
+  if (
+    page === 'surveys' &&
+    button.dataset.id &&
+    !document.getElementById?.('surveyWorkspaceDialog')
+  )
+    captureSurveyContext(button.dataset.id);
   event.preventDefault();
   return runStaffTask(action, button, () => staffActions[action](button));
 });
