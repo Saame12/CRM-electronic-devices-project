@@ -2,13 +2,31 @@
 
 Với database đang có dữ liệu, sao lưu bằng `npm run db:backup`, kiểm chứng bản sao lưu rồi chạy `npm run db:migrate` và khởi động lại server. Migration chỉ thêm bảng sở thích/danh mục, không nạp lại demo hoặc suy diễn sở thích cho khách cũ. Cài mới vẫn dùng quy trình setup bên dưới.
 
-## Chạy bản demo sau khi tải từ GitHub
-
 ## Cài nhanh từ repo chính — khuyến nghị cho người tải mới
 
 Repo: https://github.com/Saame12/CRM-electronic-devices-project
 
 Tải Code → Download ZIP rồi giải nén, hoặc clone bằng Git. Trong Visual Studio chọn File → Open → Folder (VS Code: Open Folder), mở thư mục có `package.json`, sau đó mở terminal tại thư mục đó.
+## 1. Chuẩn bị máy
+
+- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS),  kèm npm.
+
+```bash
+winget install --id OpenJS.NodeJS.LTS -e
+```
+- Cài MySQL Server 8.0 trở lên và khởi động dịch vụ MySQL. Chỉ có MySQL Workbench thì chưa đủ vì Workbench là công cụ quản trị.
+- Biết tài khoản, mật khẩu và cổng MySQL của máy này. Người dùng setup cần quyền tạo database/bảng và quyền cập nhật cấu trúc, đọc/ghi dữ liệu của database dự án.
+- Tải ZIP dự án từ GitHub và giải nén, hoặc clone bằng Git.
+
+Mở lại terminal sau khi cài Node, kiểm tra:
+
+```bash
+node --version
+npm --version
+```
+
+Windows dùng PowerShell/CMD; macOS/Linux dùng Terminal. Các lệnh npm trong tài liệu giống nhau trên cả ba hệ điều hành.
+
 
 ```bash
 npm ci
@@ -28,24 +46,6 @@ Database mới đã nạp mẫu: Admin `admin@backline.vn / Admin@123`, Quản l
 
 Lần sau: bật MySQL → `npm start`. Không cần `.env.demo` trong luồng này. Để chỉ tạo schema: `npm run setup -- --empty`; lưu ý server vẫn bổ sung seed cơ bản khi chạy. Các phần dưới giải thích chi tiết và giữ hướng dẫn chế độ demo cách ly nếu cần.
 
-## 1. Chuẩn bị máy
-
-- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS),  kèm npm.
-```bash
-winget install --id OpenJS.NodeJS.LTS -e
-```
-- Cài MySQL Server 8.0 trở lên và khởi động dịch vụ MySQL. Chỉ có MySQL Workbench thì chưa đủ vì Workbench là công cụ quản trị.
-- Biết tài khoản, mật khẩu và cổng MySQL của máy này. Người dùng setup cần quyền tạo database/bảng và quyền cập nhật cấu trúc, đọc/ghi dữ liệu của database dự án.
-- Tải ZIP dự án từ GitHub và giải nén, hoặc clone bằng Git.
-
-Mở lại terminal sau khi cài Node, kiểm tra:
-
-```bash
-node --version
-npm --version
-```
-
-Windows dùng PowerShell/CMD; macOS/Linux dùng Terminal. Các lệnh npm trong tài liệu giống nhau trên cả ba hệ điều hành.
 
 ## 2. Mở đúng thư mục và cài thư viện
 
