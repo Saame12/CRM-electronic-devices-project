@@ -1,1 +1,0 @@
-PASS 202 isolated HTTP/MySQL checks: modes, permissions, extension, reopen, snapshots, newcomers, immutable answers, history, hidden state.

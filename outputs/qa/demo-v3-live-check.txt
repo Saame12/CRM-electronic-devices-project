@@ -1,5 +1,0 @@
-
-> fe-httt-trong-dn-main@1.0.0 demo:check
-> node scripts/check-demo.js
-
-Demo HTTP passed: three-role login, cookie, surveys, feedback, report totals/details and role isolation. No business data changed.

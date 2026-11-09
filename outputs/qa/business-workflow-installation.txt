@@ -1,6 +1,0 @@
-
-> fe-httt-trong-dn-main@1.0.0 setup:check
-> node scripts/check-installation-db.js
-
-PASS: chạy CLI setup thật trong thư mục cài sạch, --empty không nạp dữ liệu, mặc định nạp V3 (21 tài khoản/16 khảo sát/21 bài trả lời/5 lịch sử), chạy lại giữ nguyên dữ liệu và mật khẩu.
-Đã xóa database kiểm thử riêng vừa tạo; database người dùng không thay đổi.

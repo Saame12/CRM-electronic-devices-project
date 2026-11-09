@@ -1,8 +1,0 @@
-{
-  "summary": {
-    "total": 172,
-    "passed": 172,
-    "failed": 0
-  },
-  "failures": []
-}

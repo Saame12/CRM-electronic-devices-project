@@ -1,8 +1,0 @@
-{
-  "environment": "Isolated server and database with 100 surveys",
-  "initialCounts": { "all": 100, "open": 25, "closed": 25, "draft": 50 },
-  "viewAndClose": { "tab": "OPEN", "page": 2, "scrollBefore": 713.5999755859375, "scrollAfter": 713.5999755859375, "passed": true },
-  "editAndSave": { "tab": "DRAFT", "page": 1, "scrollBefore": 3014.39990234375, "scrollAfter": 3014.39990234375, "passed": true },
-  "unsavedChangesWarning": { "observed": true, "continueEditingPreservedInput": true },
-  "fixtureCleanup": "Verified isolated database and processes removed; live data unchanged"
-}
