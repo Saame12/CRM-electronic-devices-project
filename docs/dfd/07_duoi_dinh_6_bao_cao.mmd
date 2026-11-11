@@ -1,0 +1,32 @@
+flowchart LR
+  P61("6.1<br/>Tiếp nhận và kiểm tra<br/>phạm vi báo cáo")
+  P62("6.2<br/>Đọc dữ liệu phân tích<br/>nhất quán")
+  P63("6.3<br/>Tính số lượng, tỷ lệ<br/>và phân bố câu trả lời")
+  P64("6.4<br/>Trình bày hoặc xuất<br/>CSV, bản in và PDF")
+  QL["Quản lý"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D2[("D2. Phản hồi và câu trả lời<br/>feedback")]
+  D3[("D3. Nội dung và cấu hình khảo sát<br/>surveys, survey_questions, question_options")]
+  D4[("D4. Danh sách người nhận<br/>survey_recipients")]
+  D5[("D5. Bài gửi và câu trả lời khảo sát<br/>survey_responses, response_details")]
+  D8[("D8. Danh mục sản phẩm<br/>products")]
+
+  QL -->|"Phạm vi thời gian, mã khảo sát và định dạng báo cáo"| P61
+  P64 -->|"Báo cáo tổng hợp, chi tiết, CSV hoặc bản in"| QL
+  D1 -->|"Hồ sơ phân tích gồm khách đã xóa"| P62
+  D2 -->|"Phản hồi phân tích gồm dữ liệu đã ẩn hoặc lưu trữ"| P62
+  D3 -->|"Nội dung và cấu hình khảo sát"| P62
+  D4 -->|"Tổng người nhận"| P62
+  D5 -->|"Lượt gửi và chi tiết câu trả lời"| P62
+  D8 -->|"Tên sản phẩm phục vụ thống kê"| P62
+  P61 -->|"Khoảng ngày hợp lệ và mã khảo sát"| P62
+  P61 -->|"Định dạng xuất hoặc lý do phạm vi không hợp lệ"| P64
+  P62 -->|"Tập hồ sơ, phản hồi, người nhận và câu trả lời"| P63
+  P63 -->|"Báo cáo tổng hợp, thống kê từng câu và từng lượt gửi"| P64
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class QL entity;
+  class P61,P62,P63,P64 process;
+  class D1,D2,D3,D4,D5,D8 store;

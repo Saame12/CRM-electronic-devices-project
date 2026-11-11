@@ -42,7 +42,11 @@ function buildOverview(customers, feedback, surveys, now = new Date()) {
   const validBirth = (u) => years(u) !== null;
   const complete = (u) =>
     Boolean(
-      String(u.address || '').trim() && validBirth(u) && u.gender && Domain.needs.includes(u.need)
+      String(u.address || '').trim() &&
+      validBirth(u) &&
+      u.gender &&
+      Domain.needs.includes(u.need) &&
+      (u.need_confirmed === undefined || Boolean(u.need_confirmed))
     );
   const customer = {
     total: customers.length,
@@ -214,6 +218,7 @@ function registerReports(app, db, auth, staff, wrap) {
     auth,
     staff,
     wrap(async (req, res) => {
+      res.set?.('Cache-Control', 'no-store');
       let filter;
       try {
         filter = range(req.query);
@@ -229,7 +234,7 @@ function registerReports(app, db, auth, staff, wrap) {
         await connection.beginTransaction();
         const [[clock]] = await connection.query("SELECT DATE_FORMAT(CURDATE(),'%Y-%m-%d') today");
         const [customers] = await connection.execute(
-          "SELECT id,address,birth_date,birth_year,gender,need,account_status,created_at FROM users WHERE role='CUSTOMER'" +
+          "SELECT id,address,birth_date,birth_year,gender,need,need_confirmed,account_status,created_at FROM users WHERE role='CUSTOMER'" +
             where('created_at'),
           params
         );
@@ -263,6 +268,7 @@ function registerReports(app, db, auth, staff, wrap) {
     auth,
     staff,
     wrap(async (req, res) => {
+      res.set?.('Cache-Control', 'no-store');
       const connection = await db.getConnection();
       try {
         await connection.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');

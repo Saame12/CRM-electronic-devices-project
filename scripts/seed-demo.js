@@ -73,6 +73,7 @@ async function seedDemo(
     await require('../survey-enrollment').ensureSchema(connection);
     await require('../survey-audience').ensureSchema(connection);
     await require('../survey-expiry').ensureSchema(connection);
+    await require('../customer-need').ensureSchema(connection);
     const data = build(now),
       hashes = new Map();
     if (data.lifecycleHistory?.length)
@@ -80,6 +81,7 @@ async function seedDemo(
     for (const user of data.users) {
       if (!hashes.has(user.password)) hashes.set(user.password, await hash(user.password));
       user.password_hash = hashes.get(user.password);
+      user.need_confirmed = ['Gaming', 'Đồ họa', 'Văn phòng'].includes(user.need);
     }
     for (const request of data.recovery) request.token_hash = randomBytes(32).toString('hex');
     await connection.beginTransaction();
@@ -97,6 +99,7 @@ async function seedDemo(
       'birth_date',
       'gender',
       'need',
+      'need_confirmed',
       'created_at'
     ]);
     await insertRows(connection, 'customer_interests', data.customerInterests, [

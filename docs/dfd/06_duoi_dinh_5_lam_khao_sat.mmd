@@ -1,0 +1,53 @@
+flowchart LR
+  P51("5.1<br/>Tiếp nhận yêu cầu<br/>khảo sát cá nhân")
+  P52("5.2<br/>Bổ sung quyền nhận ALL<br/>còn mở và chưa quá hạn")
+  P53("5.3<br/>Lập danh sách khảo sát<br/>và lịch sử được xem")
+  P54("5.4<br/>Kiểm tra quyền nhận, hạn,<br/>câu trả lời và lượt gửi")
+  P55("5.5<br/>Lưu lượt gửi và chi tiết<br/>trong cùng transaction")
+  P56("5.6<br/>Đọc bài gửi của chính khách")
+  P57("5.7<br/>Cập nhật lựa chọn ẩn<br/>tại trình duyệt")
+  P58("5.8<br/>Trả kết quả khảo sát cá nhân")
+  KH["Khách hàng"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D3[("D3. Nội dung và cấu hình khảo sát<br/>surveys, survey_questions, question_options")]
+  D4[("D4. Danh sách người nhận<br/>survey_recipients")]
+  D5[("D5. Bài gửi và câu trả lời khảo sát<br/>survey_responses, response_details")]
+  D9[("D9. Lựa chọn ẩn khảo sát cá nhân<br/>localStorage trên trình duyệt")]
+
+  KH -->|"Yêu cầu đồng bộ, xem khảo sát, bài trả lời hoặc lựa chọn ẩn"| P51
+  P58 -->|"Khảo sát được nhận, bài đã gửi và kết quả xử lý"| KH
+  D1 -->|"Danh tính và trạng thái khách"| P52
+  D1 -->|"Danh tính và trạng thái khách"| P54
+  D3 -->|"Khảo sát, câu hỏi và lựa chọn"| P52
+  D3 -->|"Khảo sát, câu hỏi và lựa chọn"| P53
+  D3 -->|"Khảo sát, câu hỏi và lựa chọn"| P54
+  D3 -->|"Khảo sát, câu hỏi và lựa chọn"| P56
+  D4 -->|"Quyền nhận khảo sát"| P53
+  D4 -->|"Quyền nhận khảo sát"| P54
+  P52 -->|"Người nhận mới của khảo sát ALL còn hiệu lực"| D4
+  D5 -->|"Bài khảo sát đã gửi"| P53
+  D5 -->|"Bài khảo sát đã gửi"| P54
+  D5 -->|"Bài khảo sát đã gửi"| P56
+  P55 -->|"Lượt gửi và chi tiết câu trả lời"| D5
+  D9 -->|"Danh sách khảo sát cá nhân đã ẩn"| P53
+  D9 -->|"Danh sách khảo sát cá nhân đã ẩn"| P57
+  P57 -->|"Danh sách khảo sát cá nhân đã ẩn"| D9
+  P51 -->|"Mã khách cần đồng bộ"| P52
+  P51 -->|"Mã khách và yêu cầu danh sách"| P53
+  P51 -->|"Mã khảo sát, danh tính khách và câu trả lời"| P54
+  P51 -->|"Mã khảo sát cần xem bài của chính khách"| P56
+  P51 -->|"Mã khảo sát và lựa chọn ẩn hoặc khôi phục"| P57
+  P52 -->|"Quyền nhận ALL mới được đồng bộ"| P53
+  P53 -->|"Khảo sát đang chờ và lịch sử trả lời hoặc quá hạn"| P58
+  P54 -->|"Bài gửi hợp lệ và các chi tiết đã kiểm tra"| P55
+  P54 -->|"Lý do từ chối, quá hạn hoặc đã gửi"| P58
+  P55 -->|"Mã lượt gửi và thời điểm gửi thành công"| P58
+  P56 -->|"Bài gửi và các câu trả lời chỉ đọc"| P58
+  P57 -->|"Danh sách hiển thị cá nhân sau thay đổi"| P58
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH entity;
+  class P51,P52,P53,P54,P55,P56,P57,P58 process;
+  class D1,D3,D4,D5,D9 store;

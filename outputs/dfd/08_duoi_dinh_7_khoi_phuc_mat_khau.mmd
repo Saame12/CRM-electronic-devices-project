@@ -1,0 +1,44 @@
+flowchart LR
+  P71("7.1<br/>Tiếp nhận và kiểm tra<br/>dữ liệu khôi phục")
+  P72("7.2<br/>Xác minh mã cá nhân<br/>hoặc mật khẩu hiện tại")
+  P73("7.3<br/>Lập yêu cầu hỗ trợ,<br/>duyệt hoặc từ chối")
+  P74("7.4<br/>Kiểm tra phiên được duyệt<br/>và băm mật khẩu mới")
+  P75("7.5<br/>Ghi mã, trạng thái khôi phục<br/>và phiên bản xác thực")
+  P76("7.6<br/>Tra cứu trạng thái<br/>và trả kết quả")
+  KH["Khách hàng"]
+  AD["Admin"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D6[("D6. Dữ liệu khôi phục mật khẩu<br/>customer_recovery_codes, password_recovery_requests")]
+
+  KH -->|"Email, mã khôi phục, yêu cầu hỗ trợ hoặc mật khẩu mới"| P71
+  AD -->|"Bộ lọc, xác minh, quyết định và trạng thái đã đọc"| P71
+  P76 -->|"Trạng thái, phiên khôi phục và kết quả đặt mật khẩu"| KH
+  P76 -->|"Yêu cầu hỗ trợ và thông báo hoàn tất"| AD
+  D1 -->|"Tài khoản, trạng thái và hash mật khẩu hiện tại"| P72
+  D1 -->|"Tài khoản, trạng thái và hash mật khẩu hiện tại"| P73
+  D1 -->|"Tài khoản, trạng thái và hash mật khẩu hiện tại"| P74
+  P75 -->|"Hash mật khẩu mới và auth_version"| D1
+  D6 -->|"Mã đã băm, phiên và trạng thái khôi phục"| P72
+  D6 -->|"Mã đã băm, phiên và trạng thái khôi phục"| P73
+  D6 -->|"Mã đã băm, phiên và trạng thái khôi phục"| P74
+  D6 -->|"Mã đã băm, phiên và trạng thái khôi phục"| P76
+  P75 -->|"Mã đã băm, phiên và trạng thái khôi phục"| D6
+  P71 -->|"Email và mã cá nhân hoặc mật khẩu hiện tại để cấp lại mã"| P72
+  P71 -->|"Thông tin liên hệ, lý do, xác nhận xác minh và quyết định Admin"| P73
+  P71 -->|"Token khôi phục và mật khẩu mới được xác nhận"| P74
+  P71 -->|"Token tra cứu, bộ lọc hoặc dấu đã đọc"| P76
+  P72 -->|"Mã mới hoặc dữ liệu phiên APPROVED sau xác minh mã"| P75
+  P72 -->|"Lý do mã hoặc mật khẩu hiện tại không hợp lệ"| P76
+  P73 -->|"Yêu cầu PENDING hoặc quyết định APPROVED, REJECTED"| P75
+  P73 -->|"Lý do tài khoản hoặc yêu cầu không đủ điều kiện"| P76
+  P74 -->|"Hash mật khẩu mới và phiên khôi phục hợp lệ"| P75
+  P74 -->|"Lý do phiên chưa duyệt, hết hạn hoặc đã sử dụng"| P76
+  P76 -->|"Trạng thái hết hạn hoặc dấu hoàn tất đã đọc"| P75
+  P75 -->|"Token khôi phục, mã gốc mới một lần và trạng thái đã ghi"| P76
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH,AD entity;
+  class P71,P72,P73,P74,P75,P76 process;
+  class D1,D6 store;

@@ -143,16 +143,33 @@ function surveyDetailContent() {
    )
  )}</article></section>`;
 }
-async function fetchReports() {
+async function fetchReports({ keepDetail = false } = {}) {
   const sequence = ++reportSequence;
+  const actor = me?.id,
+    detailId = keepDetail ? reportDetail?.id : null;
   reportLoading = true;
   reportError = '';
-  reportDetail = null;
+  reportDetail = detailId ? { id: detailId, loading: true } : null;
   render();
   try {
-    const data = await api('/api/admin/reports/overview?' + new URLSearchParams(reportFilter));
-    if (sequence !== reportSequence || me?.role !== 'MANAGER') return;
-    reportData = data;
+    const [overview, detail] = await Promise.allSettled([
+      api('/api/admin/reports/overview?' + new URLSearchParams(reportFilter), {
+        cache: 'no-store'
+      }),
+      detailId
+        ? api('/api/admin/reports/survey-detail/' + encodeURIComponent(detailId), {
+            cache: 'no-store'
+          })
+        : Promise.resolve(null)
+    ]);
+    if (sequence !== reportSequence || me?.id !== actor || me?.role !== 'MANAGER') return;
+    if (overview.status === 'rejected') throw overview.reason;
+    reportData = overview.value;
+    if (detailId)
+      reportDetail =
+        detail.status === 'fulfilled'
+          ? { id: detailId, data: detail.value }
+          : { id: detailId, error: detail.reason.message };
   } catch (e) {
     if (sequence === reportSequence) reportError = e.message;
   } finally {
@@ -191,7 +208,7 @@ document.addEventListener(
       reportFilter = { from: '', to: '' };
       return fetchReports();
     }
-    if (action === 'reload') return fetchReports();
+    if (action === 'reload') return fetchReports({ keepDetail: true });
     if (action === 'print')
       return !reportLoading && !reportError && reportData
         ? window.print()
@@ -207,7 +224,9 @@ document.addEventListener(
       reportDetail = { id, loading: true };
       render();
       try {
-        const data = await api('/api/admin/reports/survey-detail/' + encodeURIComponent(id));
+        const data = await api('/api/admin/reports/survey-detail/' + encodeURIComponent(id), {
+          cache: 'no-store'
+        });
         if (sequence !== reportSequence || reportDetail?.id !== id || me?.role !== 'MANAGER')
           return;
         reportDetail = { id, data };

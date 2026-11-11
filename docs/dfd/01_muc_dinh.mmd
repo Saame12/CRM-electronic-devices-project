@@ -1,0 +1,92 @@
+flowchart LR
+  KH["Khách hàng"]
+  QL["Quản lý"]
+  AD["Admin"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D2[("D2. Phản hồi và câu trả lời<br/>feedback")]
+  D3[("D3. Nội dung và cấu hình khảo sát<br/>surveys, survey_questions, question_options")]
+  D4[("D4. Danh sách người nhận<br/>survey_recipients")]
+  D5[("D5. Bài gửi và câu trả lời khảo sát<br/>survey_responses, response_details")]
+  D6[("D6. Dữ liệu khôi phục mật khẩu<br/>customer_recovery_codes, password_recovery_requests")]
+  D7[("D7. Lịch sử vòng đời khảo sát<br/>survey_lifecycle_history")]
+  D8[("D8. Danh mục sản phẩm<br/>products")]
+  D9[("D9. Lựa chọn ẩn khảo sát cá nhân<br/>localStorage trên trình duyệt")]
+  P1("1.0<br/>Xác thực và quản lý phiên")
+  P2("2.0<br/>Quản lý tài khoản và hồ sơ")
+  P3("3.0<br/>Quản lý phản hồi")
+  P4("4.0<br/>Quản lý và phân phối khảo sát")
+  P5("5.0<br/>Thực hiện và tra cứu khảo sát cá nhân")
+  P6("6.0<br/>Tổng hợp và xuất báo cáo")
+  P7("7.0<br/>Khôi phục mật khẩu")
+
+  KH -->|"Thông tin đăng nhập hoặc dữ liệu phiên"| P1
+  QL -->|"Thông tin đăng nhập hoặc dữ liệu phiên"| P1
+  AD -->|"Thông tin đăng nhập hoặc dữ liệu phiên"| P1
+  P1 -->|"Kết quả xác thực, phiên và thông tin người dùng"| KH
+  P1 -->|"Kết quả xác thực, phiên và thông tin người dùng"| QL
+  P1 -->|"Kết quả xác thực, phiên và thông tin người dùng"| AD
+  D1 -->|"Tài khoản, hash mật khẩu, trạng thái và auth_version"| P1
+  KH -->|"Dữ liệu đăng ký, hồ sơ hoặc yêu cầu tra cứu cá nhân"| P2
+  AD -->|"Dữ liệu tạo, lọc hoặc xóa tài khoản"| P2
+  QL -->|"Dữ liệu tạo, lọc, tra cứu, khóa hoặc xóa khách"| P2
+  P2 -->|"Kết quả đăng ký và hồ sơ cá nhân"| KH
+  P2 -->|"Danh sách và kết quả quản trị tài khoản"| AD
+  P2 -->|"Danh sách, lịch sử và kết quả quản lý khách"| QL
+  D1 -->|"Dữ liệu tài khoản và hồ sơ"| P2
+  P2 -->|"Dữ liệu tài khoản và hồ sơ"| D1
+  D2 -->|"Phản hồi và tham chiếu người xử lý"| P2
+  D3 -->|"Cấu hình khảo sát và tham chiếu người tạo"| P2
+  D5 -->|"Lịch sử gửi khảo sát"| P2
+  P2 -->|"Người nhận mới của khảo sát ALL còn hiệu lực"| D4
+  P2 -->|"Mã khôi phục ban đầu hoặc dữ liệu cần xóa"| D6
+  KH -->|"Dữ liệu gửi, sửa, xóa hoặc tra cứu phản hồi"| P3
+  QL -->|"Bộ lọc, câu trả lời hoặc dữ liệu ẩn phản hồi"| P3
+  P3 -->|"Lịch sử phản hồi và kết quả xử lý"| KH
+  P3 -->|"Danh sách phản hồi và kết quả xử lý"| QL
+  D1 -->|"Danh tính và tình trạng lưu trữ khách"| P3
+  D2 -->|"Dữ liệu phản hồi và revision"| P3
+  P3 -->|"Phản hồi, câu trả lời, trạng thái và revision"| D2
+  D8 -->|"Danh mục sản phẩm hợp lệ"| P3
+  QL -->|"Dữ liệu nội dung, phạm vi, hạn và yêu cầu quản lý khảo sát"| P4
+  P4 -->|"Danh sách, chi tiết, người nhận phù hợp và kết quả quản lý khảo sát"| QL
+  D1 -->|"Hồ sơ khách hoạt động để lọc người nhận"| P4
+  D3 -->|"Nội dung, cấu hình và trạng thái khảo sát"| P4
+  P4 -->|"Nội dung, cấu hình và trạng thái khảo sát"| D3
+  D4 -->|"Snapshot người nhận"| P4
+  P4 -->|"Danh sách người nhận"| D4
+  D5 -->|"Số lượng và bài trả lời phục vụ kiểm tra trạng thái"| P4
+  D7 -->|"Lịch sử vòng đời nội bộ"| P4
+  P4 -->|"Bản ghi vòng đời hoặc dữ liệu nháp cần xóa"| D7
+  KH -->|"Yêu cầu đồng bộ, xem khảo sát, bài trả lời hoặc lựa chọn ẩn"| P5
+  P5 -->|"Khảo sát được nhận, bài đã gửi và kết quả xử lý"| KH
+  D1 -->|"Danh tính và trạng thái khách"| P5
+  D3 -->|"Khảo sát, câu hỏi và lựa chọn"| P5
+  D4 -->|"Quyền nhận khảo sát"| P5
+  P5 -->|"Người nhận mới của khảo sát ALL còn hiệu lực"| D4
+  D5 -->|"Bài khảo sát đã gửi"| P5
+  P5 -->|"Lượt gửi và chi tiết câu trả lời"| D5
+  D9 -->|"Danh sách khảo sát cá nhân đã ẩn"| P5
+  P5 -->|"Danh sách khảo sát cá nhân đã ẩn"| D9
+  QL -->|"Phạm vi thời gian, mã khảo sát và định dạng báo cáo"| P6
+  P6 -->|"Báo cáo tổng hợp, chi tiết, CSV hoặc bản in"| QL
+  D1 -->|"Hồ sơ phân tích gồm khách đã xóa"| P6
+  D2 -->|"Phản hồi phân tích gồm dữ liệu đã ẩn hoặc lưu trữ"| P6
+  D3 -->|"Nội dung và cấu hình khảo sát"| P6
+  D4 -->|"Tổng người nhận"| P6
+  D5 -->|"Lượt gửi và chi tiết câu trả lời"| P6
+  D8 -->|"Tên sản phẩm phục vụ thống kê"| P6
+  KH -->|"Email, mã khôi phục, yêu cầu hỗ trợ hoặc mật khẩu mới"| P7
+  AD -->|"Bộ lọc, xác minh, quyết định và trạng thái đã đọc"| P7
+  P7 -->|"Trạng thái, phiên khôi phục và kết quả đặt mật khẩu"| KH
+  P7 -->|"Yêu cầu hỗ trợ và thông báo hoàn tất"| AD
+  D1 -->|"Tài khoản, trạng thái và hash mật khẩu hiện tại"| P7
+  P7 -->|"Hash mật khẩu mới và auth_version"| D1
+  D6 -->|"Mã đã băm, phiên và trạng thái khôi phục"| P7
+  P7 -->|"Mã đã băm, phiên và trạng thái khôi phục"| D6
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH,QL,AD entity;
+  class P1,P2,P3,P4,P5,P6,P7 process;
+  class D1,D2,D3,D4,D5,D6,D7,D8,D9 store;

@@ -1,0 +1,41 @@
+flowchart LR
+  P31("3.1<br/>Tiếp nhận và phân loại<br/>dữ liệu phản hồi")
+  P32("3.2<br/>Kiểm tra chủ sở hữu,<br/>revision và dữ liệu hợp lệ")
+  P33("3.3<br/>Tạo hoặc sửa phản hồi khách<br/>Sửa thì xóa câu trả lời cũ")
+  P34("3.4<br/>Ghi hoặc sửa câu trả lời<br/>và đặt Đã giải quyết")
+  P35("3.5<br/>Xóa phản hồi của khách<br/>hoặc đổi cờ ẩn của Quản lý")
+  P36("3.6<br/>Lọc lịch sử và trả kết quả")
+  KH["Khách hàng"]
+  QL["Quản lý"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D2[("D2. Phản hồi và câu trả lời<br/>feedback")]
+  D8[("D8. Danh mục sản phẩm<br/>products")]
+
+  KH -->|"Dữ liệu gửi, sửa, xóa hoặc tra cứu phản hồi"| P31
+  QL -->|"Bộ lọc, câu trả lời hoặc dữ liệu ẩn phản hồi"| P31
+  P36 -->|"Lịch sử phản hồi và kết quả xử lý"| KH
+  P36 -->|"Danh sách phản hồi và kết quả xử lý"| QL
+  D1 -->|"Danh tính và tình trạng lưu trữ khách"| P32
+  D2 -->|"Dữ liệu phản hồi và revision"| P32
+  D2 -->|"Dữ liệu phản hồi và revision"| P36
+  P33 -->|"Phản hồi, câu trả lời, trạng thái và revision"| D2
+  P34 -->|"Phản hồi, câu trả lời, trạng thái và revision"| D2
+  P35 -->|"Phản hồi, câu trả lời, trạng thái và revision"| D2
+  D8 -->|"Danh mục sản phẩm hợp lệ"| P32
+  D8 -->|"Danh mục sản phẩm hợp lệ"| P36
+  P31 -->|"Nội dung, mã phản hồi, revision và danh tính"| P32
+  P31 -->|"Bộ lọc và yêu cầu xem phản hồi"| P36
+  P32 -->|"Phản hồi khách hợp lệ và kết quả kiểm tra phiên bản"| P33
+  P32 -->|"Câu trả lời hợp lệ, revision và dấu chỉnh sửa"| P34
+  P32 -->|"Dữ liệu xóa của chủ sở hữu hoặc cờ ẩn hợp lệ"| P35
+  P32 -->|"Lý do từ chối hoặc xung đột phiên bản"| P36
+  P33 -->|"Phản hồi Tiếp nhận với revision mới"| P36
+  P34 -->|"Câu trả lời Đã giải quyết với revision mới"| P36
+  P35 -->|"Kết quả xóa hoặc trạng thái hiển thị mới"| P36
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH,QL entity;
+  class P31,P32,P33,P34,P35,P36 process;
+  class D1,D2,D8 store;

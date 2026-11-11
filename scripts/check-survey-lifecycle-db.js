@@ -50,6 +50,8 @@ async function main() {
       signal: AbortSignal.timeout(10000)
     });
     const data = await r.json();
+    if (path.startsWith('/api/admin/reports/') && r.ok)
+      assert.equal(r.headers.get('cache-control'), 'no-store');
     assert.equal(r.status, status, path + ': ' + (data.error || ''));
     checks++;
     return data;
@@ -122,12 +124,34 @@ async function main() {
   }, admin.token, 201);
   const newManager = await login('new-manager@example.invalid', 'Manager@123', 'MANAGER');
   assert.equal(newManager.user.role, 'MANAGER'); checks++;
-  const managerCustomerBody = { name: 'Ngày sinh nhập tay', email: 'manager-dob@example.invalid', phone: '0897777703', password: 'Initial@123', birthDateText: '29/02/2000' };
+  const managerCustomerBody = { name: 'Ngày sinh nhập tay', email: 'manager-dob@example.invalid', phone: '0897777703', password: 'Initial@123', birthDateText: '29/02/2000', gender: 'Nữ' };
   for (const birthDateText of ['31/02/2000', '29/02/2001', '2000-02-29', '01/01/2999'])
     await req('/api/admin/customers', { ...managerCustomerBody, birthDateText }, manager.token, 400);
+  for (const birthDateText of ['', '   ', undefined])
+    await req('/api/admin/customers', { ...managerCustomerBody, birthDateText }, manager.token, 400);
+  for (const gender of ['', undefined, 'Chưa khai báo', 'Không hợp lệ'])
+    await req('/api/admin/customers', { ...managerCustomerBody, gender }, manager.token, 400);
+  const [[notInserted]] = await c.execute('SELECT COUNT(*) n FROM users WHERE email=?', [managerCustomerBody.email]);
+  assert.equal(notInserted.n, 0); checks++;
   const managerCreatedCustomer = await req('/api/admin/customers', managerCustomerBody, manager.token, 201);
   const details = await req('/api/admin/customers/' + managerCreatedCustomer.id, null, manager.token);
   assert.equal(details.customer.birthDate, '2000-02-29'); checks++;
+  assert.equal(details.customer.gender, 'Nữ'); checks++;
+  const newCustomer = await login(managerCustomerBody.email, managerCustomerBody.password);
+  assert.equal(newCustomer.user.needConfirmed, false); checks++;
+  await req('/api/feedback', null, newCustomer.token, 403);
+  await req('/api/surveys', null, newCustomer.token, 403);
+  const newProfile = {name:managerCustomerBody.name,phone:managerCustomerBody.phone,addr:'Hà Nội',birthDate:'2000-02-29',gender:'Nữ',need:'',interests:[]};
+  await req('/api/me', newProfile, newCustomer.token, 400, 'PUT');
+  const updatedProfile = await req('/api/me', {...newProfile,need:'Chưa xác định'}, newCustomer.token, 200, 'PUT');
+  assert.equal(updatedProfile.user.needConfirmed,true); checks++;
+  await req('/api/feedback', null, newCustomer.token, 200);
+  const loggedAgain = await login(managerCustomerBody.email, managerCustomerBody.password);
+  assert.equal(loggedAgain.user.needConfirmed,true); checks++;
+  const firstReport = await req('/api/admin/reports/overview',null,manager.token);
+  await req('/api/me', {...newProfile,need:'Gaming'}, newCustomer.token, 200, 'PUT');
+  const secondReport = await req('/api/admin/reports/overview',null,manager.token);
+  assert.equal(secondReport.customers.byNeed.find(x=>x.label==='Gaming').total,firstReport.customers.byNeed.find(x=>x.label==='Gaming').total+1); checks++;
   await req('/api/admin/surveys', { ...baseBody, dueDate: '' }, manager.token, 400);
   await req('/api/admin/surveys', { ...baseBody, endMode: undefined }, manager.token, 400);
   await req('/api/admin/surveys', { ...baseBody, endMode: '' }, manager.token, 400);

@@ -1,0 +1,26 @@
+flowchart LR
+  P11("1.1<br/>Tiếp nhận dữ liệu xác thực")
+  P12("1.2<br/>Xác minh mật khẩu hoặc JWT<br/>và trạng thái tài khoản")
+  P13("1.3<br/>Cấp phiên, trả danh tính<br/>hoặc xóa phiên tại trình duyệt")
+  KH["Khách hàng"]
+  QL["Quản lý"]
+  AD["Admin"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+
+  KH -->|"Thông tin đăng nhập hoặc dữ liệu phiên"| P11
+  QL -->|"Thông tin đăng nhập hoặc dữ liệu phiên"| P11
+  AD -->|"Thông tin đăng nhập hoặc dữ liệu phiên"| P11
+  P13 -->|"Kết quả xác thực, phiên và thông tin người dùng"| KH
+  P13 -->|"Kết quả xác thực, phiên và thông tin người dùng"| QL
+  P13 -->|"Kết quả xác thực, phiên và thông tin người dùng"| AD
+  D1 -->|"Tài khoản, hash mật khẩu, trạng thái và auth_version"| P12
+  P11 -->|"Email, mật khẩu, cổng đăng nhập hoặc JWT"| P12
+  P11 -->|"Dữ liệu yêu cầu kết thúc phiên"| P13
+  P12 -->|"Danh tính đã xác minh, thời hạn hoặc lý do từ chối"| P13
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH,QL,AD entity;
+  class P11,P12,P13 process;
+  class D1 store;

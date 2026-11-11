@@ -1,6 +1,108 @@
 let feedbackEditing = null;
+function productPicker(id, selected = '') {
+  return `<div class="product-picker" data-product-picker><label for="${id}-search">Sản phẩm</label><div class="product-search-row"><input id="${id}-search" type="search" name="productSearch" value="${esc(selected)}" placeholder="Nhập tên sản phẩm, ví dụ Lenovo" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${id}-options" data-product-search><button type="button" data-product-toggle aria-label="Mở danh sách sản phẩm" title="Mở danh sách sản phẩm">▾</button></div><input type="hidden" name="prod" value="${esc(selected)}"><div id="${id}-options" class="product-options" role="listbox" aria-label="Sản phẩm phù hợp" hidden></div><small class="mu">Nhập tên để lọc, sau đó chọn sản phẩm trong danh sách.</small></div>`;
+}
+function matchingProducts(query) {
+  const fold = (v) =>
+    String(v)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/gi, 'd')
+      .toLowerCase();
+  const words = fold(query).trim().split(/\s+/).filter(Boolean);
+  return PRODS.filter((p) => words.every((word) => fold(p).includes(word)));
+}
+function closeProductPicker(picker) {
+  picker.querySelector('[role="listbox"]').hidden = true;
+  const input = picker.querySelector('[data-product-search]');
+  input.setAttribute('aria-expanded', 'false');
+  input.removeAttribute('aria-activedescendant');
+  delete input.dataset.activeIndex;
+}
+function showProductOptions(picker, all = false) {
+  const input = picker.querySelector('[data-product-search]'),
+    list = picker.querySelector('[role="listbox"]');
+  const matches = matchingProducts(all ? '' : input.value);
+  list.innerHTML = matches.length
+    ? matches
+        .map(
+          (p, i) =>
+            `<button type="button" id="${list.id}-${i}" role="option" aria-selected="${picker.querySelector('[name="prod"]').value === p}" data-product-option="${esc(p)}">${esc(p)}</button>`
+        )
+        .join('')
+    : '<p role="status">Không tìm thấy sản phẩm phù hợp.</p>';
+  list.hidden = false;
+  input.setAttribute('aria-expanded', 'true');
+  input.removeAttribute('aria-activedescendant');
+  delete input.dataset.activeIndex;
+}
+function selectProduct(picker, product) {
+  picker.querySelector('[data-product-search]').value = product;
+  picker.querySelector('[name="prod"]').value = product;
+  closeProductPicker(picker);
+}
+document.addEventListener('input', (e) => {
+  if (!e.target.matches('[data-product-search]')) return;
+  const picker = e.target.closest('[data-product-picker]');
+  picker.querySelector('[name="prod"]').value = PRODS.includes(e.target.value.trim())
+    ? e.target.value.trim()
+    : '';
+  showProductOptions(picker);
+});
+document.addEventListener('focusin', (e) => {
+  if (e.target.matches('[data-product-search]'))
+    showProductOptions(e.target.closest('[data-product-picker]'));
+});
+document.addEventListener('focusout', (e) => {
+  const picker = e.target.closest('[data-product-picker]');
+  if (picker && !picker.contains(e.relatedTarget)) closeProductPicker(picker);
+});
+document.addEventListener('click', (e) => {
+  const option = e.target.closest('[data-product-option]');
+  if (option)
+    return selectProduct(option.closest('[data-product-picker]'), option.dataset.productOption);
+  const toggle = e.target.closest('[data-product-toggle]');
+  if (toggle) {
+    const picker = toggle.closest('[data-product-picker]');
+    return picker.querySelector('[role="listbox"]').hidden
+      ? showProductOptions(picker, true)
+      : closeProductPicker(picker);
+  }
+  const input = e.target.closest('[data-product-search]');
+  if (input) return showProductOptions(input.closest('[data-product-picker]'));
+  for (const picker of document.querySelectorAll('[data-product-picker]'))
+    if (!picker.contains(e.target)) closeProductPicker(picker);
+});
+document.addEventListener('keydown', (e) => {
+  if (!e.target.matches('[data-product-search]')) return;
+  const input = e.target,
+    picker = input.closest('[data-product-picker]');
+  if (e.key === 'Escape' || e.key === 'Tab') {
+    closeProductPicker(picker);
+    return;
+  }
+  if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return;
+  const list = picker.querySelector('[role="listbox"]');
+  if (e.key !== 'Enter' && list.hidden) showProductOptions(picker);
+  const options = [...list.querySelectorAll('[role="option"]')];
+  if (!options.length || (e.key === 'Enter' && input.dataset.activeIndex === undefined)) return;
+  e.preventDefault();
+  if (e.key === 'Enter')
+    return selectProduct(picker, options[Number(input.dataset.activeIndex)].dataset.productOption);
+  const old =
+    input.dataset.activeIndex === undefined
+      ? e.key === 'ArrowDown'
+        ? -1
+        : 0
+      : Number(input.dataset.activeIndex);
+  const index = (old + (e.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+  input.dataset.activeIndex = String(index);
+  input.setAttribute('aria-activedescendant', options[index].id);
+  options.forEach((o, i) => o.classList.toggle('active', i === index));
+  options[index].scrollIntoView({ block: 'nearest' });
+});
 function feedbackEditForm(f) {
-  return `<form id="fbEdit" class="card"><h3>Chỉnh sửa phản hồi</h3><p class="mu">Lưu thay đổi sẽ xóa câu trả lời cũ của Quản lý và chuyển về Tiếp nhận.</p><input type="hidden" name="feedbackId" value="${esc(f.id)}"><input type="hidden" name="revision" value="${Number(f.revision) || 0}"><label>Sản phẩm<select name="prod">${PRODS.map((p) => `<option${p === f.prod ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select></label><label>Loại phản hồi<select name="type">${FTYPE.map((t) => `<option${t === f.type ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label><label>Đánh giá<select name="rate">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}"${n === Number(f.rate) ? ' selected' : ''}>${n} sao</option>`).join('')}</select></label><label>Tiêu đề<input name="title" maxlength="80" value="${esc(f.title)}"></label><label>Nội dung<textarea name="body" maxlength="5000" required>${esc(f.body)}</textarea></label><div class="err" role="alert" data-form-error></div><button type="submit" class="btn pri">Lưu thay đổi</button> <button type="button" class="btn sm" data-act="feedback-cancel">Hủy</button></form>`;
+  return `<form id="fbEdit" class="card"><h3>Chỉnh sửa phản hồi</h3><p class="mu">Lưu thay đổi sẽ xóa câu trả lời cũ của Quản lý và chuyển về Tiếp nhận.</p><input type="hidden" name="feedbackId" value="${esc(f.id)}"><input type="hidden" name="revision" value="${Number(f.revision) || 0}">${productPicker('feedback-edit-product', f.prod)}<label>Loại phản hồi<select name="type">${FTYPE.map((t) => `<option${t === f.type ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label><label>Đánh giá<select name="rate">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}"${n === Number(f.rate) ? ' selected' : ''}>${n} sao</option>`).join('')}</select></label><label>Tiêu đề<input name="title" maxlength="80" value="${esc(f.title)}"></label><label>Nội dung<textarea name="body" maxlength="5000" required>${esc(f.body)}</textarea></label><div class="err" role="alert" data-form-error></div><button type="submit" class="btn pri">Lưu thay đổi</button> <button type="button" class="btn sm" data-act="feedback-cancel">Hủy</button></form>`;
 }
 /* ==========================================
    1. CÁC HÀM TIỆN ÍCH CƠ BẢN & DỮ LIỆU MẪU
@@ -78,7 +180,12 @@ async function api(url, options = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(url, { credentials: 'same-origin', ...options, headers });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Không thể kết nối đến máy chủ.');
+  if (!res.ok) {
+    const error = new Error(data.error || 'Không thể kết nối đến máy chủ.');
+    error.status = res.status;
+    error.code = data.code;
+    throw error;
+  }
   return data;
 }
 
@@ -97,17 +204,40 @@ async function refreshData() {
   SV = surveysResult.surveys;
 }
 
+async function enterCustomerWorkspace() {
+  applyProfileGate();
+  // Authentication already succeeded. Never leave the login form visible while loading CRM data.
+  render();
+  if (onboarding) return;
+  try {
+    await refreshData();
+  } catch (error) {
+    if (error.code === 'NEED_CONFIRMATION_REQUIRED') {
+      // The server is authoritative, including when the page had old profile metadata.
+      me.needConfirmed = false;
+      applyProfileGate();
+      render();
+      return;
+    }
+    if (error.status === 401) {
+      sessionStorage.removeItem(TOKEN_KEY);
+      me = null;
+    } else toast('Chưa tải được dữ liệu: ' + error.message);
+  }
+  render();
+}
+
 async function restoreSession() {
   // Cookie HttpOnly được trình duyệt gửi tự động khi tải lại trang.
   try {
     me = (await api('/api/me')).user;
-    applyProfileGate();
-    if (!onboarding) await refreshData();
   } catch (_) {
     sessionStorage.removeItem(TOKEN_KEY);
     me = null;
+    render();
+    return;
   }
-  render();
+  await enterCustomerWorkspace();
 }
 
 /* ==========================================
@@ -153,7 +283,8 @@ const profileNeedsCompletion = () =>
       !String(me.addr || '').trim() ||
       !BirthDate.validISO(me.birthDate) ||
       !['Nam', 'Nữ', 'Khác'].includes(me.gender) ||
-      !NEEDS.includes(me.need))
+      !NEEDS.includes(me.need) ||
+      me.needConfirmed === false)
   );
 // LOGIC ĐIỀU HƯỚNG: Tính hồ sơ còn thiếu -> chặn giao diện khảo sát và mở thông báo bắt buộc.
 // Cờ sessionStorage chỉ hỗ trợ UI; không phải quyền truy cập backend hay dữ liệu hồ sơ trong DB.
@@ -240,7 +371,7 @@ function auth() {
 // Giao diện trang chủ sau khi đăng nhập
 function main() {
   if (onboarding)
-    return `<section class="onboarding"><span class="eyebrow">HOÀN THIỆN TÀI KHOẢN</span><h1>Hoàn thiện thông tin cá nhân</h1><p class="mu">Bạn cần lưu đầy đủ thông tin trước khi sử dụng khảo sát.</p>${profView()}</section>`;
+    return `<section class="onboarding"><span class="eyebrow">HOÀN THIỆN TÀI KHOẢN</span><h1>Hoàn thiện thông tin cá nhân</h1><p class="mu">Bạn cần lưu đầy đủ thông tin và chủ động chọn nhu cầu trước khi sử dụng khảo sát và phản hồi.</p>${profView()}</section>`;
   const n = pending().length;
   const nav = [
     ['survey', 'Khảo sát', 'survey'],
@@ -340,7 +471,7 @@ function svForm(s) {
 function fbView() {
   const L = FB[me.email] || [];
   return (
-    `<div class="feedback-layout"><form id="fb" class="card feedback-form" novalidate><span class="eyebrow">KẾT NỐI VỚI BACKLINE</span><h1>Gửi phản hồi về sản phẩm</h1><p class="mu">Bạn cần tư vấn hoặc hỗ trợ? Gửi phản hồi tại đây và theo dõi câu trả lời của Backline bên cạnh.</p><div class="grid"><label>Sản phẩm<select name="prod"><option value="">Chọn sản phẩm</option>${PRODS.map((p) => `<option>${esc(p)}</option>`).join('')}</select></label><label>Loại phản hồi<select name="type">${FTYPE.map((p) => `<option>${p}</option>`).join('')}</select></label></div><label>Mức độ hài lòng${stars('fbRate', 0)}</label><label>Tiêu đề<input name="title" maxlength="80" placeholder="Tóm tắt ngắn gọn"></label><label>Nội dung<textarea name="body" placeholder="Bạn thấy sản phẩm thế nào? Có vấn đề gì cần hỗ trợ không?"></textarea></label><div class="err" id="err" role="alert"></div><button class="btn pri">Gửi phản hồi</button></form><section class="feedback-history"><div class="section-heading"><h2>Phản hồi đã gửi (${L.length})</h2></div>` +
+    `<div class="feedback-layout"><form id="fb" class="card feedback-form" novalidate><span class="eyebrow">KẾT NỐI VỚI BACKLINE</span><h1>Gửi phản hồi về sản phẩm</h1><p class="mu">Bạn cần tư vấn hoặc hỗ trợ? Gửi phản hồi tại đây và theo dõi câu trả lời của Backline bên cạnh.</p><div class="grid">${productPicker('feedback-new-product')}<label>Loại phản hồi<select name="type">${FTYPE.map((p) => `<option>${p}</option>`).join('')}</select></label></div><label>Mức độ hài lòng${stars('fbRate', 0)}</label><label>Tiêu đề<input name="title" maxlength="80" placeholder="Tóm tắt ngắn gọn"></label><label>Nội dung<textarea name="body" placeholder="Bạn thấy sản phẩm thế nào? Có vấn đề gì cần hỗ trợ không?"></textarea></label><div class="err" id="err" role="alert"></div><button class="btn pri">Gửi phản hồi</button></form><section class="feedback-history"><div class="section-heading"><h2>Phản hồi đã gửi (${L.length})</h2></div>` +
     (L.length
       ? L.map(
           (f) =>
@@ -357,7 +488,7 @@ function fbView() {
 
 // Giao diện Thông tin cá nhân (Profile)
 function profView() {
-  return `<form id="prof" class="card" novalidate><fieldset class="profile-section"><legend>Thông tin cơ bản</legend><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" value="${esc(BirthDate.display(me.birthDate))}" placeholder="dd/mm/yyyy"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map((g) => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Chọn giới tính'}</option>`).join('')}</select></label></div></fieldset><fieldset class="profile-section"><legend>Nhu cầu sử dụng</legend><p class="mu">Giúp Backline gợi ý sản phẩm phù hợp với bạn.</p><label>Nhu cầu sử dụng PC / laptop<select name="need" required><option value="" disabled${!NEEDS.includes(me.need) ? ' selected' : ''}>Vui lòng chọn nhu cầu sử dụng</option>${NEEDS.map((g) => `<option value="${g}"${me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label></fieldset>${interestFields(me.interests || [])}<div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>${typeof recoveryCodePanel === 'function' ? recoveryCodePanel() : ''}`;
+  return `<form id="prof" class="card" novalidate><fieldset class="profile-section"><legend>Thông tin cơ bản</legend><label>Email (dùng để đăng nhập)<input value="${esc(me.email)}" readonly></label><div class="grid"><label>Họ và tên<input name="name" value="${esc(me.name)}"></label><label>Số điện thoại<input name="phone" type="tel" value="${esc(me.phone)}"></label></div><label>Địa chỉ<input name="addr" value="${esc(me.addr)}" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"></label><div class="grid"><label>Ngày sinh<input name="birthDate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" value="${esc(BirthDate.display(me.birthDate))}" placeholder="dd/mm/yyyy"></label><label>Giới tính<select name="gender">${['', 'Nam', 'Nữ', 'Khác'].map((g) => `<option value="${g}"${me.gender === g ? ' selected' : ''}>${g || 'Chọn giới tính'}</option>`).join('')}</select></label></div></fieldset><fieldset class="profile-section"><legend>Nhu cầu sử dụng</legend><p class="mu">Vui lòng chủ động chọn một nhu cầu. Nếu chưa có nhu cầu cụ thể, bạn có thể chọn Chưa xác định.</p><label>Nhu cầu sử dụng PC / laptop<select name="need" required><option value="" disabled${me.needConfirmed === false || !NEEDS.includes(me.need) ? ' selected' : ''}>Vui lòng chọn nhu cầu sử dụng</option>${NEEDS.map((g) => `<option value="${g}"${me.needConfirmed !== false && me.need === g ? ' selected' : ''}>${g}</option>`).join('')}</select></label></fieldset>${interestFields(me.interests || [])}<div class="err" id="err" role="alert"></div><button class="btn pri">Lưu thay đổi</button></form>${typeof recoveryCodePanel === 'function' ? recoveryCodePanel() : ''}`;
 }
 
 /* ==========================================
@@ -387,10 +518,9 @@ const H = {
     showHiddenSurveys = false;
     tab = 'survey';
     open = null;
-    applyProfileGate();
-    if (!onboarding) await refreshData();
-    render();
-    if (onboarding) return;
+    SV = [];
+    await enterCustomerWorkspace();
+    if (!me || onboarding) return;
     const n = pending().length;
     toast(n ? `Xin chào ${me.name}. Bạn có ${n} khảo sát mới` : `Xin chào ${me.name}`);
   },
@@ -488,6 +618,7 @@ const H = {
   // LOGIC: POST trước, sau thành công mới thêm feedback trả về vào đầu FB để hiển thị ngay.
   // Không thêm dữ liệu giả vào danh sách nếu API báo lỗi.
   async fbEdit(v) {
+    if (!v.prod) throw Error('Vui lòng chọn sản phẩm trong danh sách gợi ý.');
     if (!String(v.body || '').trim())
       throw Error('Nội dung phản hồi cần ít nhất 1 ký tự không phải khoảng trắng.');
     const owner = me?.id;
@@ -504,7 +635,7 @@ const H = {
   },
   async fb(v) {
     const r = +$('#fbRate').dataset.val;
-    if (!v.prod) return setErr('Vui lòng chọn sản phẩm.');
+    if (!v.prod) return setErr('Vui lòng chọn sản phẩm trong danh sách gợi ý.');
     if (!r) return setErr('Vui lòng chọn số sao đánh giá.');
     if (v.body.trim().length < 1)
       return setErr('Nội dung phản hồi cần ít nhất 1 ký tự không phải khoảng trắng.');

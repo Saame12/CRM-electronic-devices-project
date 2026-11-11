@@ -1,0 +1,55 @@
+{
+  "reviewDate": "2026-11-09",
+  "diagrams": 9,
+  "balancedDecompositions": 7,
+  "allFlowsLabeled": true,
+  "noDirectEntityStoreOrStoreStoreFlows": true,
+  "allProcessesHaveInputAndOutput": true,
+  "items": [
+    {
+      "file": "00_ngu_canh.mmd",
+      "nodes": 4,
+      "flows": 6
+    },
+    {
+      "file": "01_muc_dinh.mmd",
+      "nodes": 19,
+      "flows": 64
+    },
+    {
+      "file": "02_duoi_dinh_1_xac_thuc.mmd",
+      "nodes": 7,
+      "flows": 10
+    },
+    {
+      "file": "03_duoi_dinh_2_tai_khoan.mmd",
+      "nodes": 15,
+      "flows": 28
+    },
+    {
+      "file": "04_duoi_dinh_3_phan_hoi.mmd",
+      "nodes": 11,
+      "flows": 21
+    },
+    {
+      "file": "05_duoi_dinh_4_quan_ly_khao_sat.mmd",
+      "nodes": 15,
+      "flows": 41
+    },
+    {
+      "file": "06_duoi_dinh_5_lam_khao_sat.mmd",
+      "nodes": 14,
+      "flows": 30
+    },
+    {
+      "file": "07_duoi_dinh_6_bao_cao.mmd",
+      "nodes": 11,
+      "flows": 12
+    },
+    {
+      "file": "08_duoi_dinh_7_khoi_phuc_mat_khau.mmd",
+      "nodes": 10,
+      "flows": 25
+    }
+  ]
+}

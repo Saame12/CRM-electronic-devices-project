@@ -65,6 +65,7 @@ const publicUser = (u) => ({
   birthDate: BirthDate.fromDatabase(u.birth_date),
   gender: u.gender,
   need: u.need,
+  needConfirmed: Boolean(u.need_confirmed),
   interests: u.interests || [],
   role: u.role,
   erased: Boolean(u.erased_at),
@@ -91,6 +92,15 @@ const auth = wrap(async (req, res, next) => {
       });
     if (Number(payload.ver || 0) !== Number(rows[0].auth_version || 0))
       return res.status(401).json({ error: 'Mật khẩu đã thay đổi. Vui lòng đăng nhập lại.' });
+    if (
+      rows[0].role === 'CUSTOMER' &&
+      !rows[0].need_confirmed &&
+      /^\/api\/(?:feedback(?:\/|$)|surveys(?:\/|$)|survey-status$)/.test(req.path)
+    )
+      return res.status(403).json({
+        code: 'NEED_CONFIRMATION_REQUIRED',
+        error: 'Vui lòng chọn và lưu nhu cầu sử dụng trong thông tin cá nhân trước khi tiếp tục.'
+      });
     await Interests.attach(db, rows);
     req.user = rows[0];
     next();
@@ -294,7 +304,7 @@ app.put(
       if (!active || active.account_status !== 'ACTIVE' || active.erased_at)
         V.fail('Tài khoản không còn hoạt động.', 403);
       await c.execute(
-        'UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,birth_date=?,gender=?,need=? WHERE id=?',
+        'UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,birth_date=?,gender=?,need=?,need_confirmed=TRUE WHERE id=?',
         [
           value.name,
           value.phone,
@@ -442,7 +452,7 @@ app.post(
     }
     const value = V.profile(
         { ...req.body, birthDate, need: 'Chưa xác định', interests: [] },
-        { complete: false }
+        { complete: false, requireBirthDate: true, requireGender: true }
       ),
       email = String(req.body.email || '')
         .trim()
@@ -471,7 +481,8 @@ app.post(
     });
     res.status(201).json({
       id,
-      message: 'Đã tạo khách hàng. Khách cần hoàn thiện hồ sơ trước khi sử dụng đầy đủ.'
+      message:
+        'Đã tạo khách hàng. Khách cần hoàn thiện hồ sơ và xác nhận nhu cầu trước khi sử dụng.'
     });
   })
 );
@@ -959,6 +970,7 @@ async function start() {
   await SurveyLifecycle.ensureSchema(db);
   await FeedbackService.ensureSchema(db);
   await Retention.ensureSchema(db);
+  await require('./customer-need').ensureSchema(db);
   await seed();
   await SurveyExpiry.closeExpired(db);
   SurveyExpiry.schedule(db);

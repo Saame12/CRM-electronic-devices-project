@@ -9,11 +9,52 @@ async function environment(user){const nodes=new Map(),events=[],storage=new Map
  vm.runInContext('api=record;refreshData=async()=>countRefresh()',context);
  return {context,node,storage,events,get fetched(){return fetched},get saves(){return saves}};
 }
+test('Need rejection after successful login opens completion instead of leaving the login form visible',async()=>{
+ const env=await environment({...complete,need:'Chưa xác định'});
+ vm.runInContext("refreshData=async()=>{const e=Error('Vui lòng chọn và lưu nhu cầu');e.status=403;e.code='NEED_CONFIRMATION_REQUIRED';throw e}",env.context);
+ await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
+ assert.equal(vm.runInContext('me.id',env.context),'customer');
+ assert.equal(vm.runInContext('onboarding',env.context),true);
+ assert.equal(vm.runInContext('me.needConfirmed',env.context),false);
+ assert.ok(env.node('#app').innerHTML.includes('Hoàn thiện thông tin cá nhân'));
+ assert.ok(!env.node('#app').innerHTML.includes('id="login"'));
+});
+
+test('Cookie restore keeps the authenticated customer when a business API requests need confirmation',async()=>{
+ const env=await environment({...complete,need:'Chưa xác định'});
+ vm.runInContext("refreshData=async()=>{const e=Error('Vui lòng chọn nhu cầu');e.status=403;e.code='NEED_CONFIRMATION_REQUIRED';throw e}",env.context);
+ await vm.runInContext('restoreSession()',env.context);
+ assert.equal(vm.runInContext('me.id',env.context),'customer');
+ assert.equal(vm.runInContext('onboarding',env.context),true);
+ assert.ok(env.node('#onboardingDialog').open);
+});
+
+test('Business network failure after login does not become an authentication failure',async()=>{
+ const env=await environment(complete);
+ vm.runInContext("refreshData=async()=>{throw Error('Mất kết nối')}",env.context);
+ await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
+ assert.equal(vm.runInContext('me.id',env.context),'customer');
+ assert.ok(!env.node('#app').innerHTML.includes('id="login"'));
+});
+
+test('Staff-created default need must be explicitly confirmed even with every other profile field complete',async()=>{
+ const env=await environment({...complete,need:'Chưa xác định',needConfirmed:false});
+ await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
+ assert.equal(vm.runInContext('onboarding',env.context),true); assert.equal(env.fetched,0);
+ const html=vm.runInContext('profView()',env.context);
+ assert.ok(html.includes('value="" disabled selected>Vui lòng chọn nhu cầu sử dụng'));
+ assert.ok(!html.includes('value="Chưa xác định" selected'));
+ await vm.runInContext("H.prof({name:'Khách',phone:'0901234567',addr:'Hà Nội',birthDate:'21/10/1998',gender:'Nữ',need:''})",env.context);
+ assert.equal(env.saves,0);
+ await vm.runInContext("H.prof({name:'Khách',phone:'0901234567',addr:'Hà Nội',birthDate:'21/10/1998',gender:'Nữ',need:'Chưa xác định'})",env.context);
+ assert.equal(env.saves,1); assert.equal(vm.runInContext('onboarding',env.context),false);
+});
+
 test('Incomplete login shows a non-dismissible OK dialog and keeps surveys locked',async()=>{
  const env=await environment({...complete,addr:'   '});await vm.runInContext("H.login({email:'test@example.invalid',pass:'example-pass'})",env.context);
  assert.equal(vm.runInContext('onboarding',env.context),true);assert.equal(env.fetched,0);assert.ok(env.node('#profileModal').innerHTML.includes('data-act="begin-onboarding"'));assert.ok(!env.node('#profileModal').innerHTML.includes('profile-close'));assert.ok(env.node('#onboardingDialog').open);
  let prevented=false;env.node('#onboardingDialog').oncancel({preventDefault(){prevented=true}});assert.ok(prevented);
- const click=env.events.find(x=>x.type==='click').handler;click({target:{closest:()=>({dataset:{act:'begin-onboarding'}})}});
+ const click=env.events.find(x=>x.type==='click' && x.handler.toString().includes("'[data-act]'")).handler;click({target:{closest:()=>({dataset:{act:'begin-onboarding'}})}});
  assert.equal(vm.runInContext('onboardingNoticeOpen',env.context),false);assert.equal(vm.runInContext('onboarding',env.context),true);assert.ok(env.node('#app').innerHTML.includes('Hoàn thiện thông tin cá nhân'));assert.ok(!env.node('#app').innerHTML.includes('data-act="tab"'));
  click({target:{closest:()=>({dataset:{act:'tab',v:'fb'}})}});assert.equal(vm.runInContext('tab',env.context),'survey');
 });

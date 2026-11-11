@@ -34,7 +34,7 @@ test('Account list filters combine name/email/phone, role and status without rol
  const customerForm=vm.runInContext("accountCreateKind='CUSTOMER';accountPage()",c);
  for(const field of ['name','email','phone','password','addr','birthDateText','gender']) assert.ok(customerForm.includes('name="'+field+'"'));
  for(const field of ['need','interests']) assert.ok(!customerForm.includes('name="'+field+'"'));
- const managerCustomer=vm.runInContext("showCustomerCreate=true;customerPage()",c); for(const field of ['need','interests']) assert.ok(!managerCustomer.includes('name="'+field+'"'));
+ const managerCustomer=vm.runInContext("showCustomerCreate=true;customerPage()",c); assert.match(managerCustomer,/<input[^>]*name="birthDateText"[^>]*required/); assert.match(managerCustomer,/<select name="gender" required>/); assert.ok(!managerCustomer.includes('Có thể tạo hồ sơ ban đầu thiếu'));  for(const field of ['need','interests']) assert.ok(!managerCustomer.includes('name="'+field+'"'));
  assert.ok(customerForm.includes('name="role" value="CUSTOMER"')); assert.ok(!customerForm.includes('disabled title="Quản lý'));
  const managerForm=vm.runInContext("accountCreateKind='MANAGER';accountPage()",c); assert.ok(managerForm.includes('name="role" value="MANAGER"')); for(const field of ['addr','birthDateText','gender','need','interests']) assert.ok(!managerForm.includes('name="'+field+'"'));
  assert.equal(vm.runInContext("accountFilters={q:'AN@TEST',role:'CUSTOMER',status:'ACTIVE'};filteredAccounts().length",c),1);

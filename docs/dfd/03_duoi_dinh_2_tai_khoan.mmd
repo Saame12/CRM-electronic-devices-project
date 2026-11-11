@@ -1,0 +1,52 @@
+flowchart LR
+  P21("2.1<br/>Tiếp nhận và phân loại<br/>yêu cầu tài khoản")
+  P22("2.2<br/>Tra cứu, lọc và tổng hợp<br/>hồ sơ hoặc lịch sử")
+  P23("2.3<br/>Tạo tài khoản, cập nhật hồ sơ<br/>hoặc khóa khách")
+  P24("2.4<br/>Kiểm tra và xóa quyền truy cập<br/>hoặc tài khoản đủ điều kiện")
+  P25("2.5<br/>Đồng bộ người nhận ALL<br/>cho đăng ký và Admin tạo khách")
+  P26("2.6<br/>Trả kết quả theo vai trò")
+  KH["Khách hàng"]
+  AD["Admin"]
+  QL["Quản lý"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D2[("D2. Phản hồi và câu trả lời<br/>feedback")]
+  D3[("D3. Nội dung và cấu hình khảo sát<br/>surveys, survey_questions, question_options")]
+  D5[("D5. Bài gửi và câu trả lời khảo sát<br/>survey_responses, response_details")]
+  D4[("D4. Danh sách người nhận<br/>survey_recipients")]
+  D6[("D6. Dữ liệu khôi phục mật khẩu<br/>customer_recovery_codes, password_recovery_requests")]
+
+  KH -->|"Dữ liệu đăng ký, hồ sơ hoặc yêu cầu tra cứu cá nhân"| P21
+  AD -->|"Dữ liệu tạo, lọc hoặc xóa tài khoản"| P21
+  QL -->|"Dữ liệu tạo, lọc, tra cứu, khóa hoặc xóa khách"| P21
+  P26 -->|"Kết quả đăng ký và hồ sơ cá nhân"| KH
+  P26 -->|"Danh sách và kết quả quản trị tài khoản"| AD
+  P26 -->|"Danh sách, lịch sử và kết quả quản lý khách"| QL
+  D1 -->|"Dữ liệu tài khoản và hồ sơ"| P22
+  D1 -->|"Dữ liệu tài khoản và hồ sơ"| P23
+  D1 -->|"Dữ liệu tài khoản và hồ sơ"| P24
+  D1 -->|"Dữ liệu tài khoản và hồ sơ"| P25
+  P23 -->|"Dữ liệu tài khoản và hồ sơ"| D1
+  P24 -->|"Dữ liệu tài khoản và hồ sơ"| D1
+  D2 -->|"Phản hồi và tham chiếu người xử lý"| P22
+  D2 -->|"Phản hồi và tham chiếu người xử lý"| P24
+  D3 -->|"Cấu hình khảo sát và tham chiếu người tạo"| P24
+  D3 -->|"Cấu hình khảo sát và tham chiếu người tạo"| P25
+  D5 -->|"Lịch sử gửi khảo sát"| P22
+  P25 -->|"Người nhận mới của khảo sát ALL còn hiệu lực"| D4
+  P23 -->|"Mã khôi phục ban đầu hoặc dữ liệu cần xóa"| D6
+  P24 -->|"Mã khôi phục ban đầu hoặc dữ liệu cần xóa"| D6
+  P21 -->|"Bộ lọc, mã khách và phạm vi lịch sử"| P22
+  P21 -->|"Hồ sơ, loại tài khoản hoặc trạng thái đề nghị"| P23
+  P21 -->|"Mã tài khoản và vai trò người xóa"| P24
+  P23 -->|"Mã khách vừa tạo qua luồng có đồng bộ ngay"| P25
+  P22 -->|"Danh sách hoặc hồ sơ và sự kiện lịch sử"| P26
+  P23 -->|"Hồ sơ đã lưu, phiên đăng ký hoặc mã khôi phục ban đầu"| P26
+  P24 -->|"Kết quả xóa hoặc lý do bị chặn"| P26
+  P25 -->|"Kết quả đồng bộ người nhận"| P26
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH,AD,QL entity;
+  class P21,P22,P23,P24,P25,P26 process;
+  class D1,D2,D3,D5,D4,D6 store;

@@ -1,0 +1,65 @@
+flowchart LR
+  P41("4.1<br/>Tiếp nhận dữ liệu quản lý<br/>và phạm vi tra cứu")
+  P42("4.2<br/>Tra cứu, phân trang,<br/>xem nội dung hoặc lịch sử")
+  P43("4.3<br/>Lưu nháp, sao chép<br/>hoặc xóa nháp đủ điều kiện")
+  P44("4.4<br/>Tính người nhận theo<br/>ALL, FILTER hoặc SELECTED")
+  P45("4.5<br/>Mở khảo sát và chốt<br/>quyền nhận")
+  P46("4.6<br/>Đóng, khóa khẩn cấp,<br/>gia hạn hoặc mở lại")
+  P47("4.7<br/>Đối soát ngày hết hạn<br/>theo UTC cộng 7")
+  P48("4.8<br/>Cập nhật cờ ẩn<br/>hoặc khôi phục")
+  P49("4.9<br/>Trả kết quả quản lý")
+  QL["Quản lý"]
+  D1[("D1. Tài khoản và hồ sơ<br/>users, customer_interests")]
+  D3[("D3. Nội dung và cấu hình khảo sát<br/>surveys, survey_questions, question_options")]
+  D4[("D4. Danh sách người nhận<br/>survey_recipients")]
+  D5[("D5. Bài gửi và câu trả lời khảo sát<br/>survey_responses, response_details")]
+  D7[("D7. Lịch sử vòng đời khảo sát<br/>survey_lifecycle_history")]
+
+  QL -->|"Dữ liệu nội dung, phạm vi, hạn và yêu cầu quản lý khảo sát"| P41
+  P49 -->|"Danh sách, chi tiết, người nhận phù hợp và kết quả quản lý khảo sát"| QL
+  D1 -->|"Hồ sơ khách hoạt động để lọc người nhận"| P44
+  D1 -->|"Hồ sơ khách hoạt động để lọc người nhận"| P46
+  D3 -->|"Nội dung, cấu hình và trạng thái khảo sát"| P42
+  D3 -->|"Nội dung, cấu hình và trạng thái khảo sát"| P43
+  D3 -->|"Nội dung, cấu hình và trạng thái khảo sát"| P45
+  D3 -->|"Nội dung, cấu hình và trạng thái khảo sát"| P46
+  D3 -->|"Nội dung, cấu hình và trạng thái khảo sát"| P47
+  P43 -->|"Nội dung, cấu hình và trạng thái khảo sát"| D3
+  P45 -->|"Nội dung, cấu hình và trạng thái khảo sát"| D3
+  P46 -->|"Nội dung, cấu hình và trạng thái khảo sát"| D3
+  P47 -->|"Nội dung, cấu hình và trạng thái khảo sát"| D3
+  P48 -->|"Nội dung, cấu hình và trạng thái khảo sát"| D3
+  D4 -->|"Snapshot người nhận"| P45
+  D4 -->|"Snapshot người nhận"| P46
+  P43 -->|"Danh sách người nhận"| D4
+  P45 -->|"Danh sách người nhận"| D4
+  P46 -->|"Danh sách người nhận"| D4
+  D5 -->|"Số lượng và bài trả lời phục vụ kiểm tra trạng thái"| P42
+  D5 -->|"Số lượng và bài trả lời phục vụ kiểm tra trạng thái"| P43
+  D5 -->|"Số lượng và bài trả lời phục vụ kiểm tra trạng thái"| P46
+  D7 -->|"Lịch sử vòng đời nội bộ"| P42
+  P43 -->|"Bản ghi vòng đời hoặc dữ liệu nháp cần xóa"| D7
+  P46 -->|"Bản ghi vòng đời hoặc dữ liệu nháp cần xóa"| D7
+  P41 -->|"Từ khóa, trạng thái, khoảng ngày, trang hoặc mã khảo sát"| P42
+  P41 -->|"Nội dung câu hỏi, phương thức hạn hoặc mã bản nguồn"| P43
+  P41 -->|"Cấu hình phạm vi và các mã khách được chọn"| P44
+  P41 -->|"Mã khảo sát cần mở với cấu hình đã lưu"| P45
+  P41 -->|"Mã khảo sát, thao tác vòng đời và hạn đề nghị"| P46
+  P41 -->|"Mã khảo sát và giá trị cờ ẩn"| P48
+  P43 -->|"Bản nháp hợp lệ có đề nghị mở ngay"| P45
+  P45 -->|"Phạm vi đã lưu cần chốt người nhận"| P44
+  P44 -->|"Tập khách hoạt động khớp phạm vi tại thời điểm chốt"| P45
+  P44 -->|"Danh sách khách phù hợp hoặc lý do phạm vi không hợp lệ"| P49
+  P42 -->|"Trang khảo sát, nội dung, số bài gửi hoặc lịch sử nội bộ"| P49
+  P43 -->|"Bản nháp đã lưu, bản sao mới hoặc kết quả xóa"| P49
+  P45 -->|"Trạng thái Mở và số khách được nhận"| P49
+  P46 -->|"Trạng thái và ngày kết thúc sau xử lý"| P49
+  P47 -->|"Kết quả đối soát hết hạn"| P49
+  P48 -->|"Trạng thái hiển thị mới"| P49
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class QL entity;
+  class P41,P42,P43,P44,P45,P46,P47,P48,P49 process;
+  class D1,D3,D4,D5,D7 store;

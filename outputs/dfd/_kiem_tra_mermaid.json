@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-09",
+  "parser": "mermaid",
+  "version": "11.17.2",
+  "results": [
+    {
+      "file": "00_ngu_canh.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "01_muc_dinh.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "02_duoi_dinh_1_xac_thuc.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "03_duoi_dinh_2_tai_khoan.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "04_duoi_dinh_3_phan_hoi.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "05_duoi_dinh_4_quan_ly_khao_sat.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "06_duoi_dinh_5_lam_khao_sat.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "07_duoi_dinh_6_bao_cao.mmd",
+      "syntax": "PASS"
+    },
+    {
+      "file": "08_duoi_dinh_7_khoi_phuc_mat_khau.mmd",
+      "syntax": "PASS"
+    }
+  ]
+}

@@ -24,6 +24,17 @@ test('CL01 complete profile rejects every missing required field and invalid int
   ]);
   assert.equal(V.profile({ name: 'Khách', phone: '0901234567' }, { complete: false }).year, null);
 });
+test('Manager creation requires birth date and gender while address can be completed later', () => {
+  const options = { complete: false, requireBirthDate: true, requireGender: true };
+  for (const key of ['birthDate', 'gender'])
+    for (const value of ['', undefined])
+      assert.throws(() => V.profile({ ...profile, [key]: value }, options), V.InputError);
+  for (const birthDate of ['2001-02-29', '2999-01-01', '29/02/2000'])
+    assert.throws(() => V.profile({ ...profile, birthDate }, options), V.InputError);
+  for (const gender of ['Nam', 'Nữ', 'Khác'])
+    assert.equal(V.profile({ ...profile, addr: '', gender }, options).gender, gender);
+});
+
 for (const type of ['ONE', 'MULTI', 'TEXT', 'RATING'])
   test('CL01 ' + type + ' validates required answers before persistence', () => {
     const qs = [{ id: 'q', question_type: type, is_required: 1, display_order: 1 }],

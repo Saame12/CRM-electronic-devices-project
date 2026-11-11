@@ -15,6 +15,7 @@ async function main() {
     await require('../survey-lifecycle').ensureSchema(c);
     await require('../feedback-service').ensureSchema(c);
     await require('../customer-retention').ensureSchema(c);
+    await require('../customer-need').ensureSchema(c);
     console.log(
       'Đã kiểm tra sở thích, cấu hình nhận khách mới và phạm vi khảo sát; giữ nguyên các bản ghi nghiệp vụ.'
     );

@@ -9,7 +9,10 @@ class InputError extends Error {
 const fail = (message, status) => {
   throw new InputError(message, status);
 };
-function profile(body, { complete = true } = {}) {
+function profile(
+  body,
+  { complete = true, requireBirthDate = complete, requireGender = complete } = {}
+) {
   const name = String(body.name || '').trim(),
     phone = String(body.phone || '').trim();
   const addr = String(body.addr || '').trim(),
@@ -19,9 +22,9 @@ function profile(body, { complete = true } = {}) {
   if (!name || name.length > 120) fail('Họ và tên cần từ 1 đến 120 ký tự.');
   if (!/^0\d{9,10}$/.test(phone)) fail('Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.');
   if ((complete && !addr) || addr.length > 255) fail('Địa chỉ cần từ 1 đến 255 ký tự.');
-  if ((complete || birthDate) && !BirthDate.validISO(birthDate))
+  if ((requireBirthDate || birthDate) && !BirthDate.validISO(birthDate))
     fail('Ngày sinh không hợp lệ hoặc nằm trong tương lai.');
-  if ((complete || gender) && !['Nam', 'Nữ', 'Khác'].includes(gender))
+  if ((requireGender || gender) && !['Nam', 'Nữ', 'Khác'].includes(gender))
     fail('Vui lòng chọn giới tính hợp lệ.');
   if (!Domain.needs.includes(need)) fail('Vui lòng chọn nhu cầu sử dụng hợp lệ.');
   let interests;

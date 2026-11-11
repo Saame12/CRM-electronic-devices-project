@@ -27,7 +27,11 @@ const files = new Set([
 ]);
 function publicAssetsOnly(req, res, next) {
   if (req.path.startsWith('/api/')) return next();
-  if (['GET', 'HEAD'].includes(req.method) && files.has(req.path)) return next();
+  if (['GET', 'HEAD'].includes(req.method) && files.has(req.path)) {
+    // Revalidate HTML/JS so a backend update is not paired with stale login/onboarding logic.
+    res.set?.('Cache-Control', 'no-cache');
+    return next();
+  }
   return res.status(404).end();
 }
 module.exports = publicAssetsOnly;

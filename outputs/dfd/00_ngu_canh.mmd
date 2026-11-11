@@ -1,0 +1,18 @@
+flowchart LR
+  KH["Khách hàng"]
+  QL["Quản lý"]
+  AD["Admin"]
+  SYS("0<br/>Hệ thống Backline CRM")
+
+  KH -->|"Thông tin tài khoản, phiên, hồ sơ, khôi phục, phản hồi và bài khảo sát"| SYS
+  SYS -->|"Kết quả tài khoản, phiên, khôi phục, phản hồi và khảo sát cá nhân"| KH
+  AD -->|"Dữ liệu quản trị tài khoản và xác minh hỗ trợ mật khẩu"| SYS
+  SYS -->|"Danh sách, kết quả quản trị và thông báo hỗ trợ mật khẩu"| AD
+  QL -->|"Dữ liệu quản lý khách, phản hồi, khảo sát và phạm vi báo cáo"| SYS
+  SYS -->|"Kết quả quản lý khách, phản hồi, khảo sát và báo cáo"| QL
+
+  classDef entity fill:#fff7e6,stroke:#9a6700,color:#222,stroke-width:2px;
+  classDef process fill:#e8f4f0,stroke:#276653,color:#153c30,stroke-width:2px;
+  classDef store fill:#edf3fd,stroke:#46658c,color:#203552;
+  class KH,QL,AD entity;
+  class SYS process;
