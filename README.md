@@ -1,36 +1,32 @@
 # Hướng dẫn setup database và chạy Backline CRM
 
-## Bộ dữ liệu mới ngày 04/11/2026
-
-Đã có [bộ dữ liệu demo v2 và tài khoản thử](docs/DU_LIEU_DEMO_V2.md): 18 khách, 12 khảo sát có phạm vi phù hợp quy trình mới, 54 phản hồi và các mốc tuổi để kiểm tra bộ lọc. [Tệp SQL](outputs/Du_lieu_demo_CRM_v2_20261104.sql) kèm metadata checksum ở cùng thư mục. Bộ hiện tại đã được nạp và chạy trên cổng 3000.
-
-## Phạm vi khảo sát bắt buộc trước khi mở
-
-[Quy trình mới](docs/PHAM_VI_BAT_BUOC_KHAO_SAT.md): lưu phạm vi cùng bản nháp, chỉ mở khi đã cấu hình; phiếu mới đã OPEN không cần gửi/bổ sung lại. Chỉ phiếu OPEN cũ thiếu phạm vi được thiết lập một lần.
-
-## Bộ chọn người nhận khảo sát
-
-[Lọc nhiều sở thích, khoảng tuổi và mở/đóng danh sách người nhận](docs/LOC_NGUOI_NHAN_KHAO_SAT.md). Bộ lọc 15–20 chỉ khớp khách đủ 15 tuổi đến hết 20 tuổi; danh sách hiển thị và thao tác gửi được kiểm tra cùng quy tắc.
-
-## Cập nhật 03/11/2026 — Khách mới nhận khảo sát đang mở
-
-Phiếu gửi **Tất cả** tự nhận tài khoản đăng ký sau khi phiếu còn OPEN và chưa quá hạn. DRAFT/CLOSED không được cấp cho khách mới; phiếu nhóm riêng tiếp tục giữ giới hạn. Xem [quy tắc, xử lý phiếu cũ và kết quả kiểm thử](docs/DONG_BO_KHAO_SAT_CHO_KHACH_MOI.md).
-
-## Bản cập nhật nghiệm thu 01/11/2026
-
-Đã bổ sung nhiều sở thích, chọn nhóm/từng người nhận khảo sát, kiểm tra dữ liệu backend, tính tuổi theo ngày sinh và lịch sử tương tác theo khách. Xem [kết quả khắc phục và hướng dẫn thao tác](docs/KET_QUA_KHAC_PHUC.md), [bản tự đánh giá hiệu chỉnh](docs/BAO_CAO_TU_DANH_GIA_DA_HIEU_CHINH.md) và [sao lưu/phục hồi](docs/SAO_LUU_VA_PHUC_HOI.md).
-
-Khách hàng có thể [xem lại bài khảo sát đã gửi](docs/XEM_LAI_BAI_KHAO_SAT.md) ở chế độ chỉ đọc, kể cả khi khảo sát đã đóng; chỉ xem được bài của chính mình.
-
 Với database đang có dữ liệu, sao lưu bằng `npm run db:backup`, kiểm chứng bản sao lưu rồi chạy `npm run db:migrate` và khởi động lại server. Migration chỉ thêm bảng sở thích/danh mục, không nạp lại demo hoặc suy diễn sở thích cho khách cũ. Cài mới vẫn dùng quy trình setup bên dưới.
-
-## Chạy bản demo sau khi tải từ GitHub
 
 ## Cài nhanh từ repo chính — khuyến nghị cho người tải mới
 
 Repo: https://github.com/Saame12/CRM-electronic-devices-project
 
 Tải Code → Download ZIP rồi giải nén, hoặc clone bằng Git. Trong Visual Studio chọn File → Open → Folder (VS Code: Open Folder), mở thư mục có `package.json`, sau đó mở terminal tại thư mục đó.
+## 1. Chuẩn bị máy
+
+- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS),  kèm npm.
+
+```bash
+winget install --id OpenJS.NodeJS.LTS -e
+```
+- Cài MySQL Server 8.0 trở lên và khởi động dịch vụ MySQL. Chỉ có MySQL Workbench thì chưa đủ vì Workbench là công cụ quản trị.
+- Biết tài khoản, mật khẩu và cổng MySQL của máy này. Người dùng setup cần quyền tạo database/bảng và quyền cập nhật cấu trúc, đọc/ghi dữ liệu của database dự án.
+- Tải ZIP dự án từ GitHub và giải nén, hoặc clone bằng Git.
+
+Mở lại terminal sau khi cài Node, kiểm tra:
+
+```bash
+node --version
+npm --version
+```
+
+Windows dùng PowerShell/CMD; macOS/Linux dùng Terminal. Các lệnh npm trong tài liệu giống nhau trên cả ba hệ điều hành.
+
 
 ```bash
 npm ci
@@ -50,24 +46,6 @@ Database mới đã nạp mẫu: Admin `admin@backline.vn / Admin@123`, Quản l
 
 Lần sau: bật MySQL → `npm start`. Không cần `.env.demo` trong luồng này. Để chỉ tạo schema: `npm run setup -- --empty`; lưu ý server vẫn bổ sung seed cơ bản khi chạy. Các phần dưới giải thích chi tiết và giữ hướng dẫn chế độ demo cách ly nếu cần.
 
-## 1. Chuẩn bị máy
-
-- Cài Node.js tương thích yêu cầu dự án (README hiện yêu cầu từ 20.19 trở lên; khuyến nghị nhánh 24 LTS),  kèm npm.
-```bash
-winget install --id OpenJS.NodeJS.LTS -e
-```
-- Cài MySQL Server 8.0 trở lên và khởi động dịch vụ MySQL. Chỉ có MySQL Workbench thì chưa đủ vì Workbench là công cụ quản trị.
-- Biết tài khoản, mật khẩu và cổng MySQL của máy này. Người dùng setup cần quyền tạo database/bảng và quyền cập nhật cấu trúc, đọc/ghi dữ liệu của database dự án.
-- Tải ZIP dự án từ GitHub và giải nén, hoặc clone bằng Git.
-
-Mở lại terminal sau khi cài Node, kiểm tra:
-
-```bash
-node --version
-npm --version
-```
-
-Windows dùng PowerShell/CMD; macOS/Linux dùng Terminal. Các lệnh npm trong tài liệu giống nhau trên cả ba hệ điều hành.
 
 ## 2. Mở đúng thư mục và cài thư viện
 

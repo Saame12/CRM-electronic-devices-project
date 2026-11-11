@@ -1,9 +1,0 @@
-{
-  "pages": 33,
-  "functions": 48,
-  "testCases": 153,
-  "images": 8,
-  "bytes": 844999,
-  "visualReview": "All 33 pages inspected; final changed pages 1 and 13 rechecked; remaining page images identical",
-  "renderer": "WPS document export API and PDFium rasterization"
-}
