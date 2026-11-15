@@ -93,8 +93,10 @@ async function main() {
     phone: '0897777701', password: 'Initial@123', addr: 'Hà Nội',
     birthDateText: '29/02/2000', gender: 'Nữ', need: 'Gaming', interests: ['gaming', 'learning']
   };
-  for (const birthDateText of ['31/02/2000', '29/02/2001', '2000-02-29', '01/01/2999', ''])
+  for (const birthDateText of ['31/02/2000', '29/02/2001', '2000-02-29', '01/01/2999', '01/01/1800', ''])
     await req('/api/admin/accounts', { ...accountBody, birthDateText }, admin.token, 400);
+  const invalidRegistration = await req('/api/auth/register', { ...accountBody, birthDate: '1800-01-01' }, null, 400);
+  assert.ok(invalidRegistration.error.startsWith('Tuổi không đúng quy định.')); checks++;
   await req('/api/admin/accounts', { ...accountBody, addr: '' }, admin.token, 400);
 
   await req('/api/admin/accounts', { ...accountBody, role: 'ADMIN' }, admin.token, 400);
@@ -125,7 +127,7 @@ async function main() {
   const newManager = await login('new-manager@example.invalid', 'Manager@123', 'MANAGER');
   assert.equal(newManager.user.role, 'MANAGER'); checks++;
   const managerCustomerBody = { name: 'Ngày sinh nhập tay', email: 'manager-dob@example.invalid', phone: '0897777703', password: 'Initial@123', birthDateText: '29/02/2000', gender: 'Nữ' };
-  for (const birthDateText of ['31/02/2000', '29/02/2001', '2000-02-29', '01/01/2999'])
+  for (const birthDateText of ['31/02/2000', '29/02/2001', '2000-02-29', '01/01/2999', '01/01/1800'])
     await req('/api/admin/customers', { ...managerCustomerBody, birthDateText }, manager.token, 400);
   for (const birthDateText of ['', '   ', undefined])
     await req('/api/admin/customers', { ...managerCustomerBody, birthDateText }, manager.token, 400);
@@ -142,6 +144,8 @@ async function main() {
   await req('/api/feedback', null, newCustomer.token, 403);
   await req('/api/surveys', null, newCustomer.token, 403);
   const newProfile = {name:managerCustomerBody.name,phone:managerCustomerBody.phone,addr:'Hà Nội',birthDate:'2000-02-29',gender:'Nữ',need:'',interests:[]};
+  const invalidBirthday = await req('/api/me', {...newProfile,need:'Gaming',birthDate:'1800-01-01'}, newCustomer.token, 400, 'PUT');
+  assert.ok(invalidBirthday.error.startsWith('Tuổi không đúng quy định.')); checks++;
   await req('/api/me', newProfile, newCustomer.token, 400, 'PUT');
   const updatedProfile = await req('/api/me', {...newProfile,need:'Chưa xác định'}, newCustomer.token, 200, 'PUT');
   assert.equal(updatedProfile.user.needConfirmed,true); checks++;

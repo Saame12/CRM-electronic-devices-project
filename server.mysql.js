@@ -194,10 +194,8 @@ app.post(
     if (!emailOk(email)) return res.status(400).json({ error: 'Email chưa đúng định dạng.' });
     if (!phoneOk(phone))
       return res.status(400).json({ error: 'Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.' });
-    if (!BirthDate.validISO(birthDate))
-      return res.status(400).json({
-        error: 'Ngày sinh không hợp lệ hoặc nằm trong tương lai. Vui lòng nhập theo dd/mm/yyyy.'
-      });
+    const birthError = BirthDate.error(birthDate, 'iso');
+    if (birthError) return res.status(400).json({ error: birthError });
     if (!gender) return res.status(400).json({ error: 'Vui lòng chọn giới tính.' });
     if (password.length < 6)
       return res.status(400).json({ error: 'Mật khẩu cần ít nhất 6 ký tự.' });
@@ -351,8 +349,7 @@ app.post(
     let value;
     if (role === 'CUSTOMER') {
       const birthDate = BirthDate.parse(req.body.birthDateText);
-      if (!birthDate)
-        V.fail('Ngày sinh phải đúng dd/mm/yyyy, là ngày có thật và không ở tương lai.');
+      if (!birthDate) V.fail(BirthDate.error(req.body.birthDateText));
       value = V.profile({ ...req.body, birthDate, need: 'Chưa xác định', interests: [] });
     }
     if (!name || !emailOk(email) || !phoneOk(phone) || password.length < 6)
@@ -447,8 +444,7 @@ app.post(
     if (req.body.birthDateText !== undefined) {
       const text = String(req.body.birthDateText || '').trim();
       birthDate = text ? BirthDate.parse(text) : '';
-      if (text && !birthDate)
-        V.fail('Ngày sinh phải đúng dd/mm/yyyy, là ngày có thật và không ở tương lai.');
+      if (text && !birthDate) V.fail(BirthDate.error(req.body.birthDateText));
     }
     const value = V.profile(
         { ...req.body, birthDate, need: 'Chưa xác định', interests: [] },

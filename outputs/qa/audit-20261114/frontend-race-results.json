@@ -1,0 +1,10 @@
+[
+  {
+    "case": "logout-during-submit",
+    "failedWithTypeError": true
+  },
+  {
+    "case": "switch-user-during-submit",
+    "previousUserFeedbackAddedToNextUserCache": true
+  }
+]

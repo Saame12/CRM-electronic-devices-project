@@ -1,0 +1,1 @@
+Demo HTTP passed: three-role login, cookie, surveys, feedback, report totals/details and role isolation. No business data changed.

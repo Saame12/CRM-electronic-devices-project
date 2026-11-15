@@ -22,7 +22,7 @@ const dateAt = (now, offset) =>
     second: '2-digit',
     hourCycle: 'h23'
   }).format(new Date(now.getTime() + offset * 86400000));
-function buildDemo(now = new Date(), uuid = randomUUID) {
+function buildDemo(now = new Date(), uuid = randomUUID, { completeCustomers = false } = {}) {
   const users = [];
   const staff = [
     ['ADMIN', 'Quản trị viên Demo', 'admin@backline.vn', '0900000000'],
@@ -97,7 +97,7 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
     needs = Domain.needs;
   for (let i = 0; i < names.length; i++) {
     const spec = customerSpecs[i],
-      birth = spec.birth,
+      birth = spec.birth || (completeCustomers ? birthAt(22) : null),
       year = birth ? Number(birth.slice(0, 4)) : null;
     users.push({
       id: uuid(),
@@ -106,13 +106,18 @@ function buildDemo(now = new Date(), uuid = randomUUID) {
       email: i ? 'khach' + (i + 1) + '@demo.vn' : 'khach@demo.vn',
       phone: '09100000' + String(i + 1).padStart(2, '0'),
       password: '123456',
-      account_status: i === 10 ? 'LOCKED' : 'ACTIVE',
-      address: i === 11 ? '' : 'Địa chỉ giả lập ' + (i + 1) + ', khu dân cư Demo, TP.HCM',
+      account_status: completeCustomers || i !== 10 ? 'ACTIVE' : 'LOCKED',
+      address:
+        !completeCustomers && i === 11
+          ? ''
+          : 'Địa chỉ giả lập ' + (i + 1) + ', khu dân cư Demo, TP.HCM',
       birth_year: year,
       birth_date: birth,
-      interests: spec.interests,
+      interests:
+        completeCustomers && !spec.interests.length ? ['learning', 'office'] : spec.interests,
       gender: ['Nữ', 'Nam', 'Khác'][i % 3],
-      need: i === 11 ? 'Chưa xác định' : needs[i % 4],
+      need: completeCustomers ? needs[i % 3] : i === 11 ? 'Chưa xác định' : needs[i % 4],
+      ...(completeCustomers ? { need_confirmed: true } : {}),
       created_at: dateAt(now, i === 17 ? -1 : -170 + i * 6)
     });
   }

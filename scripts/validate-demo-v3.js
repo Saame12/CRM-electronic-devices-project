@@ -9,6 +9,22 @@ async function validate(c) {
   assert.equal(Number(state.staleOpen), 0);
   assert.equal(Number(state.missingScope), 0);
   assert.ok(Number(state.autoClosed) >= 1);
+  const [customers] = await c.query("SELECT * FROM users WHERE role='CUSTOMER'");
+  await require('../customer-interests').attach(c, customers);
+  for (const u of customers) {
+    require('../crm-validation').profile({
+      name: u.full_name,
+      phone: u.phone,
+      addr: u.address,
+      birthDate: require('../birth-date').fromDatabase(u.birth_date),
+      gender: u.gender,
+      need: u.need,
+      interests: u.interests
+    });
+    assert.equal(u.account_status, 'ACTIVE', u.email);
+    assert.ok(u.need_confirmed, u.email);
+    assert.ok(u.interests.length, u.email);
+  }
   for (const [table, total] of Object.entries({
     users: 21,
     feedback: 54,

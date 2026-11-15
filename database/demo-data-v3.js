@@ -6,7 +6,7 @@ const DATASET = 'backline-demo-v3';
 const utcAt = (now, days) =>
   new Date(now.getTime() + days * 86400000).toISOString().slice(0, 19).replace('T', ' ');
 function buildDemo(now = new Date(), uuid = randomUUID) {
-  const data = Base.buildDemo(now, uuid),
+  const data = Base.buildDemo(now, uuid, { completeCustomers: true }),
     today = Domain.iso(Base.dateAt(now, 0)),
     date = (days) => Base.dateAt(now, days).slice(0, 10);
   const manager = data.users.find((u) => u.role === 'MANAGER'),

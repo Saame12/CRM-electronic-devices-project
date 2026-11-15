@@ -22,8 +22,10 @@ function profile(
   if (!name || name.length > 120) fail('Họ và tên cần từ 1 đến 120 ký tự.');
   if (!/^0\d{9,10}$/.test(phone)) fail('Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.');
   if ((complete && !addr) || addr.length > 255) fail('Địa chỉ cần từ 1 đến 255 ký tự.');
-  if ((requireBirthDate || birthDate) && !BirthDate.validISO(birthDate))
-    fail('Ngày sinh không hợp lệ hoặc nằm trong tương lai.');
+  if (requireBirthDate || birthDate) {
+    const message = BirthDate.error(birthDate, 'iso');
+    if (message) fail(message);
+  }
   if ((requireGender || gender) && !['Nam', 'Nữ', 'Khác'].includes(gender))
     fail('Vui lòng chọn giới tính hợp lệ.');
   if (!Domain.needs.includes(need)) fail('Vui lòng chọn nhu cầu sử dụng hợp lệ.');

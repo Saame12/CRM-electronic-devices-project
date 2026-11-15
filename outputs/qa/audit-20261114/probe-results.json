@@ -1,0 +1,360 @@
+{
+  "date": "2026-11-14",
+  "scope": "isolated databases only",
+  "results": [
+    {
+      "id": "BASELINE_PROFILES",
+      "n": 18,
+      "missingBirth": "0",
+      "missingGender": "0",
+      "unconfirmed": "0",
+      "inactive": "0"
+    },
+    {
+      "id": "ROLE_MATRIX",
+      "statuses": [
+        {
+          "name": "customer->accounts",
+          "status": 403
+        },
+        {
+          "name": "admin->reports",
+          "status": 403
+        },
+        {
+          "name": "manager->accounts",
+          "status": 403
+        },
+        {
+          "name": "anonymous->me",
+          "status": 401
+        }
+      ]
+    },
+    {
+      "id": "PASSWORD_72_BYTES",
+      "createdStatus": 201,
+      "loginWithDifferentSuffix": 200
+    },
+    {
+      "id": "LOGIN_RATE_LIMIT",
+      "attempts": 10,
+      "statuses": [
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401
+      ]
+    },
+    {
+      "id": "TOKEN_AFTER_LOGOUT",
+      "logout": 200,
+      "replayMe": 200
+    },
+    {
+      "id": "INCOMPLETE_PROFILE_API",
+      "needConfirmed": true,
+      "surveyStatus": 200,
+      "feedbackStatus": 200
+    },
+    {
+      "id": "MALFORMED_JSON",
+      "status": 500,
+      "syntheticPasswordAppearsInServerLog": true
+    },
+    {
+      "id": "REGISTRATION_LENGTH",
+      "nameLength": 121,
+      "status": 500,
+      "error": "Lỗi máy chủ. Hãy kiểm tra MySQL và .env."
+    },
+    {
+      "id": "DUPLICATE_FEEDBACK",
+      "statuses": [
+        201,
+        201
+      ],
+      "distinctIds": 2
+    },
+    {
+      "id": "INACTIVE_PRODUCT",
+      "feedbackStatus": 400,
+      "existsInFrontendCatalog": false
+    },
+    {
+      "id": "QUESTION_TEXT_LIMIT",
+      "utf8Bytes": 72000,
+      "status": 500,
+      "rollbackPreservedCount": true
+    },
+    {
+      "id": "ERASED_REPORT_CLASSIFICATION",
+      "before": {
+        "total": 19,
+        "active": 19,
+        "locked": 0,
+        "complete": 18,
+        "completionRate": 94.7,
+        "byAge": [
+          {
+            "label": "Dưới 18",
+            "total": 5,
+            "percentage": 26.3
+          },
+          {
+            "label": "18–24",
+            "total": 8,
+            "percentage": 42.1
+          },
+          {
+            "label": "25–34",
+            "total": 3,
+            "percentage": 15.8
+          },
+          {
+            "label": "35–44",
+            "total": 1,
+            "percentage": 5.3
+          },
+          {
+            "label": "Từ 45 trở lên",
+            "total": 2,
+            "percentage": 10.5
+          },
+          {
+            "label": "Chưa có ngày sinh hợp lệ",
+            "total": 0,
+            "percentage": 0
+          }
+        ],
+        "byGender": [
+          {
+            "label": "Nam",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Nữ",
+            "total": 7,
+            "percentage": 36.8
+          },
+          {
+            "label": "Khác",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Chưa khai báo",
+            "total": 0,
+            "percentage": 0
+          }
+        ],
+        "byNeed": [
+          {
+            "label": "Gaming",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Văn phòng",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Đồ họa",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Chưa xác định",
+            "total": 1,
+            "percentage": 5.3
+          }
+        ],
+        "byInterest": [
+          {
+            "label": "Gaming",
+            "total": 7,
+            "percentage": 36.8
+          },
+          {
+            "label": "Đồ họa",
+            "total": 8,
+            "percentage": 42.1
+          },
+          {
+            "label": "Văn phòng",
+            "total": 8,
+            "percentage": 42.1
+          },
+          {
+            "label": "Lập trình",
+            "total": 3,
+            "percentage": 15.8
+          },
+          {
+            "label": "Học tập",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Khác",
+            "total": 2,
+            "percentage": 10.5
+          },
+          {
+            "label": "Chưa khai báo",
+            "total": 1,
+            "percentage": 5.3
+          }
+        ]
+      },
+      "after": {
+        "total": 19,
+        "active": 18,
+        "locked": 1,
+        "complete": 17,
+        "completionRate": 89.5,
+        "byAge": [
+          {
+            "label": "Dưới 18",
+            "total": 5,
+            "percentage": 26.3
+          },
+          {
+            "label": "18–24",
+            "total": 8,
+            "percentage": 42.1
+          },
+          {
+            "label": "25–34",
+            "total": 3,
+            "percentage": 15.8
+          },
+          {
+            "label": "35–44",
+            "total": 1,
+            "percentage": 5.3
+          },
+          {
+            "label": "Từ 45 trở lên",
+            "total": 2,
+            "percentage": 10.5
+          },
+          {
+            "label": "Chưa có ngày sinh hợp lệ",
+            "total": 0,
+            "percentage": 0
+          }
+        ],
+        "byGender": [
+          {
+            "label": "Nam",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Nữ",
+            "total": 7,
+            "percentage": 36.8
+          },
+          {
+            "label": "Khác",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Chưa khai báo",
+            "total": 0,
+            "percentage": 0
+          }
+        ],
+        "byNeed": [
+          {
+            "label": "Gaming",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Văn phòng",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Đồ họa",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Chưa xác định",
+            "total": 1,
+            "percentage": 5.3
+          }
+        ],
+        "byInterest": [
+          {
+            "label": "Gaming",
+            "total": 7,
+            "percentage": 36.8
+          },
+          {
+            "label": "Đồ họa",
+            "total": 8,
+            "percentage": 42.1
+          },
+          {
+            "label": "Văn phòng",
+            "total": 8,
+            "percentage": 42.1
+          },
+          {
+            "label": "Lập trình",
+            "total": 3,
+            "percentage": 15.8
+          },
+          {
+            "label": "Học tập",
+            "total": 6,
+            "percentage": 31.6
+          },
+          {
+            "label": "Khác",
+            "total": 2,
+            "percentage": 10.5
+          },
+          {
+            "label": "Chưa khai báo",
+            "total": 1,
+            "percentage": 5.3
+          }
+        ]
+      },
+      "archiveFieldSelected": false
+    },
+    {
+      "id": "RECOVERY_QUEUE_LIMIT",
+      "pending": 202,
+      "returned": 200,
+      "oldestPendingVisible": false
+    },
+    {
+      "id": "DB_CROSS_SURVEY_DETAIL",
+      "databaseAcceptedMismatchedSurvey": true,
+      "apiValidatorExists": true
+    },
+    {
+      "id": "EMPTY_PRODUCTION_STARTUP",
+      "defaultAdminStatus": 200,
+      "acceptsShortJwtSecret": true,
+      "defaultCustomerStatus": 200,
+      "defaultCustomerBirthDate": null,
+      "defaultCustomerNeedConfirmed": false
+    }
+  ]
+}

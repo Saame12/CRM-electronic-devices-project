@@ -14,6 +14,19 @@ test('Backend ISO validation rejects rollover dates and unsupported years',()=>{
  assert.equal(dates.validISO('2000-02-29','2026-10-21'),true);
  for(const value of ['2001-02-29','2026-10-22','0000-01-01','1998-1-1',null])assert.equal(dates.validISO(value,'2026-10-21'),false);
 });
+
+test('Birth dates use the same inclusive 0–120 full-year limit as reporting, without restricting survey date validation',()=>{
+ const asOf='2026-11-12';
+ for(const value of ['12/11/2026','13/11/1905','12/11/1906']) assert.ok(dates.parse(value,asOf),value);
+ for(const value of ['13/11/2026','12/11/1905','31/04/2000','2000-01-01','11/12/1800']) {
+  assert.equal(dates.parse(value,asOf),null,value);
+  assert.ok(dates.error(value,'text',asOf).startsWith('Tuổi không đúng quy định.'));
+ }
+ assert.equal(dates.error(''),'Vui lòng nhập ngày sinh.');
+ assert.equal(dates.validISO('1800-01-01',asOf),true);
+ assert.equal(dates.validBirthISO('1800-01-01',asOf),false);
+ assert.equal(dates.validISO('2099-12-31','9999-12-31'),true);
+});
 test('Registration sends full date and gender; profile preserves the date after save',async()=>{
  const elements=new Map(),requests=[];const element=s=>{if(!elements.has(s))elements.set(s,{innerHTML:'',textContent:'',classList:{add(){},remove(){}}});return elements.get(s)};
  const context=vm.createContext({document:{querySelector:element,addEventListener(){}},sessionStorage:{getItem:()=>null,setItem(){},removeItem(){}},localStorage:{getItem:()=>null},console,setTimeout(){},clearTimeout(){},URLSearchParams});

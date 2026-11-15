@@ -59,6 +59,12 @@ async function main() {
   assert.equal(feedback.feedback.length, 3);
   const customers = await request('/api/admin/customers', { session: manager });
   assert.equal(customers.customers.length, 18);
+  const completeDemo = customers.customers.every(u => u.status === 'ACTIVE' && u.needConfirmed);
+  if (completeDemo) for (const u of customers.customers) {
+    require('../crm-validation').profile(u);
+    assert.ok(require('../birth-date').validBirthISO(u.birthDate));
+    assert.ok(u.interests.length);
+  }
   const overview = await request('/api/admin/reports/overview', { session: manager });
   assert.equal(overview.customers.total, 18);
   assert.equal(overview.feedback.total, 54);
@@ -71,7 +77,7 @@ async function main() {
     session: manager,
     body: { audience: filtered.audience_config }
   });
-  assert.equal(candidates.count, 7);
+  assert.equal(candidates.count, completeDemo ? 8 : 7);
   assert.ok(
     candidates.customers.every(
       (u) =>
@@ -135,7 +141,7 @@ async function main() {
   });
   await request('/api/auth/login', {
     body: { email: 'khach11@demo.vn', password: '123456', customerSession: true },
-    status: 403
+    status: completeDemo ? 200 : 403
   });
   console.log(
     'Demo HTTP passed: three-role login, cookie, surveys, feedback, report totals/details and role isolation. No business data changed.'

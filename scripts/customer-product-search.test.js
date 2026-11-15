@@ -47,7 +47,7 @@ test('Typing a new search clears a previous selection, and selecting a suggestio
       s === '[name="prod"]' ? selected : s === '[role="listbox"]' ? list : input
   };
   input.closest = () => picker;
-  events.find((x) => x.type === 'input').fn({ target: input });
+  events.find((x) => x.type === 'input' && x.fn.toString().includes('[data-product-search]')).fn({ target: input });
   assert.equal(selected.value, '');
   assert.ok(list.innerHTML.includes('Dell Inspiron'));
   assert.ok(!list.innerHTML.includes('Lenovo'));

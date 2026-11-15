@@ -281,7 +281,7 @@ const profileNeedsCompletion = () =>
     (!String(me.name || '').trim() ||
       !/^0\d{9,10}$/.test(String(me.phone || '').trim()) ||
       !String(me.addr || '').trim() ||
-      !BirthDate.validISO(me.birthDate) ||
+      !BirthDate.validBirthISO(me.birthDate) ||
       !['Nam', 'Nữ', 'Khác'].includes(me.gender) ||
       !NEEDS.includes(me.need) ||
       me.needConfirmed === false)
@@ -534,8 +534,7 @@ const H = {
     if (!n) return setErr('Vui lòng nhập họ và tên.');
     if (!/^\S+@\S+\.\S+$/.test(e)) return setErr('Email chưa đúng định dạng.');
     if (!/^0\d{9,10}$/.test(p)) return setErr('Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.');
-    if (!birthDate)
-      return setErr('Vui lòng nhập ngày sinh hợp lệ theo dd/mm/yyyy, không nằm trong tương lai.');
+    if (!birthDate) return setErr(BirthDate.error(v.birthDate));
     if (!['Nam', 'Nữ', 'Khác'].includes(v.gender)) return setErr('Vui lòng chọn giới tính.');
     if (v.pass.length < 6) return setErr('Mật khẩu cần ít nhất 6 ký tự.');
     if (v.pass !== v.pass2) return setErr('Mật khẩu nhập lại chưa khớp.');
@@ -574,8 +573,7 @@ const H = {
     if (!/^0\d{9,10}$/.test(v.phone.trim()))
       return setErr('Số điện thoại cần 10-11 chữ số và bắt đầu bằng 0.');
     if (!v.addr.trim()) return setErr('Vui lòng nhập địa chỉ.');
-    if (!birthDate)
-      return setErr('Vui lòng nhập ngày sinh hợp lệ theo dd/mm/yyyy, không nằm trong tương lai.');
+    if (!birthDate) return setErr(BirthDate.error(v.birthDate));
     if (!['Nam', 'Nữ', 'Khác'].includes(v.gender)) return setErr('Vui lòng chọn giới tính.');
     if (!NEEDS.includes(v.need)) return setErr('Vui lòng chọn nhu cầu sử dụng.');
     me = (
