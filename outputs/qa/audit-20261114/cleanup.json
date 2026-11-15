@@ -1,7 +1,0 @@
-{
-  "isolatedMysqlStopped": true,
-  "isolatedDatadirRemoved": true,
-  "productionServiceStatus": "Stopped",
-  "workspaceFixtureCleaned": true,
-  "probeDatabasesCleaned": true
-}

@@ -1,1 +1,0 @@
-PASS 180 checks: all 18 demo customers authenticate, have complete valid profiles and confirmed needs, and can access surveys/feedback without onboarding.
