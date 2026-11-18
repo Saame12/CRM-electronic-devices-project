@@ -39,7 +39,6 @@ function buildDemo(now = new Date(), uuid = randomUUID, { completeCustomers = fa
       password: role === 'ADMIN' ? 'Admin@123' : 'Manager@123',
       account_status: 'ACTIVE',
       address: 'Văn phòng demo',
-      birth_year: 1990,
       birth_date: '1990-01-15',
       gender: 'Khác',
       need: 'Chưa xác định',
@@ -97,8 +96,7 @@ function buildDemo(now = new Date(), uuid = randomUUID, { completeCustomers = fa
     needs = Domain.needs;
   for (let i = 0; i < names.length; i++) {
     const spec = customerSpecs[i],
-      birth = spec.birth || (completeCustomers ? birthAt(22) : null),
-      year = birth ? Number(birth.slice(0, 4)) : null;
+      birth = spec.birth || (completeCustomers ? birthAt(22) : null);
     users.push({
       id: uuid(),
       role: 'CUSTOMER',
@@ -111,7 +109,6 @@ function buildDemo(now = new Date(), uuid = randomUUID, { completeCustomers = fa
         !completeCustomers && i === 11
           ? ''
           : 'Địa chỉ giả lập ' + (i + 1) + ', khu dân cư Demo, TP.HCM',
-      birth_year: year,
       birth_date: birth,
       interests:
         completeCustomers && !spec.interests.length ? ['learning', 'office'] : spec.interests,

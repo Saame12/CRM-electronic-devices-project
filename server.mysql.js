@@ -61,7 +61,6 @@ const publicUser = (u) => ({
   name: u.full_name,
   phone: u.phone,
   addr: u.address,
-  year: u.birth_year ?? '',
   birthDate: BirthDate.fromDatabase(u.birth_date),
   gender: u.gender,
   need: u.need,
@@ -155,7 +154,7 @@ async function seed() {
   const [demo] = await db.query("SELECT id FROM users WHERE email = 'khach@demo.vn' LIMIT 1");
   if (!demo.length)
     await db.execute(
-      'INSERT INTO users (id,email,password_hash,full_name,phone,address,birth_year,gender,need) VALUES (?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO users (id,email,password_hash,full_name,phone,address,birth_date,gender,need) VALUES (?,?,?,?,?,?,?,?,?)',
       [
         uid(),
         'khach@demo.vn',
@@ -163,7 +162,7 @@ async function seed() {
         'Nguyễn Minh Anh',
         '0901234567',
         '12 Lê Lợi, Quận 1, TP.HCM',
-        1998,
+        '1998-10-21',
         'Nữ',
         'Gaming'
       ]
@@ -205,14 +204,13 @@ app.post(
     try {
       await connection.beginTransaction();
       await connection.execute(
-        'INSERT INTO users (id,email,password_hash,full_name,phone,birth_year,birth_date,gender) VALUES (?,?,?,?,?,?,?,?)',
+        'INSERT INTO users (id,email,password_hash,full_name,phone,birth_date,gender) VALUES (?,?,?,?,?,?,?)',
         [
           id,
           email,
           await bcrypt.hash(password, 12),
           name,
           phone,
-          Number(birthDate.slice(0, 4)),
           birthDate,
           gender
         ]
@@ -302,12 +300,11 @@ app.put(
       if (!active || active.account_status !== 'ACTIVE' || active.erased_at)
         V.fail('Tài khoản không còn hoạt động.', 403);
       await c.execute(
-        'UPDATE users SET full_name=?,phone=?,address=?,birth_year=?,birth_date=?,gender=?,need=?,need_confirmed=TRUE WHERE id=?',
+        'UPDATE users SET full_name=?,phone=?,address=?,birth_date=?,gender=?,need=?,need_confirmed=TRUE WHERE id=?',
         [
           value.name,
           value.phone,
           value.addr,
-          value.year,
           value.birthDate,
           value.gender,
           value.need,
@@ -367,7 +364,7 @@ app.post(
           );
         } else {
           await c.execute(
-            "INSERT INTO users(id,email,password_hash,role,full_name,phone,address,birth_year,birth_date,gender,need) VALUES (?,?,?,'CUSTOMER',?,?,?,?,?,?,?)",
+            "INSERT INTO users(id,email,password_hash,role,full_name,phone,address,birth_date,gender,need) VALUES (?,?,?,'CUSTOMER',?,?,?,?,?,?)",
             [
               id,
               email,
@@ -375,7 +372,6 @@ app.post(
               value.name,
               value.phone,
               value.addr,
-              value.year,
               value.birthDate,
               value.gender,
               value.need
@@ -459,7 +455,7 @@ app.post(
       hash = await bcrypt.hash(password, 12);
     await Surveys.transaction(db, async (c) => {
       await c.execute(
-        "INSERT INTO users(id,email,password_hash,role,full_name,phone,address,birth_year,birth_date,gender,need) VALUES (?,?,?,'CUSTOMER',?,?,?,?,?,?,?)",
+        "INSERT INTO users(id,email,password_hash,role,full_name,phone,address,birth_date,gender,need) VALUES (?,?,?,'CUSTOMER',?,?,?,?,?,?)",
         [
           id,
           email,
@@ -467,7 +463,6 @@ app.post(
           value.name,
           value.phone,
           value.addr,
-          value.year,
           value.birthDate || null,
           value.gender,
           value.need
@@ -942,13 +937,6 @@ async function addColumnIfMissing(column, definition) {
   );
   if (!rows.length) await db.query(`ALTER TABLE feedback ADD COLUMN ${definition}`);
 }
-async function ensureBirthDateColumn() {
-  const [rows] = await db.query(
-    "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='birth_date'"
-  );
-  if (!rows.length)
-    await db.query('ALTER TABLE users ADD COLUMN birth_date DATE NULL AFTER birth_year');
-}
 async function start() {
   await db.query('SELECT 1');
   await db.query(
@@ -956,7 +944,7 @@ async function start() {
   );
   await addColumnIfMissing('is_hidden', 'is_hidden BOOLEAN NOT NULL DEFAULT FALSE');
   await addColumnIfMissing('hidden_at', 'hidden_at DATETIME NULL');
-  await ensureBirthDateColumn();
+  await require('./birth-date-schema').ensureSchema(db);
   await PasswordRecovery.ensureSchema(db);
   await SurveyVisibility.ensureSchema(db);
   await Interests.ensureSchema(db);

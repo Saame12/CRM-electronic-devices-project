@@ -43,7 +43,6 @@ function profile(
     addr,
     gender,
     birthDate,
-    year: birthDate ? Number(birthDate.slice(0, 4)) : null,
     need,
     interests
   };

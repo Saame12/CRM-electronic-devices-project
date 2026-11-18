@@ -96,7 +96,6 @@ async function seedDemo(
       'full_name',
       'phone',
       'address',
-      'birth_year',
       'birth_date',
       'gender',
       'need',

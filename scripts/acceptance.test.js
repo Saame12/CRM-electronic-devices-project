@@ -17,12 +17,13 @@ test('CL01 complete profile rejects every missing required field and invalid int
   assert.throws(() => V.profile({ ...profile, birthDate: '2999-01-01' }), V.InputError);
   assert.throws(() => V.profile({ ...profile, interests: ['invalid'] }), V.InputError);
   assert.throws(() => V.profile({ ...profile, interests: 'gaming' }), V.InputError);
-  assert.equal(V.profile(profile).year, 2000);
+  assert.equal(V.profile(profile).birthDate, '2000-02-29');
+  assert.ok(!('year' in V.profile(profile)));
   assert.deepEqual(V.profile({ ...profile, interests: ['gaming', 'gaming', 'design'] }).interests, [
     'gaming',
     'design'
   ]);
-  assert.equal(V.profile({ name: 'Khách', phone: '0901234567' }, { complete: false }).year, null);
+  assert.equal(V.profile({ name: 'Khách', phone: '0901234567' }, { complete: false }).birthDate, '');
 });
 test('Manager creation requires birth date and gender while address can be completed later', () => {
   const options = { complete: false, requireBirthDate: true, requireGender: true };
@@ -90,7 +91,7 @@ test('CL04 unknown dates are not invented from year; leap birthday uses calendar
   assert.equal(D.age(null), null);
   assert.equal(D.age('2000-02-29', '2025-02-28'), 24);
   assert.equal(D.age('2000-02-29', '2025-03-01'), 25);
-  assert.equal(D.matches({ birth_year: 2000 }, { minAge: 18 }, '2026-11-01'), false);
+  assert.equal(D.matches({}, { minAge: 18 }, '2026-11-01'), false);
 });
 test('BB01 per-interest reports count distinct customers and allow combined percentage above 100', () => {
   const r = buildOverview(

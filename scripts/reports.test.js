@@ -5,14 +5,22 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {buildOverview,aggregateQuestion,range,registerReports}=require('../reports-service');
 const now=new Date('2026-10-20T12:00:00+07:00');
-const customer={birth_year:2000,birth_date:'2000-10-20',address:'Hà Nội',gender:'Nam',need:'Gaming',account_status:'ACTIVE',created_at:'2026-10-01'};
+const customer={birth_date:'2000-10-20',address:'Hà Nội',gender:'Nam',need:'Gaming',account_status:'ACTIVE',created_at:'2026-10-01'};
 const feedback=(id,rate,extra={})=>({id,customer_id:'customer',product_id:'pc',product_name:'PC',rating:rate,status:'NEW',is_hidden:0,feedback_type:'Góp ý',created_at:'2026-10-02',...extra});
 test('Empty data has no invented percentages or scores',()=>{
  const d=buildOverview([],[],[],now);assert.equal(d.customers.completionRate,null);assert.equal(d.feedback.averageRating,null);assert.equal(d.feedback.satisfactionRate,null);assert.equal(d.feedback.resolutionRate,null);assert.equal(d.surveys.responses,0);
 });
 test('Customer cohorts include unknown ages, unknown needs, locked accounts',()=>{
- const d=buildOverview([customer,{...customer,birth_year:null,birth_date:null,need:'Chưa xác định',account_status:'LOCKED'},{...customer,birth_year:0,birth_date:null,gender:''}],[],[],now).customers;
+ const d=buildOverview([customer,{...customer,birth_date:null,need:'Chưa xác định',account_status:'LOCKED'},{...customer,birth_date:null,gender:''}],[],[],now).customers;
  assert.equal(d.total,3);assert.equal(d.active,2);assert.equal(d.locked,1);assert.equal(d.complete,1);assert.equal(d.completionRate,33.3);assert.equal(d.byAge.find(x=>x.label==='Chưa có ngày sinh hợp lệ').total,2);assert.equal(d.byNeed.find(x=>x.label==='Chưa xác định').percentage,33.3);
+});
+
+test('Valid customer birthdays do not create an empty invalid-age cohort',()=>{
+ const d=buildOverview([customer],[],[],now).customers;
+ assert.equal(d.byAge.some(x=>x.label==='Chưa có ngày sinh hợp lệ'),false);
+ assert.equal(d.byAge.find(x=>x.label==='25–34').total,1);
+ assert.equal(d.byAge.reduce((sum,x)=>sum+x.total,0),d.total);
+ assert.equal(buildOverview([],[],[],now).customers.byAge.some(x=>x.label==='Chưa có ngày sinh hợp lệ'),false);
 });
 test('Average uses all individual ratings, hidden feedback remains counted',()=>{
  const d=buildOverview([], [feedback('a',5),feedback('b',5),feedback('c',1,{product_id:'laptop',product_name:'Laptop',is_hidden:1,status:'RESOLVED',feedback_type:'Báo lỗi / Khiếu nại'})],[],now).feedback;

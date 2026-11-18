@@ -9,9 +9,7 @@ function closeCustomerDetails() {
 function showCustomerDetails(customer) {
   const birth = customer.birthDate
     ? customer.birthDate.split('-').reverse().join('/')
-    : customer.year
-      ? `Chỉ có năm sinh: ${customer.year}`
-      : 'Chưa khai báo';
+    : 'Chưa khai báo';
   const date = (value) => (value ? new Date(value).toLocaleString('vi-VN') : 'Chưa ghi nhận');
   const fields = [
     ['Họ và tên', customer.name],

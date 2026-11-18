@@ -8,6 +8,7 @@ async function main() {
     multipleStatements: false
   });
   try {
+    await require('../birth-date-schema').ensureSchema(c);
     await Interests.ensureSchema(c);
     await require('../survey-enrollment').ensureSchema(c);
     await require('../survey-audience').ensureSchema(c);

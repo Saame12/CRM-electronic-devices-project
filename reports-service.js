@@ -69,7 +69,7 @@ function buildOverview(customers, feedback, surveys, now = new Date()) {
               : years(u) < 45
                 ? '35–44'
                 : 'Từ 45 trở lên',
-    ['Dưới 18', '18–24', '25–34', '35–44', 'Từ 45 trở lên', 'Chưa có ngày sinh hợp lệ']
+    ['Dưới 18', '18–24', '25–34', '35–44', 'Từ 45 trở lên']
   );
   customer.byGender = distribution(customers, (u) => u.gender || 'Chưa khai báo', [
     'Nam',
@@ -234,7 +234,7 @@ function registerReports(app, db, auth, staff, wrap) {
         await connection.beginTransaction();
         const [[clock]] = await connection.query("SELECT DATE_FORMAT(CURDATE(),'%Y-%m-%d') today");
         const [customers] = await connection.execute(
-          "SELECT id,address,birth_date,birth_year,gender,need,need_confirmed,account_status,created_at FROM users WHERE role='CUSTOMER'" +
+          "SELECT id,address,birth_date,gender,need,need_confirmed,account_status,created_at FROM users WHERE role='CUSTOMER'" +
             where('created_at'),
           params
         );

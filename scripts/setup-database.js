@@ -30,6 +30,7 @@ async function setupDatabase(name = databaseName()) {
   const connection = await mysql.createConnection(connectionOptions());
   try {
     await connection.query(schemaSQL(name));
+    await require('../birth-date-schema').ensureSchema(connection);
     return connection;
   } catch (error) {
     await connection.end();

@@ -32,7 +32,7 @@ test('Registration sends full date and gender; profile preserves the date after 
  const context=vm.createContext({document:{querySelector:element,addEventListener(){}},sessionStorage:{getItem:()=>null,setItem(){},removeItem(){}},localStorage:{getItem:()=>null},console,setTimeout(){},clearTimeout(){},URLSearchParams});
  for(const file of ['crm-domain.js','customer-fields.js','birth-date.js','app.js','recovery-client.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
  vm.runInContext("authTab='reg';render()",context);assert.ok(element('#app').innerHTML.includes('placeholder="dd/mm/yyyy"'));assert.ok(element('#app').innerHTML.includes('name="gender"'));assert.ok(!element('#app').innerHTML.includes('name="year"'));
- context.record=(url,o)=>{requests.push({url,body:JSON.parse(o.body)});return {user:{name:'Khách thử',email:'test@example.com',phone:'0901234567',birthDate:'1998-10-21',gender:'Nữ',year:1998,addr:'Hà Nội',need:'Gaming'}}};
+ context.record=(url,o)=>{requests.push({url,body:JSON.parse(o.body)});return {user:{name:'Khách thử',email:'test@example.com',phone:'0901234567',birthDate:'1998-10-21',gender:'Nữ',addr:'Hà Nội',need:'Gaming'}}};
  vm.runInContext('api=async(url,o)=>record(url,o);refreshData=async()=>{}',context);
  await vm.runInContext("H.reg({name:'Khách thử',email:'test@example.com',phone:'0901234567',birthDate:'21/10/1998',gender:'Nữ',pass:'example-pass',pass2:'example-pass'})",context);
  assert.equal(requests[0].body.birthDate,'1998-10-21');assert.equal(requests[0].body.gender,'Nữ');assert.ok(!('year' in requests[0].body));

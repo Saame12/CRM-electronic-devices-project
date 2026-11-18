@@ -30,7 +30,7 @@ async function erase(db, id, { requireLocked = true } = {}) {
     ]);
     await c.execute('DELETE FROM customer_recovery_codes WHERE customer_id=?', [id]);
     await c.execute(
-      "UPDATE users SET account_status='LOCKED',email=NULL,phone=NULL,password_hash=NULL,address='',birth_year=NULL,auth_version=auth_version+1,erased_at=UTC_TIMESTAMP() WHERE id=?",
+      "UPDATE users SET account_status='LOCKED',email=NULL,phone=NULL,password_hash=NULL,address='',auth_version=auth_version+1,erased_at=UTC_TIMESTAMP() WHERE id=?",
       [id]
     );
   });

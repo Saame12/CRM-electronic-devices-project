@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS users (
   phone VARCHAR(15) NULL UNIQUE,
   erased_at DATETIME NULL,
   address VARCHAR(255) NOT NULL DEFAULT '',
-  birth_year SMALLINT NULL,
   birth_date DATE NULL,
   gender ENUM('', 'Nam', 'Nữ', 'Khác') NOT NULL DEFAULT '',
   need VARCHAR(80) NOT NULL DEFAULT 'Chưa xác định',
